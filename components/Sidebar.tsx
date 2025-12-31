@@ -65,24 +65,34 @@ const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   useEffect(() => {
+    let mounted = true;
     if (propItems && propItems.length > 0) {
       setItems(propItems);
       return;
     }
     const fetchNavigation = async () => {
       try {
-        const { data: menuData } = await supabase.from('navigation_menus').select('id').eq('code', 'sidebar_main').single();
-        if (menuData) {
+        const { data: menuData } = await supabase
+          .from('navigation_menus')
+          .select('id')
+          .eq('code', 'sidebar_main')
+          .limit(1)
+          .maybeSingle();
+
+        if (menuData && mounted) {
           const { data: itemsData } = await supabase
             .from('navigation_items')
             .select('*')
             .eq('menu_id', menuData.id)
             .order('order_index');
-          if (itemsData) setItems(itemsData);
+          if (itemsData && mounted) setItems(itemsData);
         }
-      } catch (e) { }
+      } catch (e) {
+        console.error("Sidebar fetch error:", e);
+      }
     };
     fetchNavigation();
+    return () => { mounted = false; };
   }, [propItems]);
 
   const renderIcon = (iconName: string, size = 18) => {

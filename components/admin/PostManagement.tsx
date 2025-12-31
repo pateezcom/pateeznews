@@ -1,8 +1,23 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import PostTextItem, { PostItem } from './PostTextItem';
 import 'react-quill/dist/quill.snow.css';
 import { useDropzone } from 'react-dropzone';
+import { NavigationItem } from '../../types';
+import {
+    X, Upload, ImageIcon, Zap, Languages, Layout, Trash2, CheckCircle2,
+    Plus, Image as LucideImage, Type, List,
+    Save, FileText, Settings2, Search,
+    Globe, Loader2, Share2,
+    Calendar, Clock, SortAsc, SortDesc, Hash, Video, ShieldCheck, ListOrdered, Utensils, BarChart2,
+    Check, ChevronDown, ChevronRight, Edit3
+} from 'lucide-react';
+import { supabase } from '../../lib/supabase';
+import { storageService, MediaItem } from '../../services/storageService';
+import { useLanguage } from '../../context/LanguageContext';
+import FilerobotImageEditor, { TABS, TOOLS } from 'react-filerobot-image-editor';
+
+const FilerobotEditor: any = FilerobotImageEditor;
 
 // Premium Quill Overrides
 const QUILL_CUSTOM_STYLE = `
@@ -41,17 +56,11 @@ const QUILL_CUSTOM_STYLE = `
     font-weight: 600 !important;
   }
 `;
-import {
-    X, Upload, ImageIcon, Zap, Languages, Layout, Trash2, CheckCircle2,
-    Plus, Image as LucideImage, Type, List,
-    Save, FileText, Settings2,
-    Globe, Loader2, Share2,
-    Calendar, Clock, SortAsc, SortDesc, Hash, Video, ShieldCheck, ListOrdered, Utensils, BarChart2
-} from 'lucide-react';
-import { supabase } from '../../lib/supabase';
-import { storageService, MediaItem } from '../../services/storageService';
-import 'react-quill/dist/quill.snow.css';
-import { useLanguage } from '../../context/LanguageContext';
+
+interface Language {
+    code: string;
+    name: string;
+}
 
 const PostManagement: React.FC = () => {
     const { t } = useLanguage();
@@ -75,16 +84,140 @@ const PostManagement: React.FC = () => {
     const [activeSort, setActiveSort] = useState<'asc' | 'desc' | null>('asc');
     const [isUrlMode, setIsUrlMode] = useState(false);
     const [showFileManager, setShowFileManager] = useState(false);
+    const [showImageEditor, setShowImageEditor] = useState(false);
     const [localFiles, setLocalFiles] = useState<any[]>([]);
     const [validatingUrl, setValidatingUrl] = useState(false);
     const [urlError, setUrlError] = useState<string | null>(null);
     const [tempUrl, setTempUrl] = useState('');
     const [tagInput, setTagInput] = useState('');
     const [activeDetailTab, setActiveDetailTab] = useState<'article' | 'quiz' | 'poll' | 'video' | 'contents' | 'recipe'>('article');
+    const [categories, setCategories] = useState<NavigationItem[]>([]);
+    const [languages, setLanguages] = useState<Language[]>([]);
+    const [selectedLanguage, setSelectedLanguage] = useState('tr');
+    const [selectedParentId, setSelectedParentId] = useState<string>('');
+    const [selectedSubId, setSelectedSubId] = useState<string>('');
 
     useEffect(() => {
         fetchMedia();
+        fetchLanguages();
     }, []);
+
+    const handleEditorSave = async (editedImageObject: any) => {
+        try {
+            // Get original filename to preserve it if possible
+            let originalName = `edited-${Date.now()}`;
+            if (formData.thumbnail) {
+                try {
+                    const parts = formData.thumbnail.split('/');
+                    const lastPart = parts[parts.length - 1]; // filename_xl.webp
+                    const name = lastPart.split('_')[0]; // filename
+                    if (name && name !== 'api' && name !== 'storage') {
+                        originalName = name;
+                    }
+                } catch (e) {
+                    console.error("Filename extraction failed:", e);
+                }
+            }
+
+            let file: File;
+            if (editedImageObject.imageBlob) {
+                file = new File([editedImageObject.imageBlob], `${originalName}.webp`, { type: 'image/webp' });
+            } else if (editedImageObject.imageBase64) {
+                const response = await fetch(editedImageObject.imageBase64);
+                const blob = await response.blob();
+                file = new File([blob], `${originalName}.webp`, { type: 'image/webp' });
+            } else {
+                throw new Error("Resim verisi bulunamadı.");
+            }
+
+            const result = await storageService.uploadFile(file);
+            if (result) {
+                setFormData(prev => ({ ...prev, thumbnail: result.src }));
+                // Update local files list - if it's an "update", we can either add to start or replace
+                // For safety and cache busting, treat as new version (already handled by date folder)
+                setLocalFiles(prev => [result, ...prev]);
+            }
+        } catch (err) {
+            console.error('Editor save failed:', err);
+        } finally {
+            setShowImageEditor(false);
+        }
+    };
+
+    useEffect(() => {
+        if (selectedLanguage) {
+            fetchCategories(selectedLanguage);
+            // Dil değiştiğinde kategori seçimlerini sıfırla (eğer manuel değişimse)
+            if (formData.id === '') { // Sadece yeni haber eklerken sıfırla, düzenlerken baştan yüklenecek
+                setSelectedParentId('');
+                setSelectedSubId('');
+                setFormData(prev => ({ ...prev, category: '' }));
+            }
+        }
+    }, [selectedLanguage]);
+
+    const fetchLanguages = async () => {
+        try {
+            const { data } = await supabase.from('languages').select('code, name');
+            if (data) setLanguages(data);
+        } catch (error) {
+            console.error("Error fetching languages:", error);
+        }
+    };
+
+    const fetchCategories = async (langCode: string) => {
+        try {
+            const { data: menuData } = await supabase
+                .from('navigation_menus')
+                .select('id')
+                .eq('code', 'sidebar_main')
+                .single();
+
+            if (menuData) {
+                const { data: itemData } = await supabase
+                    .from('navigation_items')
+                    .select('*')
+                    .eq('menu_id', menuData.id)
+                    .eq('language_code', langCode)
+                    .order('order_index', { ascending: true });
+                setCategories(itemData || []);
+
+                // If editing and category exists, try to pre-populate dropdowns
+                if (formData.category && itemData) {
+                    const matchedItem = itemData.find(i => i.label === formData.category);
+                    if (matchedItem) {
+                        if (matchedItem.parent_id) {
+                            setSelectedParentId(matchedItem.parent_id);
+                            setSelectedSubId(matchedItem.id);
+                        } else {
+                            setSelectedParentId(matchedItem.id);
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("Error fetching categories:", error);
+        }
+    };
+
+    const handleParentCategoryChange = (catId: string) => {
+        setSelectedParentId(catId);
+        setSelectedSubId('');
+        const cat = categories.find(c => c.id === catId);
+        if (cat) {
+            setFormData({ ...formData, category: cat.label });
+        } else {
+            setFormData({ ...formData, category: '' });
+        }
+    };
+
+    const handleSubCategoryChange = (catId: string) => {
+        setSelectedSubId(catId);
+        const cat = categories.find(c => c.id === catId);
+        if (cat) {
+            setFormData({ ...formData, category: cat.label });
+        }
+    };
 
     const fetchMedia = async () => {
         const files = await storageService.getFiles();
@@ -476,14 +609,22 @@ const PostManagement: React.FC = () => {
                     <div className="bg-white p-6 rounded-[3px] border border-palette-tan/20 shadow-sm space-y-5">
                         <div className="space-y-4">
                             <h4 className="text-[13px] font-bold text-palette-tan ml-1 border-b border-palette-tan/15 pb-2 uppercase tracking-widest">Haber Kapağı</h4>
-                            <div className="rounded-[3px] bg-palette-beige/5 border-2 border-dashed border-palette-tan/20 flex flex-col items-center justify-center overflow-hidden transition-all relative group aspect-video">
+                            <div className="rounded-[3px] bg-palette-beige/5 border-2 border-dashed border-palette-tan/20 flex flex-col items-center justify-center overflow-hidden transition-all relative group w-full min-h-[160px]">
                                 {formData.thumbnail ? (
-                                    <div className="relative w-full h-full">
-                                        <img src={formData.thumbnail} className="w-full h-full object-cover" />
-                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
+                                    <div className="relative w-full">
+                                        <img src={formData.thumbnail} className="w-full h-auto object-contain block" />
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-2">
+                                            <button
+                                                onClick={() => setShowImageEditor(true)}
+                                                className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-emerald-600 transition-all"
+                                                title="Düzenle"
+                                            >
+                                                <Edit3 size={20} />
+                                            </button>
                                             <button
                                                 onClick={() => setFormData({ ...formData, thumbnail: '' })}
                                                 className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-palette-red transition-all"
+                                                title="Sil"
                                             >
                                                 <Trash2 size={20} />
                                             </button>
@@ -505,20 +646,81 @@ const PostManagement: React.FC = () => {
                                 )}
                             </div>
                         </div>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-[3px] border border-palette-tan/20 shadow-sm space-y-5">
+                        <h4 className="text-[13px] font-bold text-palette-tan ml-1 border-b border-palette-tan/15 pb-2 uppercase tracking-widest flex items-center justify-between">
+                            Kategori Ayarları
+                            <Settings2 size={14} className="text-palette-tan/30" />
+                        </h4>
 
                         <div className="space-y-4">
-                            <h4 className="text-[13px] font-bold text-palette-tan ml-1 border-b border-palette-tan/15 pb-2 uppercase tracking-widest">Kategori</h4>
-                            <select
-                                value={formData.category}
-                                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                className="w-full bg-palette-beige/20 border border-palette-tan/20 rounded-[3px] p-3 text-sm font-bold text-palette-maroon outline-none cursor-pointer"
-                            >
-                                <option>Gündem</option>
-                                <option>Teknoloji</option>
-                                <option>Spor</option>
-                                <option>Ekonomi</option>
-                                <option>Magazin</option>
-                            </select>
+                            {/* DİL SEÇİMİ */}
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-black text-palette-tan/60 ml-1 flex items-center gap-1.5">
+                                    <Languages size={12} /> HABER DİLİ
+                                </label>
+                                <div className="relative group">
+                                    <select
+                                        value={selectedLanguage}
+                                        onChange={(e) => setSelectedLanguage(e.target.value)}
+                                        className="w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] p-3 text-sm font-bold text-palette-maroon outline-none appearance-none cursor-pointer focus:border-palette-red transition-all"
+                                    >
+                                        {languages.map(lang => (
+                                            <option key={lang.code} value={lang.code}>{lang.name}</option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/40 pointer-events-none group-hover:text-palette-maroon transition-colors" />
+                                </div>
+                            </div>
+
+                            {/* ANA KATEGORİ SEÇİMİ */}
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-black text-palette-tan/60 ml-1 flex items-center gap-1.5">
+                                    <Layout size={12} /> ANA KATEGORİ
+                                </label>
+                                <div className="relative group">
+                                    <select
+                                        value={selectedParentId}
+                                        onChange={(e) => handleParentCategoryChange(e.target.value)}
+                                        className="w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] p-3 text-sm font-bold text-palette-maroon outline-none appearance-none cursor-pointer focus:border-palette-red transition-all"
+                                    >
+                                        <option value="">Kategori Seçin</option>
+                                        {categories.filter(c => !c.parent_id).map(cat => (
+                                            <option key={cat.id} value={cat.id}>{cat.label}</option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/40 pointer-events-none group-hover:text-palette-maroon transition-colors" />
+                                </div>
+                            </div>
+
+                            {/* ALT KATEGORİ SEÇİMİ */}
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-black text-palette-tan/60 ml-1 flex items-center gap-1.5">
+                                    <List size={12} /> ALT KATEGORİ
+                                </label>
+                                <div className="relative group">
+                                    <select
+                                        value={selectedSubId}
+                                        onChange={(e) => handleSubCategoryChange(e.target.value)}
+                                        disabled={!selectedParentId}
+                                        className={`w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] p-3 text-sm font-bold text-palette-maroon outline-none appearance-none cursor-pointer focus:border-palette-red transition-all ${!selectedParentId ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    >
+                                        <option value="">Alt Kategori Seçin</option>
+                                        {categories.filter(c => c.parent_id === selectedParentId).map(cat => (
+                                            <option key={cat.id} value={cat.id}>{cat.label}</option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/40 pointer-events-none group-hover:text-palette-maroon transition-colors" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="pt-2">
+                            <div className="px-3 py-2 bg-palette-red/5 border border-palette-red/10 rounded-[3px]">
+                                <p className="text-[10px] font-black text-palette-red uppercase tracking-wider">Seçili Kategori:</p>
+                                <p className="text-[12px] font-bold text-palette-maroon">{formData.category || 'Henüz seçilmedi'}</p>
+                            </div>
                         </div>
                     </div>
 
@@ -622,10 +824,41 @@ const PostManagement: React.FC = () => {
                     </div>
                 </div>
             )}
+
+            {showImageEditor && formData.thumbnail && (
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 animate-in fade-in duration-500">
+                    <div className="absolute inset-0 bg-palette-maroon/80 backdrop-blur-sm" onClick={() => setShowImageEditor(false)} />
+
+                    <div className="bg-white w-full max-w-7xl h-[85vh] rounded-[3px] overflow-hidden shadow-2xl relative flex flex-col border border-palette-tan/20 animate-in zoom-in-95 duration-300">
+                        <FilerobotEditor
+                            source={formData.thumbnail}
+                            onSave={(editedImageObject: any) => handleEditorSave(editedImageObject)}
+                            onClose={() => setShowImageEditor(false)}
+                            config={{
+                                annotationsCommon: { fill: '#ff0000' },
+                                Text: { text: 'Buzz Haber' },
+                                Rotate: { angle: 90, componentType: 'slider' },
+                                tabsIds: [TABS.ADJUST, TABS.FILTERS, TABS.ANNOTATE, TABS.WATERMARK],
+                                defaultTabId: TABS.ANNOTATE,
+                                savingPixelRatio: 1,
+                                previewPixelRatio: 1,
+                                willReadFrequently: true,
+                                toolsByTab: {
+                                    [TABS.ADJUST]: [TOOLS.CROP, TOOLS.ROTATE, TOOLS.FLIP_X, TOOLS.FLIP_Y],
+                                },
+                                [TABS.ADJUST]: {
+                                    hideResize: true,
+                                },
+                            }}
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
 
+// --- MEDIA MANAGER MODAL COMPONENT ---
 const MediaManagerModal: React.FC<{
     onClose: () => void;
     onSelect: (src: string) => void;
@@ -651,7 +884,6 @@ const MediaManagerModal: React.FC<{
                 setUploadProgress(100);
                 if (result) {
                     setLocalFiles(prev => [result, ...prev]);
-                    setSelectedImage(result.src);
                 }
             } catch (err) {
                 console.error(err);
@@ -662,68 +894,231 @@ const MediaManagerModal: React.FC<{
         accept: 'image/*'
     });
 
-    const filteredFiles = localFiles.filter(f => f.value.toLowerCase().includes(searchTerm.toLowerCase()));
+    const filteredFiles = useMemo(() => {
+        if (!searchTerm) return localFiles;
+
+        const normalize = (str: string) =>
+            str.toLocaleLowerCase('tr-TR')
+                .replace(/ı/g, 'i')
+                .replace(/ğ/g, 'g')
+                .replace(/ü/g, 'u')
+                .replace(/ş/g, 's')
+                .replace(/ö/g, 'o')
+                .replace(/ç/g, 'c')
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "");
+
+        const term = normalize(searchTerm);
+
+        return localFiles.filter(f =>
+            normalize(f.name || '').includes(term) ||
+            normalize(f.value || '').includes(term)
+        );
+    }, [localFiles, searchTerm]);
+
+    const handleDelete = async () => {
+        if (!selectedImage) return;
+        const fileToDelete = localFiles.find(f => f.src === selectedImage);
+        if (!fileToDelete) return;
+
+        try {
+            const success = await storageService.deleteFile(fileToDelete.id);
+            if (success) {
+                const newFiles = localFiles.filter(f => f.src !== selectedImage);
+                setLocalFiles(newFiles);
+                setSelectedImage(null);
+            }
+        } catch (err) {
+            console.error("Delete failed:", err);
+        }
+    };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in">
-            <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-            <div className="bg-white w-full max-w-6xl h-[75vh] rounded-[3px] overflow-hidden shadow-2xl relative flex flex-col border border-palette-tan/20">
-                <div className="p-4 border-b border-palette-tan/10 flex items-center justify-between bg-white">
-                    <h3 className="text-lg font-black text-palette-maroon tracking-widest">MEDYA KÜTÜPHANESİ</h3>
-                    <input
-                        type="text"
-                        placeholder="Ara..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="max-w-xs w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] px-4 py-2 text-sm font-bold text-palette-maroon outline-none"
-                    />
-                    <button onClick={onClose} className="text-palette-tan hover:text-palette-maroon"><X size={24} /></button>
-                </div>
-                <div className="flex-1 flex overflow-hidden">
-                    <div className="w-64 border-r border-palette-tan/10 p-4 space-y-4 shrink-0 bg-palette-beige/5">
-                        <div {...getRootProps()} className={`border-2 border-dashed rounded-[3px] p-6 text-center cursor-pointer transition-all ${isDragActive ? 'border-palette-maroon bg-white' : 'border-palette-tan/20 hover:border-palette-maroon'}`}>
-                            <input {...getInputProps()} />
-                            <Upload size={32} className="mx-auto mb-2 text-palette-tan/30" />
-                            <p className="text-[12px] font-black text-palette-maroon tracking-tighter">GÖRSEL YÜKLE</p>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-500">
+            <div className="absolute inset-0 bg-palette-maroon/80 backdrop-blur-sm" onClick={onClose} />
+
+            <div className="bg-white w-full max-w-7xl h-[85vh] rounded-[3px] overflow-hidden shadow-2xl relative flex flex-col border border-palette-tan/20 animate-in zoom-in-95 duration-300">
+                {/* HEADER */}
+                <div className="px-8 py-5 border-b border-palette-tan/10 flex items-center justify-between bg-white relative z-10">
+                    <div className="flex items-center gap-8 flex-1">
+                        <div className="flex items-center gap-3">
+                            <div className="w-1.5 h-6 bg-palette-red rounded-full" />
+                            <h3 className="text-xl font-black text-palette-maroon tracking-tight uppercase">Media Library</h3>
                         </div>
-                        {uploading && (
-                            <div className="p-3 bg-white border border-palette-tan/20 rounded-[3px]">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <img src={uploadPreview || ''} className="w-8 h-8 rounded-[3px] object-cover" />
-                                    <div className="flex-1 text-[11px] font-bold text-palette-maroon truncate">Yükleniyor...</div>
+                        <div className="relative flex-1 max-w-lg group">
+                            <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-palette-tan/30 group-focus-within:text-palette-maroon transition-colors" />
+                            <input
+                                type="text"
+                                placeholder="Search storage..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full h-11 bg-palette-beige/5 border border-palette-tan/15 rounded-[3px] pl-11 pr-4 text-[13px] font-bold text-palette-maroon outline-none focus:border-palette-maroon focus:bg-white focus:ring-4 focus:ring-palette-maroon/5 transition-all text-sm"
+                            />
+                        </div>
+                    </div>
+                    <button onClick={onClose} className="w-10 h-10 flex items-center justify-center rounded-[3px] text-palette-tan/30 hover:text-palette-red hover:bg-red-50 transition-all border border-transparent hover:border-red-100"><X size={22} /></button>
+                </div>
+
+                <div className="flex-1 flex overflow-hidden">
+                    {/* LEFT SIDEBAR: UPLOAD ZONE (Aligned Top) */}
+                    <div className="w-80 border-r border-palette-tan/10 p-6 flex flex-col bg-palette-beige/5 shrink-0 relative overflow-hidden">
+                        <div
+                            {...getRootProps()}
+                            className={`flex flex-col items-center justify-start pt-12 border-2 border-dashed rounded-[3px] h-full p-8 text-center transition-all cursor-pointer relative z-10 ${isDragActive ? 'border-palette-maroon bg-white shadow-xl scale-[0.98]' : 'border-palette-tan/15 hover:border-palette-maroon hover:bg-white bg-white/40'
+                                }`}
+                        >
+                            <input {...getInputProps()} />
+
+                            {/* Extensions Tags (Up High) */}
+                            <div className="flex flex-wrap justify-center gap-1.5 mb-10">
+                                {['JPG', 'JPEG', 'WEBP', 'PNG', 'GIF'].map(ext => (
+                                    <span key={ext} className="text-[10px] font-black text-palette-tan/40 bg-white border border-palette-tan/10 px-2.5 py-1 rounded-[3px] shadow-sm tracking-tighter">
+                                        {ext}
+                                    </span>
+                                ))}
+                            </div>
+
+                            <div className="mb-6 relative">
+                                <div className={`w-16 h-16 rounded-full flex items-center justify-center transition-all duration-500 ${isDragActive ? 'bg-palette-maroon scale-110' : 'bg-palette-tan/5'}`}>
+                                    <Upload size={28} className={`transition-colors duration-500 ${isDragActive ? 'text-white' : 'text-palette-tan/20'}`} strokeWidth={1.5} />
                                 </div>
-                                <div className="w-full h-1 bg-palette-beige rounded-full overflow-hidden">
-                                    <div className="h-full bg-palette-red transition-all" style={{ width: `${uploadProgress}%` }} />
+                                {!isDragActive && (
+                                    <div className="absolute inset-0 border-4 border-palette-tan/10 border-t-palette-maroon/20 rounded-full animate-spin-slow opacity-30" />
+                                )}
+                            </div>
+
+                            <p className="text-[13px] font-bold text-palette-tan/60 mb-8 px-6 leading-relaxed">
+                                {isDragActive ? 'Drop to upload' : 'Drag and drop files here or'}
+                            </p>
+
+                            <button className="flex items-center justify-center gap-2 w-full h-10 bg-white border border-palette-tan/20 text-palette-maroon text-[11px] font-black tracking-widest rounded-[3px] hover:bg-palette-maroon hover:text-white hover:border-palette-maroon transition-all shadow-sm active:scale-95">
+                                <Plus size={14} />
+                                BROWSE FILES
+                            </button>
+
+                            {/* UPLOADING PREVIEW (Inside Dropzone) */}
+                            {uploading && (
+                                <div
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="mt-10 w-full animate-in zoom-in-95 duration-300 flex flex-col items-center"
+                                >
+                                    <div className="relative aspect-square w-full max-w-[160px] rounded-[3px] overflow-hidden border border-palette-tan/20 shadow-2xl ring-4 ring-white">
+                                        <img src={uploadPreview || ''} className="w-full h-full object-cover opacity-40 blur-[1px]" />
+                                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-palette-maroon/10 backdrop-blur-[1px]">
+                                            <div className="relative">
+                                                <Loader2 size={32} className="text-palette-maroon animate-spin" />
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                    <span className="text-[8px] font-black text-palette-maroon">{uploadProgress}%</span>
+                                                </div>
+                                            </div>
+                                            <span className="mt-3 text-[9px] font-black text-palette-maroon tracking-[0.2em] uppercase">Processing</span>
+                                        </div>
+                                    </div>
+                                    <div className="mt-4 w-full px-4">
+                                        <div className="h-1 bg-palette-tan/10 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-palette-red transition-all duration-300 shadow-[0_0_8px_rgba(239,68,68,0.4)]"
+                                                style={{ width: `${uploadProgress}%` }}
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* MAIN CONTENT: IMAGES GRID (Refined Typography) */}
+                    <div
+                        className="flex-1 p-8 overflow-y-auto bg-white custom-scrollbar"
+                        onClick={() => setSelectedImage(null)}
+                    >
+                        {filteredFiles.length === 0 ? (
+                            <div className="h-full flex flex-col items-center justify-center text-palette-tan/10">
+                                <ImageIcon size={80} strokeWidth={0.5} className="mb-6" />
+                                <p className="text-[12px] font-black tracking-[0.3em] uppercase opacity-50">Empty Vault</p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-8 pb-10">
+                                {filteredFiles.map((file) => (
+                                    <div
+                                        key={file.id}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedImage(file.src);
+                                        }}
+                                        onDoubleClick={(e) => {
+                                            e.stopPropagation();
+                                            onSelect(file.src);
+                                        }}
+                                        className="group flex flex-col cursor-pointer"
+                                    >
+                                        <div className={`relative aspect-square rounded-[3px] border-2 transition-all duration-300 overflow-hidden flex items-center justify-center ${selectedImage === file.src
+                                            ? 'border-emerald-500 ring-[8px] ring-emerald-500/5 shadow-2xl'
+                                            : 'border-palette-tan/10 hover:border-palette-maroon/40 group-hover:shadow-xl bg-palette-beige/5'
+                                            }`}>
+                                            <img
+                                                src={file.thumb || file.src}
+                                                className={`w-full h-full object-contain p-1 transition-all duration-700 ${selectedImage === file.src ? 'scale-105' : 'group-hover:scale-105 group-hover:rotate-1'
+                                                    }`}
+                                                loading="lazy"
+                                            />
+
+                                            {/* Status Badge */}
+                                            {selectedImage === file.src && (
+                                                <div className="absolute inset-0 bg-emerald-500/5 flex items-center justify-center">
+                                                    <div className="bg-emerald-500 text-white rounded-full p-2 shadow-2xl animate-in zoom-in-50 duration-300 ring-4 ring-white">
+                                                        <Check size={18} strokeWidth={4} />
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div className="absolute top-2 left-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <span className="text-[8px] font-black text-white bg-palette-maroon/80 px-1.5 py-0.5 rounded-[3px] backdrop-blur-md uppercase tracking-tighter">
+                                                    {file.src.split('.').pop()}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <p className={`mt-3 text-[10px] font-black tracking-tight truncate px-1 transition-all duration-300 ${selectedImage === file.src ? 'text-emerald-700 font-bold' : 'text-palette-tan/60 group-hover:text-palette-maroon'
+                                            }`}>
+                                            {file.value || file.name || 'document.bin'}
+                                        </p>
+                                        <div className="flex items-center justify-between px-1 mt-0.5">
+                                            <span className="text-[8px] font-bold text-palette-tan/30 uppercase tracking-widest">Digital Asset</span>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         )}
                     </div>
-                    <div className="flex-1 p-6 overflow-y-auto bg-white custom-scrollbar">
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                            {filteredFiles.map((file) => (
-                                <div
-                                    key={file.id}
-                                    onClick={() => setSelectedImage(file.src)}
-                                    className={`relative aspect-square rounded-[3px] border-2 transition-all cursor-pointer overflow-hidden ${selectedImage === file.src ? 'border-palette-red ring-4 ring-palette-red/10' : 'border-palette-tan/10 hover:border-palette-maroon'}`}
-                                >
-                                    <img src={file.thumb || file.src} className="w-full h-full object-cover" />
-                                    {selectedImage === file.src && (
-                                        <div className="absolute top-2 right-2 bg-palette-red text-white rounded-full p-1"><CheckCircle2 size={12} /></div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
                 </div>
-                <div className="p-4 border-t border-palette-tan/10 flex justify-end gap-3 bg-palette-beige/5">
-                    <button onClick={onClose} className="px-6 py-2.5 text-[12px] font-black text-palette-tan tracking-widest hover:text-palette-maroon">İPTAL</button>
+
+                {/* FOOTER: Perfectly Aligned */}
+                <div className="px-8 py-4 border-t border-palette-tan/10 flex items-center justify-between bg-palette-beige/5">
                     <button
-                        disabled={!selectedImage || uploading}
-                        onClick={() => selectedImage && onSelect(selectedImage)}
-                        className="px-8 py-2.5 bg-palette-maroon text-white rounded-[3px] text-[12px] font-black tracking-[0.2em] shadow-lg shadow-palette-maroon/10 disabled:opacity-50"
+                        onClick={handleDelete}
+                        disabled={!selectedImage}
+                        className="flex items-center justify-center gap-2 h-9 px-5 bg-palette-red text-white rounded-[3px] text-[11px] font-black tracking-widest hover:bg-red-700 transition-all shadow-xl shadow-palette-red/10 disabled:opacity-20 disabled:shadow-none active:scale-95"
                     >
-                        SEÇ VE EKLE
+                        <Trash2 size={16} />
+                        <span>DELETE PERMANENTLY</span>
                     </button>
+
+                    <div className="flex items-center gap-4">
+                        <button
+                            disabled={!selectedImage || uploading}
+                            onClick={() => selectedImage && onSelect(selectedImage)}
+                            className="flex items-center justify-center gap-2 h-10 px-8 bg-emerald-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.2em] shadow-2xl shadow-emerald-600/20 hover:bg-emerald-700 transition-all disabled:opacity-20 disabled:shadow-none active:scale-95"
+                        >
+                            <CheckCircle2 size={18} />
+                            <span>USE THIS IMAGE</span>
+                        </button>
+                        <button
+                            onClick={onClose}
+                            className="flex items-center justify-center h-10 px-6 text-[11px] font-black text-palette-tan/50 hover:text-palette-maroon border border-palette-tan/15 rounded-[3px] hover:bg-white transition-all bg-white shadow-sm active:scale-95 uppercase tracking-widest"
+                        >
+                            CLOSE
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

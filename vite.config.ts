@@ -18,6 +18,10 @@ export default defineConfig(({ mode }) => {
         '@': path.resolve(__dirname, '.'),
       }
     },
+    optimizeDeps: {
+      include: ['react-konva', 'konva', 'react-filerobot-image-editor', 'immutable', 'styled-components'],
+      force: true
+    },
     plugins: [
       react(),
       {
@@ -105,36 +109,50 @@ export default defineConfig(({ mode }) => {
 
                   const cleanFileName = path.parse(file.originalFilename).name.replace(/\s+/g, '-').toLowerCase();
 
-                  // Sizes configuration (Max dimensions, fits inside)
                   const sizes = {
                     sm: 300,   // Thumb
-                    lg: 1200,  // Large
                     xl: 2048   // XL / Web-ready Original
                   };
 
-                  const image = sharp(file.path);
+                  console.log('--- UPLOAD START ---', file.originalFilename);
+                  const originalImage = sharp(file.path);
 
-                  for (const [key, size] of Object.entries(sizes)) {
-                    await image
+                  try {
+                    // 1. Process XL (Full Size - Original Dimensions)
+                    await originalImage
+                      .clone()
+                      .webp({ quality: 100, lossless: true })
+                      .toFile(path.join(targetDir, `${cleanFileName}_xl.webp`));
+                    console.log('XL Processed');
+
+                    // 2. Process SM (Thumbnail - Still 300px for performance)
+                    await originalImage
                       .clone()
                       .resize({
-                        width: size,
-                        height: size,
-                        fit: 'inside', // MAINTAIN ASPECT RATIO, NO CROP
+                        width: 300,
+                        height: 300,
+                        fit: 'inside',
                         withoutEnlargement: true
                       })
-                      .webp({ quality: 85 })
-                      .toFile(path.join(targetDir, `${cleanFileName}_${key}.webp`));
+                      .webp({ quality: 90 })
+                      .toFile(path.join(targetDir, `${cleanFileName}_sm.webp`));
+                    console.log('SM Processed');
+
+                    fs.unlinkSync(file.path);
+                    console.log('Temp file deleted');
+
+                    res.end(JSON.stringify({
+                      id: `${today}/${cleanFileName}`,
+                      value: cleanFileName,
+                      src: `/api/storage/file/${today}/${cleanFileName}_xl.webp`,
+                      thumb: `/api/storage/file/${today}/${cleanFileName}_sm.webp`
+                    }));
+                    console.log('--- UPLOAD SUCCESS ---');
+                  } catch (sharpError) {
+                    console.error('SHARP ERROR:', sharpError);
+                    res.statusCode = 500;
+                    res.end(JSON.stringify({ error: sharpError.message }));
                   }
-
-                  fs.unlinkSync(file.path);
-
-                  res.end(JSON.stringify({
-                    id: `${today}/${cleanFileName}`,
-                    value: cleanFileName,
-                    src: `/api/storage/file/${today}/${cleanFileName}_xl.webp`,
-                    thumb: `/api/storage/file/${today}/${cleanFileName}_sm.webp`
-                  }));
                 } catch (processErr) {
                   res.statusCode = 500;
                   res.end(processErr.message);
@@ -150,7 +168,7 @@ export default defineConfig(({ mode }) => {
               const dirPath = path.join(baseDir, path.dirname(filePathStr));
               const baseName = path.basename(filePathStr);
 
-              const sizes = ['sm', 'lg', 'xl'];
+              const sizes = ['sm', 'xl'];
               sizes.forEach(size => {
                 const p = path.join(dirPath, `${baseName}_${size}.webp`);
                 if (fs.existsSync(p)) fs.unlinkSync(p);

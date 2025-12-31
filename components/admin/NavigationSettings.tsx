@@ -89,6 +89,11 @@ const ICON_OPTIONS = [
   { name: 'History', icon: History }
 ];
 
+interface Language {
+  code: string;
+  name: string;
+}
+
 const NavigationSettings: React.FC = () => {
   const { t } = useLanguage();
   const [menus, setMenus] = useState<NavigationMenu[]>([]);
@@ -97,6 +102,8 @@ const NavigationSettings: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [seeding, setSeeding] = useState(false);
+  const [languages, setLanguages] = useState<Language[]>([]);
+  const [selectedLanguage, setSelectedLanguage] = useState('tr');
 
   // Modal States
   const [showItemModal, setShowItemModal] = useState(false);
@@ -119,11 +126,13 @@ const NavigationSettings: React.FC = () => {
     type: 'link',
     value: '',
     icon: '',
-    parent_id: 'root' as string
+    parent_id: 'root' as string,
+    language_code: 'tr'
   });
 
   useEffect(() => {
     fetchMenus();
+    fetchLanguages();
   }, []);
 
   useEffect(() => {
@@ -131,6 +140,16 @@ const NavigationSettings: React.FC = () => {
       fetchItems(activeMenuId);
     }
   }, [activeMenuId]);
+
+  const fetchLanguages = async () => {
+    try {
+      const { data, error } = await supabase.from('languages').select('code, name');
+      if (error) throw error;
+      setLanguages(data || []);
+    } catch (error) {
+      console.error("Error fetching languages:", error);
+    }
+  };
 
   const fetchMenus = async () => {
     try {
@@ -255,7 +274,8 @@ const NavigationSettings: React.FC = () => {
         value: formData.value,
         icon: formData.icon,
         parent_id: formData.parent_id === 'root' ? null : (formData.parent_id || null),
-        order_index: editingItem ? editingItem.order_index : items.length
+        order_index: editingItem ? editingItem.order_index : items.length,
+        language_code: formData.language_code
       };
 
       if (editingItem) {
@@ -303,7 +323,8 @@ const NavigationSettings: React.FC = () => {
         type: item.type,
         value: item.value || '',
         icon: item.icon || '',
-        parent_id: item.parent_id || 'root'
+        parent_id: item.parent_id || 'root',
+        language_code: item.language_code || 'tr'
       });
     } else {
       setEditingItem(null);
@@ -312,7 +333,8 @@ const NavigationSettings: React.FC = () => {
         type: 'link',
         value: '',
         icon: '',
-        parent_id: 'root'
+        parent_id: 'root',
+        language_code: 'tr'
       });
     }
     setShowItemModal(true);
@@ -529,6 +551,25 @@ const NavigationSettings: React.FC = () => {
             </div>
 
             <div className="p-8 space-y-5">
+              {/* DİL SEÇİMİ (YENİ) */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-black text-palette-tan/50 ml-1 flex items-center gap-1.5">
+                  <Globe size={12} /> DİL SEÇİMİ
+                </label>
+                <div className="relative group">
+                  <select
+                    value={formData.language_code}
+                    onChange={e => setFormData({ ...formData, language_code: e.target.value })}
+                    className="w-full h-11 px-4 bg-palette-beige/30 border border-palette-tan/10 rounded-[3px] text-sm font-bold text-palette-maroon outline-none focus:bg-white focus:border-palette-tan focus:ring-4 focus:ring-palette-tan/5 transition-all appearance-none cursor-pointer"
+                  >
+                    {languages.map(lang => (
+                      <option key={lang.code} value={lang.code}>{lang.name}</option>
+                    ))}
+                  </select>
+                  <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-palette-tan/30 pointer-events-none group-hover:text-palette-maroon transition-colors" />
+                </div>
+              </div>
+
               <div className="space-y-1.5">
                 <label className="text-[11px] font-black text-palette-tan/50 ml-1">{t('nav_settings.form.label')}</label>
                 <input

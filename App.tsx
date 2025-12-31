@@ -43,7 +43,7 @@ const App: React.FC = () => {
     try {
       const { data: postsData, error: postsError } = await supabase
         .from('posts')
-        .select('*, publisher:profiles!publisher_id(username, full_name, avatar_url)')
+        .select('*, profiles!publisher_id(username, full_name, avatar_url)')
         .order('created_at', { ascending: false });
 
       if (!postsError && postsData && postsData.length > 0) {
@@ -54,8 +54,8 @@ const App: React.FC = () => {
           summary: item.summary,
           content: item.content,
           category: item.category,
-          source: item.publisher?.username || 'Buzz Haber',
-          author: item.publisher?.full_name || 'Editör',
+          source: item.profiles?.username || 'Buzz Haber',
+          author: item.profiles?.full_name || 'Editör',
           timestamp: new Date(item.created_at).toLocaleDateString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
           mediaUrl: item.media_url || '',
           thumbnail: item.thumbnail_url || 'https://picsum.photos/800/600',
@@ -77,7 +77,7 @@ const App: React.FC = () => {
 
   const fetchNavigation = useCallback(async () => {
     try {
-      const { data: menuData } = await supabase.from('navigation_menus').select('id').eq('code', 'sidebar_main').single();
+      const { data: menuData } = await supabase.from('navigation_menus').select('id').eq('code', 'sidebar_main').maybeSingle();
       if (menuData) {
         const { data: itemsData } = await supabase
           .from('navigation_items')
@@ -136,6 +136,7 @@ const App: React.FC = () => {
   }, [selectedCategory]);
 
   useEffect(() => {
+    let mounted = true;
     const init = async () => {
       const start = Date.now();
       const [sessionRes] = await Promise.all([
@@ -145,24 +146,32 @@ const App: React.FC = () => {
         syncStateFromUrl()
       ]);
 
-      setSession(sessionRes.data.session);
-      setAuthLoading(false);
+      if (mounted) {
+        setSession(sessionRes.data.session);
+        setAuthLoading(false);
 
-      const elapsed = Date.now() - start;
-      const wait = Math.max(0, 800 - elapsed);
-      setTimeout(() => setIsAppReady(true), wait);
+        const elapsed = Date.now() - start;
+        const wait = Math.max(0, 800 - elapsed);
+        setTimeout(() => { if (mounted) setIsAppReady(true); }, wait);
+      }
     };
     init();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (session && window.location.pathname === '/giris') {
-        setView('admin'); updateUrl('admin', null, null, 'overview');
+      if (mounted) {
+        setSession(session);
+        if (session && window.location.pathname === '/giris') {
+          setView('admin'); updateUrl('admin', null, null, 'overview');
+        }
       }
     });
 
-    window.onpopstate = () => syncStateFromUrl();
-    return () => { subscription.unsubscribe(); window.onpopstate = null; };
+    window.onpopstate = () => { if (mounted) syncStateFromUrl(); };
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+      window.onpopstate = null;
+    };
   }, [fetchNews, fetchNavigation, syncStateFromUrl, updateUrl]);
 
   const handleBack = () => {

@@ -125,5 +125,6 @@ export interface NavigationItem {
   icon: string;
   order_index: number;
   is_active: boolean;
+  language_code?: string;
   children?: NavigationItem[]; // UI için hiyerarşi
 }
