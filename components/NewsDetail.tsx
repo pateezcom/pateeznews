@@ -1,0 +1,249 @@
+
+import React, { useEffect, useState } from 'react';
+import { 
+  ArrowLeft, 
+  Share2, 
+  Bookmark, 
+  Heart, 
+  MessageSquare, 
+  Clock, 
+  ChevronRight,
+  User,
+  CheckCircle2,
+  Calendar,
+  Twitter,
+  Facebook,
+  Linkedin,
+  Link as LinkIcon,
+  Home
+} from 'lucide-react';
+import { NewsItem, NewsType } from '../types';
+
+// Kart bileşenleri
+import ReviewCard from './cards/ReviewCard';
+import BeforeAfterCard from './cards/BeforeAfterCard';
+import FlipCard from './cards/FlipCard';
+import EmbedCard from './cards/EmbedCard';
+import AudioCard from './cards/AudioCard';
+import VideoCard from './cards/VideoCard';
+import GalleryCard from './cards/GalleryCard';
+import PollCard from './cards/PollCard';
+import VSCard from './cards/VSCard';
+import CommentSection from './CommentSection';
+
+interface NewsDetailProps {
+  data: NewsItem;
+  onBack: () => void;
+}
+
+const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack }) => {
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = (window.scrollY / totalHeight) * 100;
+      setScrollProgress(progress);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const renderMedia = () => {
+    switch (data.type) {
+      case NewsType.REVIEW: return <ReviewCard data={data} />;
+      case NewsType.BEFORE_AFTER: return <BeforeAfterCard data={data} />;
+      case NewsType.FLIP_CARD: return <FlipCard data={data} />;
+      case NewsType.EMBED: return <EmbedCard data={data} />;
+      case NewsType.AUDIO: return <AudioCard data={data} />;
+      case NewsType.VIDEO: return <VideoCard data={data} />;
+      case NewsType.GALLERY: return <GalleryCard data={data} />;
+      case NewsType.POLL: return <PollCard data={data} />;
+      case NewsType.VS: return <VSCard data={data} />;
+      default: return (
+        <div className="rounded-lg overflow-hidden border border-gray-100 shadow-xl mt-4 mb-8">
+           <img 
+            src={data.thumbnail} 
+            className="w-full h-auto object-cover max-h-[600px]" 
+           />
+        </div>
+      );
+    }
+  };
+
+  return (
+    <div className="animate-in bg-white rounded-lg border border-gray-200 shadow-sm relative min-h-screen mb-10">
+      
+      {/* Reading Progress Bar */}
+      <div className="fixed top-0 left-0 w-full h-1 z-[60] bg-gray-100/50 backdrop-blur-sm">
+        <div 
+          className="h-full bg-blue-600 transition-all duration-100 shadow-md"
+          style={{ width: `${scrollProgress}%` }}
+        />
+      </div>
+
+      {/* TOP HEADER - FULL WIDTH AREA */}
+      <div className="px-6 md:px-10 pt-8 pb-6 border-b border-gray-50 bg-gray-50/30 rounded-t-lg">
+        {/* Breadcrumbs */}
+        <nav className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-6">
+           <button onClick={onBack} className="flex items-center gap-1.5 hover:text-blue-600 transition-colors">
+             <Home size={12} />
+             <span>Ana Sayfa</span>
+           </button>
+           <ChevronRight size={10} />
+           <span className="text-blue-500">{data.category}</span>
+        </nav>
+
+        {/* Title & Summary - Full Width */}
+        <div className="w-full">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-[900] text-gray-900 leading-[1.05] tracking-tighter mb-6">
+              {data.title}
+            </h1>
+            <p className="text-xl md:text-2xl font-bold text-gray-500 leading-relaxed max-w-4xl">
+              {data.summary}
+            </p>
+        </div>
+
+        {/* Meta Info Bar */}
+        <div className="flex items-center justify-between mt-10 pt-6 border-t border-gray-100">
+           <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden shadow-sm">
+                <img src={`https://picsum.photos/seed/auth${data.id}/100`} className="w-full h-full object-cover" />
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm font-black text-gray-900">{data.author}</span>
+                  <CheckCircle2 size={14} className="text-blue-500" />
+                </div>
+                <div className="flex items-center gap-3 text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">
+                   <span className="flex items-center gap-1"><Calendar size={12} /> {data.timestamp}</span>
+                   <span className="flex items-center gap-1"><Clock size={12} /> 5 Dakika Okuma</span>
+                </div>
+              </div>
+           </div>
+           
+           <div className="flex items-center gap-2">
+              <button className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-lg text-xs font-black transition-all hover:bg-gray-800 shadow-md">
+                 <Share2 size={14} />
+                 <span>Paylaş</span>
+              </button>
+              <button onClick={onBack} className="p-2.5 bg-white border border-gray-200 text-gray-400 rounded-lg hover:text-blue-600 transition-all">
+                <ArrowLeft size={20} />
+              </button>
+           </div>
+        </div>
+      </div>
+
+      {/* CONTENT AREA WITH STICKY SIDEBAR */}
+      <div className="flex flex-col md:flex-row relative items-start">
+        
+        {/* LEFT STICKY SHARE BAR */}
+        <aside className="hidden md:flex flex-col items-center gap-3 sticky top-24 h-fit p-6 border-r border-gray-50 self-start z-10">
+           <div className="flex flex-col items-center mb-2">
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest [writing-mode:vertical-lr] rotate-180 mb-2">PAYLAŞ</span>
+              <div className="w-px h-8 bg-gray-100 mb-2"></div>
+              <span className="text-xs font-black text-blue-600 mb-2">{data.shares.toLocaleString()}</span>
+           </div>
+           
+           <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#1DA1F2] text-white hover:scale-110 transition-all shadow-sm">
+              <Twitter size={18} className="fill-current" />
+           </button>
+           <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#4267B2] text-white hover:scale-110 transition-all shadow-sm">
+              <Facebook size={18} className="fill-current" />
+           </button>
+           <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#0077B5] text-white hover:scale-110 transition-all shadow-sm">
+              <Linkedin size={18} className="fill-current" />
+           </button>
+           <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-900 hover:text-white transition-all shadow-sm">
+              <LinkIcon size={18} />
+           </button>
+           <div className="w-px h-10 bg-gray-100 my-2"></div>
+           <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-sm">
+              <Heart size={18} />
+           </button>
+        </aside>
+
+        {/* MAIN BODY CONTENT */}
+        <article className="flex-1 px-6 md:px-12 pt-6 pb-8 max-w-[840px] mx-auto md:mx-0">
+          
+          {/* Main Media (Video, Poll, Gallery etc.) */}
+          <div className="mb-10">
+            {renderMedia()}
+          </div>
+
+          {/* Body Text */}
+          <div className="prose prose-lg max-w-none text-gray-800 space-y-8">
+            <p className="text-xl leading-[1.85] font-medium text-gray-700">
+              Modern medyanın ulaştığı son noktada, içerik sadece okunmak için değil, deneyimlenmek için tasarlanıyor. Buzz Haber olarak, okuyucunun her saniyesini değerli kılan, bilişsel yükü optimize edilmiş bir yapı sunuyoruz.
+            </p>
+            
+            <h2 className="text-3xl font-[900] text-gray-900 mt-12 mb-4 tracking-tight">
+              Kullanıcı Odaklı Tasarımın Gücü
+            </h2>
+            
+            <p className="text-lg leading-[1.8] font-medium text-gray-600">
+              Okuma konforunu artıran en önemli unsurlardan biri, satır uzunluğu ve beyaz alan kullanımıdır. Bu detay sayfasında, gözün yorulmadan takip edebileceği bir akış kurguladık. Başlık bölümünün tüm genişliği kaplaması, habere girişte güçlü bir etki yaratırken, içerik bölümündeki daralma odağı metne çeker.
+            </p>
+
+            {/* Blockquote Style */}
+            <div className="my-14 p-10 bg-gray-50 rounded-lg border-l-4 border-blue-600 italic">
+               <p className="text-2xl font-bold text-gray-800 leading-relaxed">
+                 "Bilgiye ulaşmak artık çok kolay, ancak o bilgiyi özümsemek için doğru tasarlanmış bir ortama ihtiyaç var."
+               </p>
+               <cite className="block mt-4 text-xs font-black text-gray-400 uppercase tracking-widest">— Buzz Tasarım Ekibi</cite>
+            </div>
+
+            <p className="text-lg leading-[1.8] font-medium text-gray-600">
+              Okuyucu yorumları, sosyal etkileşimler ve interaktif kartlar sayesinde haberimiz sadece bir metin olmaktan çıkıp yaşayan bir ekosisteme dönüşüyor. Radius değerlerinin (`rounded-lg`) tüm platformda standardize edilmesi, görsel bütünlüğü ve profesyonelliği pekiştiriyor.
+            </p>
+          </div>
+
+          {/* Tags */}
+          <div className="mt-16 flex flex-wrap gap-2 pb-10 border-b border-gray-100">
+             <span className="w-full text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Konu Başlıkları:</span>
+             {['Teknoloji', 'Gündem', 'BuzzÖzel', 'Analiz', 'Trend'].map(tag => (
+               <button key={tag} className="px-4 py-2 bg-gray-100 hover:bg-blue-600 hover:text-white text-gray-600 rounded-lg text-xs font-bold transition-all">
+                 #{tag}
+               </button>
+             ))}
+          </div>
+
+          {/* Interactive Footer Actions */}
+          <div className="mt-12 flex items-center justify-between">
+             <div className="flex items-center gap-3">
+                <button className="flex items-center gap-2 px-6 py-3 bg-rose-50 text-rose-600 rounded-lg font-black text-sm transition-all hover:bg-rose-100 group">
+                  <Heart size={20} className="group-hover:scale-110 transition-transform" />
+                  <span>{data.likes.toLocaleString()}</span>
+                </button>
+                <button className="flex items-center gap-2 px-6 py-3 bg-blue-50 text-blue-600 rounded-lg font-black text-sm transition-all hover:bg-blue-100">
+                  <MessageSquare size={20} />
+                  <span>{data.comments} Yorum</span>
+                </button>
+             </div>
+             <button className="p-3 bg-gray-100 text-gray-500 rounded-lg hover:bg-gray-200 transition-all">
+                <Bookmark size={20} />
+             </button>
+          </div>
+
+          {/* Comments Section */}
+          <div className="mt-20">
+             <h3 className="text-2xl font-black text-gray-900 mb-8 tracking-tight">Fikirlerini Paylaş</h3>
+             <CommentSection />
+          </div>
+
+        </article>
+      </div>
+
+      {/* Back to Top */}
+      <button 
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        className={`fixed bottom-8 right-8 p-4 bg-white border border-gray-200 rounded-lg shadow-xl text-gray-400 hover:text-blue-600 transition-all z-50 ${scrollProgress > 20 ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0 pointer-events-none'}`}
+      >
+        <ChevronRight size={20} className="-rotate-90" />
+      </button>
+
+    </div>
+  );
+};
+
+export default NewsDetail;
