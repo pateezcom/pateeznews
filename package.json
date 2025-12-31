@@ -16,23 +16,26 @@
     "@googleforcreators/story-editor": "latest",
     "@supabase/supabase-js": "2.39.3",
     "@types/multiparty": "^4.2.1",
-    "immutable": "^4.3.4",
-    "konva": "8.3.14",
+    "immutable": "3.8.2",
+    "konva": "9.3.18",
     "lucide-react": "^0.562.0",
     "multiparty": "^4.2.3",
-    "react": "17.0.2",
-    "react-dom": "17.0.2",
-    "react-dropzone": "^11.4.2",
-    "react-filerobot-image-editor": "^4.9.1",
-    "react-konva": "17.0.2-6",
-    "react-quill": "^2.0.0-beta.2",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-dropzone": "^14.3.5",
+    "react-filerobot-image-editor": "^5.0.0-beta.147",
+    "react-konva": "19.2.1",
+    "react-quill-new": "^3.3.3",
     "sharp": "^0.34.5",
-    "styled-components": "^5.3.6"
+    "styled-components": "6.1.15",
+    "prop-types": "15.8.1"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
+    "@types/react": "19.2.0",
+    "@types/react-dom": "19.2.0",
     "@types/sharp": "^0.31.1",
-    "@vitejs/plugin-react": "^5.0.0",
+    "@vitejs/plugin-react": "^5.1.2",
     "autoprefixer": "^10.4.23",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.1",
@@ -40,9 +43,16 @@
     "vite": "^6.2.0"
   },
   "overrides": {
-    "react": "17.0.2",
-    "react-dom": "17.0.2",
-    "react-konva": "17.0.2-6",
-    "konva": "8.3.14"
+    "immutable": "3.8.2",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "@types/react": "19.2.0",
+    "@types/react-dom": "19.2.0",
+    "react-is": "19.2.0",
+    "scheduler": "0.25.0",
+    "konva": "9.3.18",
+    "react-konva": "19.2.1",
+    "styled-components": "6.1.15",
+    "prop-types": "15.8.1"
   }
 }

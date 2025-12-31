@@ -16,14 +16,51 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
-      }
+        'react': path.resolve(__dirname, 'node_modules/react'),
+        'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
+        'react/jsx-runtime': path.resolve(__dirname, 'node_modules/react/jsx-runtime'),
+        'react/jsx-dev-runtime': path.resolve(__dirname, 'node_modules/react/jsx-dev-runtime'),
+        'react-dom/client': path.resolve(__dirname, 'node_modules/react-dom/client'),
+        'react-is': path.resolve(__dirname, 'node_modules/react-is'),
+        'scheduler': path.resolve(__dirname, 'node_modules/scheduler'),
+        'konva': path.resolve(__dirname, 'node_modules/konva'),
+        'konva/lib/Factory': path.resolve(__dirname, 'node_modules/konva/lib/Factory.js'),
+        'konva/lib': path.resolve(__dirname, 'node_modules/konva/lib'),
+        'react-konva': path.resolve(__dirname, 'node_modules/react-konva'),
+        'react-konva-utils': path.resolve(__dirname, 'node_modules/react-konva-utils'),
+        'prop-types': path.resolve(__dirname, 'node_modules/prop-types'),
+        'util': path.resolve(__dirname, 'util-shim.js'),
+        'async_hooks': path.resolve(__dirname, 'async_hooks-shim.js'),
+        'react-dom/server': path.resolve(__dirname, 'node_modules/react-dom/server.browser.js'),
+      },
+      dedupe: ['react', 'react-dom', 'styled-components', 'react-is', 'scheduler', 'konva', 'react-konva', 'react-konva-utils', 'prop-types', 'util', 'async_hooks'],
     },
     optimizeDeps: {
-      include: ['react-konva', 'konva', 'react-filerobot-image-editor', 'immutable', 'styled-components'],
+      include: [
+        'react-konva',
+        'konva',
+        'konva/lib/Factory',
+        'immutable',
+        'react-filerobot-image-editor',
+        'styled-components',
+        'react-konva-utils',
+        'prop-types',
+        '@googleforcreators/story-editor',
+        '@googleforcreators/elements',
+        '@googleforcreators/element-library'
+      ],
+      exclude: [],
       force: true
     },
+    build: {
+      commonjsOptions: {
+        transformMixedEsModules: true,
+      },
+    },
     plugins: [
-      react(),
+      react({
+        jsxRuntime: 'automatic',
+      }),
       {
         name: 'local-storage-plugin',
         configureServer(server) {
@@ -81,6 +118,7 @@ export default defineConfig(({ mode }) => {
 
               if (fs.existsSync(fullPath)) {
                 res.setHeader('Content-Type', 'image/webp');
+                res.setHeader('Access-Control-Allow-Origin', '*'); // Allow canvas access
                 res.end(fs.readFileSync(fullPath));
               } else {
                 res.statusCode = 404;
@@ -93,26 +131,55 @@ export default defineConfig(({ mode }) => {
             if (req.url === '/api/storage/upload' && req.method === 'POST') {
               const form = new multiparty.Form();
               form.parse(req, async (err, fields, files) => {
+                console.log('--- [TERMINAL DEBUG] Upload Request Received ---');
                 if (err) {
+                  console.error('--- [TERMINAL DEBUG] Upload Form Parse Error:', err.message);
                   res.statusCode = 500;
                   res.end(err.message);
                   return;
                 }
+
                 try {
                   const file = files.file[0];
+                  console.log(`--- [TERMINAL DEBUG] File received: ${file.originalFilename}, Size: ${file.size}`);
                   const today = new Date().toISOString().split('T')[0];
-                  const targetDir = path.join(baseDir, today);
 
-                  if (!fs.existsSync(targetDir)) {
-                    fs.mkdirSync(targetDir, { recursive: true });
+                  let targetDir;
+                  let cleanFileName;
+                  let customId = null;
+
+                  if (fields.customPath && fields.customPath.length > 0) {
+                    // OVERWRITE MODE
+                    const fullPathId = fields.customPath[0]; // e.g. "2024-12-31/my-image"
+                    const parts = fullPathId.split('/');
+                    if (parts.length >= 2) {
+                      const datePart = parts[0];
+                      const namePart = parts.slice(1).join('/');
+                      targetDir = path.join(baseDir, datePart);
+                      cleanFileName = namePart;
+                      customId = fullPathId;
+                      console.log('--- OVERWRITE MODE ---', fullPathId);
+                    } else {
+                      // Fallback
+                      targetDir = path.join(baseDir, today);
+                      cleanFileName = path.parse(file.originalFilename).name.replace(/\s+/g, '-').toLowerCase();
+                    }
+                  } else {
+                    // NEW FILE MODE
+                    targetDir = path.join(baseDir, today);
+                    cleanFileName = path.parse(file.originalFilename).name.replace(/\s+/g, '-').toLowerCase();
                   }
 
-                  const cleanFileName = path.parse(file.originalFilename).name.replace(/\s+/g, '-').toLowerCase();
 
                   const sizes = {
                     sm: 300,   // Thumb
                     xl: 2048   // XL / Web-ready Original
                   };
+
+                  if (!fs.existsSync(targetDir)) {
+                    fs.mkdirSync(targetDir, { recursive: true });
+                  }
+
 
                   console.log('--- UPLOAD START ---', file.originalFilename);
                   const originalImage = sharp(file.path);
@@ -141,11 +208,14 @@ export default defineConfig(({ mode }) => {
                     fs.unlinkSync(file.path);
                     console.log('Temp file deleted');
 
+                    const finalId = customId || `${today}/${cleanFileName}`;
+                    const finalDateDir = customId ? customId.split('/')[0] : today;
+
                     res.end(JSON.stringify({
-                      id: `${today}/${cleanFileName}`,
+                      id: finalId,
                       value: cleanFileName,
-                      src: `/api/storage/file/${today}/${cleanFileName}_xl.webp`,
-                      thumb: `/api/storage/file/${today}/${cleanFileName}_sm.webp`
+                      src: `/api/storage/file/${finalDateDir}/${cleanFileName}_xl.webp`,
+                      thumb: `/api/storage/file/${finalDateDir}/${cleanFileName}_sm.webp`
                     }));
                     console.log('--- UPLOAD SUCCESS ---');
                   } catch (sharpError) {
@@ -163,6 +233,7 @@ export default defineConfig(({ mode }) => {
 
             // DELETE FILE (Delete all sizes)
             if (req.url.startsWith('/api/storage/delete/') && req.method === 'DELETE') {
+              console.log('--- [TERMINAL DEBUG] Delete Request Received ---', req.url);
               const urlParts = req.url.split('?')[0];
               const filePathStr = decodeURIComponent(urlParts.replace('/api/storage/delete/', ''));
               const dirPath = path.join(baseDir, path.dirname(filePathStr));

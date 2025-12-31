@@ -1,5 +1,5 @@
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import {
     StoryEditor,
     InterfaceSkeleton
@@ -12,6 +12,9 @@ import { supabase } from '../../lib/supabase';
 import { StoryItem } from '../../types';
 import { useLanguage } from '../../context/LanguageContext';
 
+// Element tiplerini başlangıçta kaydet (StoryEditor yüklenmeden önce hazır olmalı)
+elementTypes.forEach(registerElementType);
+
 interface WebStoryEditorProps {
     story: StoryItem;
     onClose: () => void;
@@ -21,10 +24,6 @@ interface WebStoryEditorProps {
 const WebStoryEditor: React.FC<WebStoryEditorProps> = ({ story, onClose, onSaveSuccess }) => {
     const { t } = useLanguage();
 
-    // Element tiplerini bir kez kaydet
-    useEffect(() => {
-        elementTypes.forEach(registerElementType);
-    }, []);
 
     const config = useMemo(() => ({
         apiCallbacks: {

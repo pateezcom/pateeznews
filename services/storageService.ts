@@ -26,10 +26,13 @@ export const storageService = {
         }
     },
 
-    async uploadFile(file: File): Promise<MediaItem | null> {
+    async uploadFile(file: File, customPath?: string): Promise<MediaItem | null> {
         try {
             const formData = new FormData();
             formData.append('file', file);
+            if (customPath) {
+                formData.append('customPath', customPath);
+            }
 
             const response = await fetch('/api/storage/upload', {
                 method: 'POST',

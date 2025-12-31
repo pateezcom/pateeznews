@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import ReactQuill from 'react-quill';
+import ReactQuill from 'react-quill-new';
 import { ChevronDown, Trash2, FileText, Sparkles, Plus } from 'lucide-react';
 
 export interface PostItem {

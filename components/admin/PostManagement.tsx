@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import PostTextItem, { PostItem } from './PostTextItem';
-import 'react-quill/dist/quill.snow.css';
+import 'react-quill-new/dist/quill.snow.css';
 import { useDropzone } from 'react-dropzone';
 import { NavigationItem } from '../../types';
 import {
@@ -16,8 +16,13 @@ import { supabase } from '../../lib/supabase';
 import { storageService, MediaItem } from '../../services/storageService';
 import { useLanguage } from '../../context/LanguageContext';
 import FilerobotImageEditor, { TABS, TOOLS } from 'react-filerobot-image-editor';
+import { StyleSheetManager } from 'styled-components';
+import isPropValid from '@emotion/is-prop-valid';
 
 const FilerobotEditor: any = FilerobotImageEditor;
+
+// SC v6 Filter for third-party libraries
+const shouldForwardProp = (prop: string) => isPropValid(prop);
 
 // Premium Quill Overrides
 const QUILL_CUSTOM_STYLE = `
@@ -102,47 +107,113 @@ const PostManagement: React.FC = () => {
         fetchLanguages();
     }, []);
 
-    const handleEditorSave = async (editedImageObject: any) => {
+    const handleEditorSave = React.useCallback(async (editedImageObject: any) => {
+        const tStart = Date.now();
+        console.log(`[DEBUG ${tStart}] handleEditorSave started`);
+
         try {
+            // Log only keys to avoid freezing with huge base64 strings
+            console.log(`[DEBUG ${Date.now()}] Image Object Keys:`, editedImageObject ? Object.keys(editedImageObject) : "NULL");
+
             // Get original filename to preserve it if possible
             let originalName = `edited-${Date.now()}`;
+            // Extract existing "date/filename" path if we are editing an existing image
+            let customPath: string | undefined = undefined;
+
             if (formData.thumbnail) {
                 try {
-                    const parts = formData.thumbnail.split('/');
-                    const lastPart = parts[parts.length - 1]; // filename_xl.webp
-                    const name = lastPart.split('_')[0]; // filename
-                    if (name && name !== 'api' && name !== 'storage') {
-                        originalName = name;
+                    console.log(`[DEBUG ${Date.now()}] Parsing existing thumbnail:`, formData.thumbnail);
+                    // Check if it's a local storage URL
+                    if (formData.thumbnail.includes('/api/storage/file/')) {
+                        const regex = /\/api\/storage\/file\/([^\/]+\/[^\/_?]+)(_xl\.webp)?/;
+                        const match = formData.thumbnail.match(regex);
+                        if (match && match[1]) {
+                            customPath = match[1]; // e.g. "2024-12-31/filename"
+
+                            // Also update originalName from the path
+                            const namePart = customPath.split('/')[1];
+                            if (namePart) originalName = namePart;
+                            console.log(`[DEBUG ${Date.now()}] Found customPath:`, customPath);
+                        }
                     }
                 } catch (e) {
-                    console.error("Filename extraction failed:", e);
+                    console.error(`[DEBUG ${Date.now()}] Filename extraction failed:`, e);
                 }
             }
 
             let file: File;
-            if (editedImageObject.imageBlob) {
+            console.log(`[DEBUG ${Date.now()}] Converting to File object...`);
+
+            if (editedImageObject?.imageBlob) {
                 file = new File([editedImageObject.imageBlob], `${originalName}.webp`, { type: 'image/webp' });
-            } else if (editedImageObject.imageBase64) {
-                const response = await fetch(editedImageObject.imageBase64);
-                const blob = await response.blob();
-                file = new File([blob], `${originalName}.webp`, { type: 'image/webp' });
+                console.log(`[DEBUG ${Date.now()}] Blob conversion done. Size:`, file.size);
+            } else if (editedImageObject?.imageBase64) {
+                console.log(`[DEBUG ${Date.now()}] Base64 detected, fetching...`);
+                try {
+                    const response = await fetch(editedImageObject.imageBase64);
+                    const blob = await response.blob();
+                    file = new File([blob], `${originalName}.webp`, { type: 'image/webp' });
+                    console.log(`[DEBUG ${Date.now()}] Base64 -> Blob conversion done. Size:`, file.size);
+                } catch (fetchErr) {
+                    console.error(`[DEBUG ${Date.now()}] Base64 fetch failed:`, fetchErr);
+                    throw fetchErr;
+                }
             } else {
-                throw new Error("Resim verisi bulunamadı.");
+                console.error(`[DEBUG ${Date.now()}] No image data received from editor`);
+                setShowImageEditor(false);
+                return;
             }
 
-            const result = await storageService.uploadFile(file);
+            console.log(`[DEBUG ${Date.now()}] Uploading file via storageService...`);
+            const result = await storageService.uploadFile(file, customPath);
+            console.log(`[DEBUG ${Date.now()}] Upload result:`, result ? "SUCCESS" : "NULL");
+
             if (result) {
-                setFormData(prev => ({ ...prev, thumbnail: result.src }));
-                // Update local files list - if it's an "update", we can either add to start or replace
-                // For safety and cache busting, treat as new version (already handled by date folder)
-                setLocalFiles(prev => [result, ...prev]);
+                // Force cache bust
+                const newSrc = `${result.src}?v=${Date.now()}`;
+                console.log(`[DEBUG ${Date.now()}] Updating state with new src:`, newSrc);
+
+                setFormData(prev => ({ ...prev, thumbnail: newSrc }));
+
+                // Update local files list
+                setLocalFiles(prev => {
+                    // Remove old entry if exists (by ID) to avoid duplicates
+                    const filtered = prev.filter(p => p.id !== result.id);
+                    return [result, ...filtered];
+                });
+                console.log(`[DEBUG ${Date.now()}] State updates queued.`);
+            } else {
+                console.error(`[DEBUG ${Date.now()}] Upload failed (returned null)`);
             }
         } catch (err) {
-            console.error('Editor save failed:', err);
+            console.error(`[DEBUG ${Date.now()}] Editor save failed with error:`, err);
         } finally {
+            console.log(`[DEBUG ${Date.now()}] Closing editor (finally block)`);
+            // ALWAYS close the editor
             setShowImageEditor(false);
         }
-    };
+    }, [formData.thumbnail, storageService]);
+
+    const handleEditorClose = React.useCallback(() => {
+        setShowImageEditor(false);
+    }, []);
+
+    const editorConfig = React.useMemo(() => ({
+        annotationsCommon: { fill: '#ff0000' },
+        Text: { text: 'Buzz Haber' },
+        Rotate: { angle: 90, componentType: 'slider' },
+        tabsIds: [TABS.ADJUST, TABS.FILTERS, TABS.ANNOTATE, TABS.WATERMARK],
+        defaultTabId: TABS.ANNOTATE,
+        savingPixelRatio: 1,
+        previewPixelRatio: 1,
+        willReadFrequently: true,
+        toolsByTab: {
+            [TABS.ADJUST]: [TOOLS.CROP, TOOLS.ROTATE, TOOLS.FLIP_X, TOOLS.FLIP_Y],
+        },
+        [TABS.ADJUST]: {
+            hideResize: true,
+        },
+    }), []);
 
     useEffect(() => {
         if (selectedLanguage) {
@@ -830,27 +901,18 @@ const PostManagement: React.FC = () => {
                     <div className="absolute inset-0 bg-palette-maroon/80 backdrop-blur-sm" onClick={() => setShowImageEditor(false)} />
 
                     <div className="bg-white w-full max-w-7xl h-[85vh] rounded-[3px] overflow-hidden shadow-2xl relative flex flex-col border border-palette-tan/20 animate-in zoom-in-95 duration-300">
-                        <FilerobotEditor
-                            source={formData.thumbnail}
-                            onSave={(editedImageObject: any) => handleEditorSave(editedImageObject)}
-                            onClose={() => setShowImageEditor(false)}
-                            config={{
-                                annotationsCommon: { fill: '#ff0000' },
-                                Text: { text: 'Buzz Haber' },
-                                Rotate: { angle: 90, componentType: 'slider' },
-                                tabsIds: [TABS.ADJUST, TABS.FILTERS, TABS.ANNOTATE, TABS.WATERMARK],
-                                defaultTabId: TABS.ANNOTATE,
-                                savingPixelRatio: 1,
-                                previewPixelRatio: 1,
-                                willReadFrequently: true,
-                                toolsByTab: {
-                                    [TABS.ADJUST]: [TOOLS.CROP, TOOLS.ROTATE, TOOLS.FLIP_X, TOOLS.FLIP_Y],
-                                },
-                                [TABS.ADJUST]: {
-                                    hideResize: true,
-                                },
-                            }}
-                        />
+                        {/* 
+                            StyleSheetManager reintroduced with aggressive filtering to fix "Unknown prop" errors.
+                            The filter ensures only valid HTML attributes are passed to the DOM.
+                        */}
+                        <StyleSheetManager shouldForwardProp={(prop) => isPropValid(prop) && !['showTabsDrawer', 'isPhoneScreen', 'noMargin', 'active', 'showBackButton', 'hasChildren', 'fullWidth', 'isValueExists', 'hideEllipsis', 'watermarkTool', 'maxWidth', 'icon', 'isWarning', 'isError', 'primary', 'variant', 'iconShadow', 'alignment', 'align', 'warning'].includes(prop)}>
+                            <FilerobotEditor
+                                source={formData.thumbnail}
+                                onSave={handleEditorSave}
+                                onClose={handleEditorClose}
+                                config={editorConfig}
+                            />
+                        </StyleSheetManager>
                     </div>
                 </div>
             )}
@@ -891,7 +953,7 @@ const MediaManagerModal: React.FC<{
                 setTimeout(() => { setUploading(false); setUploadPreview(null); }, 500);
             }
         },
-        accept: 'image/*'
+        accept: { 'image/*': [] }
     });
 
     const filteredFiles = useMemo(() => {
