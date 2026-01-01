@@ -49,7 +49,10 @@ export interface NewsItem {
     frontTitle: string;
     backImage: string;
     backTitle: string;
+    frontDescription: string;
     backDescription: string;
+    frontLink?: string;
+    backLink?: string;
   };
   beforeAfterData?: {
     beforeImage: string;

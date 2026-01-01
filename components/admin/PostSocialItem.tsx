@@ -69,11 +69,22 @@ const PostSocialItem: React.FC<PostSocialItemProps> = ({
 
         // Handle raw links
         if (processed.startsWith('http') && !processed.includes('<')) {
-            // Nsosyal integration
+            // Nsosyal integration - Official embed version
             if (processed.includes('nsosyal.com')) {
-                // Extract ID from URL (handles /post/ID, /p/ID, /embed/ID)
-                const nsId = processed.split('/').filter(Boolean).pop()?.split('?')[0];
-                return `<iframe src="https://nsosyal.com/embed/${nsId}" width="552" height="600" style="border:none; border-radius:3px; overflow:hidden; width:552px;" frameborder="0" scrolling="no" allowfullscreen="true"></iframe>`;
+                // Ensure the URL ends with /embed and remove any query params
+                const baseUrl = processed.split('?')[0].replace(/\/$/, '');
+                const embedUrl = baseUrl.endsWith('/embed') ? baseUrl : `${baseUrl}/embed`;
+
+                return `<div class="nsosyal-container" style="width: 100%; display: flex; justify-content: center; padding: 10px 0;">
+                  <iframe
+                    src="${embedUrl}"
+                    style="max-width:100%; border:0; border-radius:3px; overflow:hidden; width:550px;"
+                    width="550"
+                    height="600"
+                    allowfullscreen="true"
+                  ></iframe>
+                  <script src="https://nsosyal.com/embed.js" async></script>
+                </div>`;
             }
             // Pinterest integration
             if (processed.includes('pin.it') || processed.includes('pinterest.com')) {

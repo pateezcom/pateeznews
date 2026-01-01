@@ -7,6 +7,8 @@ import PostVideoItem from './PostVideoItem';
 import PostAudioItem from './PostAudioItem';
 import PostFileItem from './PostFileItem';
 import PostSocialItem from './PostSocialItem';
+import PostFlipCardItem from './PostFlipCardItem';
+import PostBeforeAfterItem from './PostBeforeAfterItem';
 import 'react-quill-new/dist/quill.snow.css';
 import { useDropzone } from 'react-dropzone';
 import { NavigationItem } from '../../types';
@@ -16,7 +18,7 @@ import {
     Save, FileText, Settings2, Search,
     Globe, Loader2, Share2,
     Calendar, Clock, SortAsc, SortDesc, Hash, Video, ShieldCheck, ListOrdered, Utensils, BarChart2,
-    Check, ChevronDown, ChevronRight, Edit3, Images, Film, Mic, Paperclip
+    Check, ChevronDown, ChevronRight, Edit3, Images, Film, Mic, Paperclip, RotateCw, ArrowLeftRight
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { storageService, MediaItem } from '../../services/storageService';
@@ -242,11 +244,11 @@ const FieEmojiToolOptions = () => {
     const shownImageDimensions = store?.shownImageDimensions;
     const crop = store?.adjustments?.crop ?? {};
 
-    const [open, setOpen] = React.useState(true);
-    const [tab, setTab] = React.useState<'emoji' | 'flags'>('emoji');
-    const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
+    const [open, setOpen] = useState(true);
+    const [tab, setTab] = useState<'emoji' | 'flags'>('emoji');
+    const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (typeof document === 'undefined') return;
         const el = document.querySelector(
             `[data-testid="FIE-tools-bar-item-button-${FIE_EMOJI_TOOL_ID.toLowerCase()}"]`
@@ -254,7 +256,7 @@ const FieEmojiToolOptions = () => {
         setAnchorEl(el);
     }, []);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (typeof window === 'undefined') return;
         const handler = () => setOpen(true);
         window.addEventListener(FIE_EMOJI_TOGGLE_EVENT, handler);
@@ -497,6 +499,7 @@ const PostManagement: React.FC = () => {
     const [urlError, setUrlError] = useState<string | null>(null);
     const [tempUrl, setTempUrl] = useState('');
     const [activeMediaTarget, setActiveMediaTarget] = useState<string | 'thumbnail' | null>(null);
+    const [activeMediaSubTarget, setActiveMediaSubTarget] = useState<string | null>(null);
     const [tagInput, setTagInput] = useState('');
     const [activeDetailTab, setActiveDetailTab] = useState<'article' | 'quiz' | 'poll' | 'video' | 'contents' | 'recipe'>('article');
     const [activeMediaType, setActiveMediaType] = useState<'image' | 'video' | 'audio' | 'file'>('image');
@@ -653,7 +656,33 @@ const PostManagement: React.FC = () => {
                     setIsThumbnailLoading(true);
                     setFormData(prev => ({ ...prev, thumbnail: newSrc }));
                 } else if (activeMediaTarget) {
-                    handleUpdateItem(activeMediaTarget, 'mediaUrl', newSrc);
+                    const targetItem = formData.items.find(i => i.id === activeMediaTarget);
+                    if (targetItem?.type === 'flipcard' && activeMediaSubTarget) {
+                        const currentFlipData = targetItem.flipData || {
+                            frontImage: '',
+                            backImage: '',
+                            frontTitle: '',
+                            backTitle: '',
+                            backDescription: ''
+                        };
+                        handleUpdateItem(activeMediaTarget, 'flipData', {
+                            ...currentFlipData,
+                            [activeMediaSubTarget]: newSrc
+                        });
+                    } else if (targetItem?.type === 'beforeafter' && activeMediaSubTarget) {
+                        const currentData = targetItem.beforeAfterData || {
+                            beforeImage: '',
+                            afterImage: '',
+                            beforeLabel: 'ÖNCE',
+                            afterLabel: 'SONRA'
+                        };
+                        handleUpdateItem(activeMediaTarget, 'beforeAfterData', {
+                            ...currentData,
+                            [activeMediaSubTarget]: newSrc
+                        });
+                    } else {
+                        handleUpdateItem(activeMediaTarget, 'mediaUrl', newSrc);
+                    }
                 }
 
                 // Update local files list
@@ -852,7 +881,33 @@ const PostManagement: React.FC = () => {
                 if (activeMediaTarget === 'thumbnail') {
                     setFormData({ ...formData, thumbnail: trimmedUrl });
                 } else if (activeMediaTarget) {
-                    handleUpdateItem(activeMediaTarget, 'mediaUrl', trimmedUrl);
+                    const targetItem = formData.items.find(i => i.id === activeMediaTarget);
+                    if (targetItem?.type === 'flipcard' && activeMediaSubTarget) {
+                        const currentFlipData = targetItem.flipData || {
+                            frontImage: '',
+                            backImage: '',
+                            frontTitle: '',
+                            backTitle: '',
+                            backDescription: ''
+                        };
+                        handleUpdateItem(activeMediaTarget, 'flipData', {
+                            ...currentFlipData,
+                            [activeMediaSubTarget]: trimmedUrl
+                        });
+                    } else if (targetItem?.type === 'beforeafter' && activeMediaSubTarget) {
+                        const currentData = targetItem.beforeAfterData || {
+                            beforeImage: '',
+                            afterImage: '',
+                            beforeLabel: 'ÖNCE',
+                            afterLabel: 'SONRA'
+                        };
+                        handleUpdateItem(activeMediaTarget, 'beforeAfterData', {
+                            ...currentData,
+                            [activeMediaSubTarget]: trimmedUrl
+                        });
+                    } else {
+                        handleUpdateItem(activeMediaTarget, 'mediaUrl', trimmedUrl);
+                    }
                 }
                 setIsUrlMode(false);
                 setTempUrl('');
@@ -1058,7 +1113,74 @@ const PostManagement: React.FC = () => {
         setFormData({ ...formData, items: finalItems });
     };
 
-    const handleUpdateItem = (id: string, field: keyof PostItem, value: string) => {
+    const handleAddFlipCardItem = () => {
+        const newItem: PostItem = {
+            id: Math.random().toString(36).substr(2, 9),
+            type: 'flipcard',
+            title: '',
+            description: '',
+            createdAt: Date.now(),
+            orderNumber: 0,
+            flipData: {
+                frontImage: '',
+                backImage: '',
+                frontTitle: '',
+                backTitle: '',
+                frontDescription: '',
+                backDescription: '',
+                frontLink: '',
+                backLink: ''
+            }
+        };
+
+        const newItems = [...formData.items, newItem];
+        let finalItems = newItems;
+        if (activeSort) {
+            finalItems = newItems.map((item, idx) => ({
+                ...item,
+                orderNumber: activeSort === 'asc' ? (idx + 1) : (newItems.length - idx)
+            }));
+        } else {
+            const nextOrder = formData.items.length > 0
+                ? Math.max(...formData.items.map(i => i.orderNumber || 0)) + 1
+                : 1;
+            finalItems[finalItems.length - 1].orderNumber = nextOrder;
+        }
+        setFormData({ ...formData, items: finalItems });
+    };
+
+    const handleAddBeforeAfterItem = () => {
+        const newItem: PostItem = {
+            id: Math.random().toString(36).substr(2, 9),
+            type: 'beforeafter',
+            title: '',
+            description: '',
+            orderNumber: 0,
+            beforeAfterData: {
+                beforeImage: '',
+                afterImage: '',
+                beforeLabel: 'ÖNCE',
+                afterLabel: 'SONRA'
+            }
+        };
+
+        const newItems = [...formData.items, newItem];
+        let finalItems = newItems;
+        if (activeSort) {
+            finalItems = newItems.map((item, idx) => ({
+                ...item,
+                orderNumber: activeSort === 'asc' ? (idx + 1) : (newItems.length - idx)
+            }));
+        } else {
+            const nextOrder = formData.items.length > 0
+                ? Math.max(...formData.items.map(i => i.orderNumber || 0)) + 1
+                : 1;
+            finalItems[finalItems.length - 1].orderNumber = nextOrder;
+        }
+        setFormData({ ...formData, items: finalItems });
+    };
+
+    const handleUpdateItem = (id: string, field: keyof PostItem, value: any) => {
         const updatedItems = formData.items.map(item =>
             item.id === id ? { ...item, [field]: value } : item
         );
@@ -1476,6 +1598,76 @@ const PostManagement: React.FC = () => {
                                     onMoveUp={(idx) => handleMoveItem(idx, 'up')}
                                     onMoveDown={(idx) => handleMoveItem(idx, 'down')}
                                 />
+                            ) : item.type === 'flipcard' ? (
+                                <PostFlipCardItem
+                                    key={item.id}
+                                    item={item}
+                                    index={index}
+                                    totalItems={formData.items.length}
+                                    showBlockNumbers={showBlockNumbers}
+                                    onUpdate={handleUpdateItem}
+                                    onRemove={handleRemoveItem}
+                                    isDeletable={activeDetailTab !== 'article' || formData.items.length > 1}
+                                    onMoveUp={(idx) => handleMoveItem(idx, 'up')}
+                                    onMoveDown={(idx) => handleMoveItem(idx, 'down')}
+                                    onOpenFileManager={(id, subField) => {
+                                        setActiveMediaTarget(id);
+                                        setActiveMediaSubTarget(subField || null);
+                                        setActiveMediaType('image');
+                                        fetchMedia('image');
+                                        setShowFileManager(true);
+                                    }}
+                                    onOpenUrlMode={(id, subField) => {
+                                        setActiveMediaTarget(id);
+                                        setActiveMediaSubTarget(subField || null);
+                                        setActiveMediaType('image');
+                                        setTempUrl('');
+                                        setUrlError(null);
+                                        setIsUrlMode(true);
+                                    }}
+                                    onOpenImageEditor={(id, subField) => {
+                                        setActiveMediaTarget(id);
+                                        setActiveMediaSubTarget(subField || null);
+                                        editorSaveInFlightRef.current = false;
+                                        setIsEditorSaving(false);
+                                        setShowImageEditor(true);
+                                    }}
+                                />
+                            ) : item.type === 'beforeafter' ? (
+                                <PostBeforeAfterItem
+                                    key={item.id}
+                                    item={item}
+                                    index={index}
+                                    totalItems={formData.items.length}
+                                    showBlockNumbers={showBlockNumbers}
+                                    onUpdate={handleUpdateItem}
+                                    onRemove={handleRemoveItem}
+                                    isDeletable={activeDetailTab !== 'article' || formData.items.length > 1}
+                                    onMoveUp={(idx) => handleMoveItem(idx, 'up')}
+                                    onMoveDown={(idx) => handleMoveItem(idx, 'down')}
+                                    onOpenFileManager={(id, subField) => {
+                                        setActiveMediaTarget(id);
+                                        setActiveMediaSubTarget(subField || null);
+                                        setActiveMediaType('image');
+                                        fetchMedia('image');
+                                        setShowFileManager(true);
+                                    }}
+                                    onOpenUrlMode={(id, subField) => {
+                                        setActiveMediaTarget(id);
+                                        setActiveMediaSubTarget(subField || null);
+                                        setActiveMediaType('image');
+                                        setTempUrl('');
+                                        setUrlError(null);
+                                        setIsUrlMode(true);
+                                    }}
+                                    onOpenImageEditor={(id, subField) => {
+                                        setActiveMediaTarget(id);
+                                        setActiveMediaSubTarget(subField || null);
+                                        editorSaveInFlightRef.current = false;
+                                        setIsEditorSaving(false);
+                                        setShowImageEditor(true);
+                                    }}
+                                />
                             ) : (
                                 <PostTextItem
                                     key={item.id}
@@ -1492,7 +1684,7 @@ const PostManagement: React.FC = () => {
                             )
                         ))}
 
-                        <div className="flex pt-4 gap-3">
+                        <div className="flex flex-wrap pt-4 gap-3">
                             <button
                                 onClick={handleAddItem}
                                 className="flex items-center justify-center gap-2 px-4 py-2 bg-palette-maroon text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-palette-maroon/10 leading-none"
@@ -1541,6 +1733,20 @@ const PostManagement: React.FC = () => {
                             >
                                 <Share2 size={14} className="shrink-0" />
                                 <span className="leading-none mt-[1px]">{t('admin.post.add.social')}</span>
+                            </button>
+                            <button
+                                onClick={handleAddFlipCardItem}
+                                className="flex items-center justify-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-orange-600/10 leading-none"
+                            >
+                                <RotateCw size={14} className="shrink-0" />
+                                <span className="leading-none mt-[1px]">Flipcard ekle</span>
+                            </button>
+                            <button
+                                onClick={handleAddBeforeAfterItem}
+                                className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-blue-600/10 leading-none"
+                            >
+                                <ArrowLeftRight size={14} className="shrink-0" />
+                                <span className="leading-none mt-[1px]">Before & After ekle</span>
                             </button>
                         </div>
 
@@ -1740,6 +1946,29 @@ const PostManagement: React.FC = () => {
                             if (targetItem?.type === 'slider') {
                                 const currentUrls = targetItem.mediaUrls || [];
                                 handleUpdateItem(activeMediaTarget, 'mediaUrls', [...currentUrls, src] as any);
+                            } else if (targetItem?.type === 'flipcard' && activeMediaSubTarget) {
+                                const currentFlipData = targetItem.flipData || {
+                                    frontImage: '',
+                                    backImage: '',
+                                    frontTitle: '',
+                                    backTitle: '',
+                                    backDescription: ''
+                                };
+                                handleUpdateItem(activeMediaTarget, 'flipData', {
+                                    ...currentFlipData,
+                                    [activeMediaSubTarget]: src
+                                } as any);
+                            } else if (targetItem?.type === 'beforeafter' && activeMediaSubTarget) {
+                                const currentData = targetItem.beforeAfterData || {
+                                    beforeImage: '',
+                                    afterImage: '',
+                                    beforeLabel: 'ÖNCE',
+                                    afterLabel: 'SONRA'
+                                };
+                                handleUpdateItem(activeMediaTarget, 'beforeAfterData', {
+                                    ...currentData,
+                                    [activeMediaSubTarget]: src
+                                } as any);
                             } else {
                                 handleUpdateItem(activeMediaTarget, 'mediaUrl', src);
                             }
@@ -1832,7 +2061,16 @@ const PostManagement: React.FC = () => {
                         <StyleSheetManager shouldForwardProp={shouldForwardProp}>
                             <FilerobotEditor
                                 {...editorConfig}
-                                source={activeMediaTarget === 'thumbnail' ? formData.thumbnail : formData.items.find(i => i.id === activeMediaTarget)?.mediaUrl || ''}
+                                source={activeMediaTarget === 'thumbnail' ? formData.thumbnail : (() => {
+                                    const item = formData.items.find(i => i.id === activeMediaTarget);
+                                    if (item?.type === 'flipcard' && activeMediaSubTarget) {
+                                        return (item.flipData as any)?.[activeMediaSubTarget] || '';
+                                    }
+                                    if (item?.type === 'beforeafter' && activeMediaSubTarget) {
+                                        return (item.beforeAfterData as any)?.[activeMediaSubTarget] || '';
+                                    }
+                                    return item?.mediaUrl || '';
+                                })()}
                                 onSave={handleEditorSave}
                                 onClose={handleEditorClose}
                             />
