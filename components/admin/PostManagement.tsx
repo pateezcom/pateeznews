@@ -523,6 +523,40 @@ const PostManagement: React.FC = () => {
     useEffect(() => {
         if (activeDetailTab === 'article' && formData.items.length === 0) {
             handleAddItem();
+        } else if (activeDetailTab === 'poll') {
+            // Poll sekmesine tıklandığında metin itemi olmayacak ve en az bir poll olacak
+            const hasPoll = formData.items.some(item => item.type === 'poll');
+            if (!hasPoll || formData.items.length > 1 || formData.items.some(item => item.type !== 'poll')) {
+                const pollItem: PostItem = {
+                    id: Math.random().toString(36).substr(2, 9),
+                    type: 'poll',
+                    title: '',
+                    description: '',
+                    orderNumber: 1,
+                    options: [
+                        { id: Math.random().toString(36).substr(2, 9), text: '', votes: 0, image: '' },
+                        { id: Math.random().toString(36).substr(2, 9), text: '', votes: 0, image: '' }
+                    ],
+                    isImagePoll: true,
+                    pollColumns: 2
+                };
+                setFormData(prev => ({ ...prev, items: [pollItem] }));
+            }
+        } else if (activeDetailTab === 'video') {
+            // Video sekmesine tıklandığında sadece bir video itemi olacak
+            const hasVideo = formData.items.some(item => item.type === 'video');
+            if (!hasVideo || formData.items.length > 1 || formData.items.some(item => item.type !== 'video')) {
+                const videoItem: PostItem = {
+                    id: Math.random().toString(36).substr(2, 9),
+                    type: 'video',
+                    title: '',
+                    description: '',
+                    mediaUrl: '',
+                    createdAt: Date.now(),
+                    orderNumber: 1
+                };
+                setFormData(prev => ({ ...prev, items: [videoItem] }));
+            }
         }
     }, [activeDetailTab]);
 
@@ -1363,7 +1397,7 @@ const PostManagement: React.FC = () => {
     };
 
     const handleRemoveItem = (id: string) => {
-        if (activeDetailTab === 'article' && formData.items.length <= 1) return;
+        if ((activeDetailTab === 'article' || activeDetailTab === 'poll' || activeDetailTab === 'video') && formData.items.length <= 1) return;
         let filtered = formData.items.filter(item => item.id !== id);
         if (activeSort) {
             // Re-sequence remaining items
@@ -1665,7 +1699,7 @@ const PostManagement: React.FC = () => {
                                     showBlockNumbers={showBlockNumbers}
                                     onUpdate={handleUpdateItem}
                                     onRemove={handleRemoveItem}
-                                    isDeletable={activeDetailTab !== 'article' || formData.items.length > 1}
+                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video') || formData.items.length > 1}
                                     onMoveUp={(idx) => handleMoveItem(idx, 'up')}
                                     onMoveDown={(idx) => handleMoveItem(idx, 'down')}
                                     onOpenFileManager={(id) => {
@@ -1684,7 +1718,7 @@ const PostManagement: React.FC = () => {
                                     showBlockNumbers={showBlockNumbers}
                                     onUpdate={handleUpdateItem}
                                     onRemove={handleRemoveItem}
-                                    isDeletable={activeDetailTab !== 'article' || formData.items.length > 1}
+                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video') || formData.items.length > 1}
                                     onMoveUp={(idx) => handleMoveItem(idx, 'up')}
                                     onMoveDown={(idx) => handleMoveItem(idx, 'down')}
                                     onOpenFileManager={(id) => {
@@ -1710,7 +1744,7 @@ const PostManagement: React.FC = () => {
                                     showBlockNumbers={showBlockNumbers}
                                     onUpdate={handleUpdateItem}
                                     onRemove={handleRemoveItem}
-                                    isDeletable={activeDetailTab !== 'article' || formData.items.length > 1}
+                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video') || formData.items.length > 1}
                                     onMoveUp={(idx) => handleMoveItem(idx, 'up')}
                                     onMoveDown={(idx) => handleMoveItem(idx, 'down')}
                                     onOpenFileManager={(id) => {
@@ -1730,7 +1764,7 @@ const PostManagement: React.FC = () => {
                                     showBlockNumbers={showBlockNumbers}
                                     onUpdate={handleUpdateItem}
                                     onRemove={handleRemoveItem}
-                                    isDeletable={activeDetailTab !== 'article' || formData.items.length > 1}
+                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video') || formData.items.length > 1}
                                     onMoveUp={(idx) => handleMoveItem(idx, 'up')}
                                     onMoveDown={(idx) => handleMoveItem(idx, 'down')}
                                     onOpenFileManager={(id) => {
@@ -1750,7 +1784,7 @@ const PostManagement: React.FC = () => {
                                     showBlockNumbers={showBlockNumbers}
                                     onUpdate={handleUpdateItem}
                                     onRemove={handleRemoveItem}
-                                    isDeletable={activeDetailTab !== 'article' || formData.items.length > 1}
+                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video') || formData.items.length > 1}
                                     onMoveUp={(idx) => handleMoveItem(idx, 'up')}
                                     onMoveDown={(idx) => handleMoveItem(idx, 'down')}
                                     onOpenFileManager={(id) => {
@@ -1769,7 +1803,7 @@ const PostManagement: React.FC = () => {
                                     showBlockNumbers={showBlockNumbers}
                                     onUpdate={handleUpdateItem}
                                     onRemove={handleRemoveItem}
-                                    isDeletable={activeDetailTab !== 'article' || formData.items.length > 1}
+                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video') || formData.items.length > 1}
                                     onMoveUp={(idx) => handleMoveItem(idx, 'up')}
                                     onMoveDown={(idx) => handleMoveItem(idx, 'down')}
                                 />
@@ -1782,7 +1816,7 @@ const PostManagement: React.FC = () => {
                                     showBlockNumbers={showBlockNumbers}
                                     onUpdate={handleUpdateItem}
                                     onRemove={handleRemoveItem}
-                                    isDeletable={activeDetailTab !== 'article' || formData.items.length > 1}
+                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video') || formData.items.length > 1}
                                     onMoveUp={(idx) => handleMoveItem(idx, 'up')}
                                     onMoveDown={(idx) => handleMoveItem(idx, 'down')}
                                     onOpenFileManager={(id, subField) => {
@@ -1817,7 +1851,7 @@ const PostManagement: React.FC = () => {
                                     showBlockNumbers={showBlockNumbers}
                                     onUpdate={handleUpdateItem}
                                     onRemove={handleRemoveItem}
-                                    isDeletable={activeDetailTab !== 'article' || formData.items.length > 1}
+                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video') || formData.items.length > 1}
                                     onMoveUp={(idx) => handleMoveItem(idx, 'up')}
                                     onMoveDown={(idx) => handleMoveItem(idx, 'down')}
                                     onOpenFileManager={(id, subField) => {
@@ -1852,7 +1886,7 @@ const PostManagement: React.FC = () => {
                                     showBlockNumbers={showBlockNumbers}
                                     onUpdate={handleUpdateItem}
                                     onRemove={handleRemoveItem}
-                                    isDeletable={activeDetailTab !== 'article' || formData.items.length > 1}
+                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video') || formData.items.length > 1}
                                     onMoveUp={(idx) => handleMoveItem(idx, 'up')}
                                     onMoveDown={(idx) => handleMoveItem(idx, 'down')}
                                 />
@@ -1865,7 +1899,7 @@ const PostManagement: React.FC = () => {
                                     showBlockNumbers={showBlockNumbers}
                                     onUpdate={handleUpdateItem}
                                     onRemove={handleRemoveItem}
-                                    isDeletable={activeDetailTab !== 'article' || formData.items.length > 1}
+                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video') || formData.items.length > 1}
                                     onMoveUp={(idx) => handleMoveItem(idx, 'up')}
                                     onMoveDown={(idx) => handleMoveItem(idx, 'down')}
                                 />
@@ -1878,7 +1912,7 @@ const PostManagement: React.FC = () => {
                                     showBlockNumbers={showBlockNumbers}
                                     onUpdate={handleUpdateItem}
                                     onRemove={handleRemoveItem}
-                                    isDeletable={activeDetailTab !== 'article' || formData.items.length > 1}
+                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video') || formData.items.length > 1}
                                     onMoveUp={(idx) => handleMoveItem(idx, 'up')}
                                     onMoveDown={(idx) => handleMoveItem(idx, 'down')}
                                     onOpenFileManager={(id, subField, optionId) => {
@@ -1916,7 +1950,7 @@ const PostManagement: React.FC = () => {
                                     showBlockNumbers={showBlockNumbers}
                                     onUpdate={handleUpdateItem}
                                     onRemove={handleRemoveItem}
-                                    isDeletable={activeDetailTab !== 'article' || formData.items.length > 1}
+                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video') || formData.items.length > 1}
                                     onMoveUp={(idx) => handleMoveItem(idx, 'up')}
                                     onMoveDown={(idx) => handleMoveItem(idx, 'down')}
                                     onOpenFileManager={(id, subField, optionId) => {
@@ -1954,7 +1988,7 @@ const PostManagement: React.FC = () => {
                                     showBlockNumbers={showBlockNumbers}
                                     onUpdate={handleUpdateItem}
                                     onRemove={handleRemoveItem}
-                                    isDeletable={activeDetailTab !== 'article' || formData.items.length > 1}
+                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video') || formData.items.length > 1}
                                     onMoveUp={(idx) => handleMoveItem(idx, 'up')}
                                     onMoveDown={(idx) => handleMoveItem(idx, 'down')}
                                     onOpenFileManager={(id, subField, optionId) => {
@@ -1992,113 +2026,115 @@ const PostManagement: React.FC = () => {
                                     showBlockNumbers={showBlockNumbers}
                                     onUpdate={handleUpdateItem}
                                     onRemove={handleRemoveItem}
-                                    isDeletable={activeDetailTab !== 'article' || formData.items.length > 1}
+                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video') || formData.items.length > 1}
                                     onMoveUp={(idx) => handleMoveItem(idx, 'up')}
                                     onMoveDown={(idx) => handleMoveItem(idx, 'down')}
                                 />
                             )
                         ))}
 
-                        <div className="flex flex-wrap pt-4 gap-3">
-                            <button
-                                onClick={handleAddItem}
-                                className="flex items-center justify-center gap-2 px-4 py-2 bg-palette-maroon text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-palette-maroon/10 leading-none"
-                            >
-                                <Type size={14} className="shrink-0" />
-                                <span className="leading-none mt-[1px]">{t('admin.post.add.text')}</span>
-                            </button>
-                            <button
-                                onClick={handleAddImageItem}
-                                className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-emerald-600/10 leading-none"
-                            >
-                                <LucideImage size={14} className="shrink-0" />
-                                <span className="leading-none mt-[1px]">{t('admin.post.add.image')}</span>
-                            </button>
-                            <button
-                                onClick={handleAddSliderItem}
-                                className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-indigo-600/10 leading-none"
-                            >
-                                <Images size={14} className="shrink-0" />
-                                <span className="leading-none mt-[1px]">{t('admin.post.add.slider')}</span>
-                            </button>
-                            <button
-                                onClick={handleAddVideoItem}
-                                className="flex items-center justify-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-rose-600/10 leading-none"
-                            >
-                                <Video size={14} className="shrink-0" />
-                                <span className="leading-none mt-[1px]">{t('admin.post.add.video')}</span>
-                            </button>
-                            <button
-                                onClick={handleAddAudioItem}
-                                className="flex items-center justify-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-amber-600/10 leading-none"
-                            >
-                                <Mic size={14} className="shrink-0" />
-                                <span className="leading-none mt-[1px]">{t('admin.post.add.audio')}</span>
-                            </button>
-                            <button
-                                onClick={handleAddFileItem}
-                                className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-slate-600/10 leading-none"
-                            >
-                                <Paperclip size={14} className="shrink-0" />
-                                <span className="leading-none mt-[1px]">{t('admin.post.add.file')}</span>
-                            </button>
-                            <button
-                                onClick={handleAddSocialItem}
-                                className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-blue-500/10 leading-none"
-                            >
-                                <Share2 size={14} className="shrink-0" />
-                                <span className="leading-none mt-[1px]">{t('admin.post.add.social')}</span>
-                            </button>
-                            <button
-                                onClick={handleAddFlipCardItem}
-                                className="flex items-center justify-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-orange-600/10 leading-none"
-                            >
-                                <RotateCw size={14} className="shrink-0" />
-                                <span className="leading-none mt-[1px]">{t('admin.post.add.flip')}</span>
-                            </button>
-                            <button
-                                onClick={handleAddBeforeAfterItem}
-                                className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-blue-600/10 leading-none"
-                            >
-                                <ArrowLeftRight size={14} className="shrink-0" />
-                                <span className="leading-none mt-[1px]">{t('admin.post.add.before_after')}</span>
-                            </button>
-                            <button
-                                onClick={handleAddPollItem}
-                                className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-indigo-600/10 leading-none"
-                            >
-                                <BarChart2 size={14} className="shrink-0" />
-                                <span className="leading-none mt-[1px]">{t('admin.post.add.poll_alt')}</span>
-                            </button>
-                            <button
-                                onClick={handleAddVSItem}
-                                className="flex items-center justify-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-rose-600/10 leading-none"
-                            >
-                                <Swords size={14} className="shrink-0" />
-                                <span className="leading-none mt-[1px]">{t('admin.post.add.vs')}</span>
-                            </button>
-                            <button
-                                onClick={handleAddReviewItem}
-                                className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-emerald-600/10 leading-none"
-                            >
-                                <Award size={14} className="shrink-0" />
-                                <span className="leading-none mt-[1px]">{t('admin.post.add.review_alt')}</span>
-                            </button>
-                            <button
-                                onClick={handleAddQuoteItem}
-                                className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-slate-800/10 leading-none"
-                            >
-                                <Quote size={14} className="shrink-0" />
-                                <span className="leading-none mt-[1px]">{t('admin.post.add.quote')}</span>
-                            </button>
-                            <button
-                                onClick={handleAddIframeItem}
-                                className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-700 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-indigo-700/10 leading-none"
-                            >
-                                <Globe size={14} className="shrink-0" />
-                                <span className="leading-none mt-[1px]">{t('admin.post.add.iframe')}</span>
-                            </button>
-                        </div>
+                        {(activeDetailTab !== 'poll' && activeDetailTab !== 'video') && (
+                            <div className="flex flex-wrap pt-4 gap-3">
+                                <button
+                                    onClick={handleAddItem}
+                                    className="flex items-center justify-center gap-2 px-4 py-2 bg-palette-maroon text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-palette-maroon/10 leading-none"
+                                >
+                                    <Type size={14} className="shrink-0" />
+                                    <span className="leading-none mt-[1px]">{t('admin.post.add.text')}</span>
+                                </button>
+                                <button
+                                    onClick={handleAddImageItem}
+                                    className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-emerald-600/10 leading-none"
+                                >
+                                    <LucideImage size={14} className="shrink-0" />
+                                    <span className="leading-none mt-[1px]">{t('admin.post.add.image')}</span>
+                                </button>
+                                <button
+                                    onClick={handleAddSliderItem}
+                                    className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-indigo-600/10 leading-none"
+                                >
+                                    <Images size={14} className="shrink-0" />
+                                    <span className="leading-none mt-[1px]">{t('admin.post.add.slider')}</span>
+                                </button>
+                                <button
+                                    onClick={handleAddVideoItem}
+                                    className="flex items-center justify-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-rose-600/10 leading-none"
+                                >
+                                    <Video size={14} className="shrink-0" />
+                                    <span className="leading-none mt-[1px]">{t('admin.post.add.video')}</span>
+                                </button>
+                                <button
+                                    onClick={handleAddAudioItem}
+                                    className="flex items-center justify-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-amber-600/10 leading-none"
+                                >
+                                    <Mic size={14} className="shrink-0" />
+                                    <span className="leading-none mt-[1px]">{t('admin.post.add.audio')}</span>
+                                </button>
+                                <button
+                                    onClick={handleAddFileItem}
+                                    className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-slate-600/10 leading-none"
+                                >
+                                    <Paperclip size={14} className="shrink-0" />
+                                    <span className="leading-none mt-[1px]">{t('admin.post.add.file')}</span>
+                                </button>
+                                <button
+                                    onClick={handleAddSocialItem}
+                                    className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-blue-500/10 leading-none"
+                                >
+                                    <Share2 size={14} className="shrink-0" />
+                                    <span className="leading-none mt-[1px]">{t('admin.post.add.social')}</span>
+                                </button>
+                                <button
+                                    onClick={handleAddFlipCardItem}
+                                    className="flex items-center justify-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-orange-600/10 leading-none"
+                                >
+                                    <RotateCw size={14} className="shrink-0" />
+                                    <span className="leading-none mt-[1px]">{t('admin.post.add.flip')}</span>
+                                </button>
+                                <button
+                                    onClick={handleAddBeforeAfterItem}
+                                    className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-blue-600/10 leading-none"
+                                >
+                                    <ArrowLeftRight size={14} className="shrink-0" />
+                                    <span className="leading-none mt-[1px]">{t('admin.post.add.before_after')}</span>
+                                </button>
+                                <button
+                                    onClick={handleAddPollItem}
+                                    className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-indigo-600/10 leading-none"
+                                >
+                                    <BarChart2 size={14} className="shrink-0" />
+                                    <span className="leading-none mt-[1px]">{t('admin.post.add.poll_alt')}</span>
+                                </button>
+                                <button
+                                    onClick={handleAddVSItem}
+                                    className="flex items-center justify-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-rose-600/10 leading-none"
+                                >
+                                    <Swords size={14} className="shrink-0" />
+                                    <span className="leading-none mt-[1px]">{t('admin.post.add.vs')}</span>
+                                </button>
+                                <button
+                                    onClick={handleAddReviewItem}
+                                    className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-emerald-600/10 leading-none"
+                                >
+                                    <Award size={14} className="shrink-0" />
+                                    <span className="leading-none mt-[1px]">{t('admin.post.add.review_alt')}</span>
+                                </button>
+                                <button
+                                    onClick={handleAddQuoteItem}
+                                    className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-slate-800/10 leading-none"
+                                >
+                                    <Quote size={14} className="shrink-0" />
+                                    <span className="leading-none mt-[1px]">{t('admin.post.add.quote')}</span>
+                                </button>
+                                <button
+                                    onClick={handleAddIframeItem}
+                                    className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-700 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-indigo-700/10 leading-none"
+                                >
+                                    <Globe size={14} className="shrink-0" />
+                                    <span className="leading-none mt-[1px]">{t('admin.post.add.iframe')}</span>
+                                </button>
+                            </div>
+                        )}
 
 
                     </div>
