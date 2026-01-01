@@ -4,7 +4,7 @@ import { ChevronDown, Trash2, FileText, Sparkles, Plus } from 'lucide-react';
 
 export interface PostItem {
     id: string;
-    type?: 'text' | 'image' | 'slider';
+    type?: 'text' | 'image' | 'slider' | 'video' | 'audio' | 'file';
     title: string;
     description: string;
     mediaUrl?: string;

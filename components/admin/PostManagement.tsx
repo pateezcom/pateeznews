@@ -3,6 +3,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import PostTextItem, { PostItem } from './PostTextItem';
 import PostImageItem from './PostImageItem';
 import PostSliderImageItem from './PostSliderImageItem';
+import PostVideoItem from './PostVideoItem';
+import PostAudioItem from './PostAudioItem';
 import 'react-quill-new/dist/quill.snow.css';
 import { useDropzone } from 'react-dropzone';
 import { NavigationItem } from '../../types';
@@ -12,7 +14,7 @@ import {
     Save, FileText, Settings2, Search,
     Globe, Loader2, Share2,
     Calendar, Clock, SortAsc, SortDesc, Hash, Video, ShieldCheck, ListOrdered, Utensils, BarChart2,
-    Check, ChevronDown, ChevronRight, Edit3, Images
+    Check, ChevronDown, ChevronRight, Edit3, Images, Film, Mic
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { storageService, MediaItem } from '../../services/storageService';
@@ -23,7 +25,11 @@ import isPropValid from '@emotion/is-prop-valid';
 
 const FilerobotEditor: any = FilerobotImageEditor;
 
+const FIE_FEATURED_FONTS = ['Montserrat', 'Playfair Display', 'Oswald', 'Space Grotesk'] as const;
+const FIE_FEATURED_FONT_SET = new Set(FIE_FEATURED_FONTS.map((font) => font.toLowerCase()));
+
 const FIE_TEXT_FONTS = [
+    ...FIE_FEATURED_FONTS,
     'Bebas Neue',
     'Anton',
     'Archivo Black',
@@ -47,10 +53,10 @@ const FIE_TEXT_FONTS = [
     'Cinzel',
     'Ubuntu',
     'Arial'
-];
+].filter((font, index, arr) => arr.indexOf(font) === index);
 
 const FIE_TEXT_FONT_OPTIONS = FIE_TEXT_FONTS.map((font) => ({
-    label: font,
+    label: FIE_FEATURED_FONT_SET.has(font.toLowerCase()) ? `${font} ★` : font,
     value: font.toLowerCase()
 }));
 
@@ -138,6 +144,7 @@ const PostManagement: React.FC = () => {
     const [activeMediaTarget, setActiveMediaTarget] = useState<string | 'thumbnail' | null>(null);
     const [tagInput, setTagInput] = useState('');
     const [activeDetailTab, setActiveDetailTab] = useState<'article' | 'quiz' | 'poll' | 'video' | 'contents' | 'recipe'>('article');
+    const [activeMediaType, setActiveMediaType] = useState<'image' | 'video' | 'audio'>('image');
     const [categories, setCategories] = useState<NavigationItem[]>([]);
     const [languages, setLanguages] = useState<Language[]>([]);
     const [selectedLanguage, setSelectedLanguage] = useState('tr');
@@ -337,6 +344,7 @@ const PostManagement: React.FC = () => {
             text: 'Buzz Haber',
             fontFamily: FIE_TEXT_DEFAULT_FONT,
             fonts: FIE_TEXT_FONT_OPTIONS,
+            fontSize: 120,
             onFontChange: (fontFamily: string, reRenderCanvas: () => void) => {
                 if (typeof document === 'undefined' || !document.fonts?.load) {
                     reRenderCanvas();
@@ -439,8 +447,8 @@ const PostManagement: React.FC = () => {
         }
     };
 
-    const fetchMedia = async () => {
-        const files = await storageService.getFiles();
+    const fetchMedia = async (type: 'image' | 'video' | 'audio' = 'image') => {
+        const files = await storageService.getFiles(type);
         setLocalFiles(files);
     };
 
@@ -455,23 +463,34 @@ const PostManagement: React.FC = () => {
     };
 
     const handleUrlSubmit = async () => {
-        if (!tempUrl) {
+        const trimmedUrl = tempUrl.trim();
+        if (!trimmedUrl) {
             setUrlError('Lütfen bir URL girin');
             return;
         }
         setValidatingUrl(true);
         setUrlError(null);
-        const isValid = await validateImageUrl(tempUrl);
-        if (isValid) {
-            if (activeMediaTarget === 'thumbnail') {
-                setFormData({ ...formData, thumbnail: tempUrl });
-            } else if (activeMediaTarget) {
-                handleUpdateItem(activeMediaTarget, 'mediaUrl', tempUrl);
+
+        // Skip image validation if we are in video or audio mode
+        if (activeMediaType === 'video' || activeMediaType === 'audio') {
+            if (activeMediaTarget) {
+                handleUpdateItem(activeMediaTarget, 'mediaUrl', trimmedUrl);
             }
             setIsUrlMode(false);
             setTempUrl('');
         } else {
-            setUrlError('Geçersiz görsel URL adresi');
+            const isValid = await validateImageUrl(trimmedUrl);
+            if (isValid) {
+                if (activeMediaTarget === 'thumbnail') {
+                    setFormData({ ...formData, thumbnail: trimmedUrl });
+                } else if (activeMediaTarget) {
+                    handleUpdateItem(activeMediaTarget, 'mediaUrl', trimmedUrl);
+                }
+                setIsUrlMode(false);
+                setTempUrl('');
+            } else {
+                setUrlError('Geçersiz görsel URL adresi');
+            }
         }
         setValidatingUrl(false);
     };
@@ -559,6 +578,62 @@ const PostManagement: React.FC = () => {
         }
 
         setFormData({ ...formData, items: newItems });
+    };
+
+    const handleAddVideoItem = () => {
+        const newItem: PostItem = {
+            id: Math.random().toString(36).substr(2, 9),
+            type: 'video',
+            title: '',
+            description: '',
+            mediaUrl: '',
+            createdAt: Date.now(),
+            orderNumber: 0
+        };
+
+        const newItems = [...formData.items, newItem];
+
+        let finalItems = newItems;
+        if (activeSort) {
+            finalItems = newItems.map((item, idx) => ({
+                ...item,
+                orderNumber: activeSort === 'asc' ? (idx + 1) : (newItems.length - idx)
+            }));
+        } else {
+            const nextOrder = formData.items.length > 0
+                ? Math.max(...formData.items.map(i => i.orderNumber || 0)) + 1
+                : 1;
+            finalItems[finalItems.length - 1].orderNumber = nextOrder;
+        }
+
+        setFormData({ ...formData, items: finalItems });
+    };
+
+    const handleAddAudioItem = () => {
+        const newItem: PostItem = {
+            id: Math.random().toString(36).substr(2, 9),
+            type: 'audio',
+            title: '',
+            description: '',
+            mediaUrl: '',
+            createdAt: Date.now(),
+            orderNumber: 0
+        };
+
+        const newItems = [...formData.items, newItem];
+        let finalItems = newItems;
+        if (activeSort) {
+            finalItems = newItems.map((item, idx) => ({
+                ...item,
+                orderNumber: activeSort === 'asc' ? (idx + 1) : (newItems.length - idx)
+            }));
+        } else {
+            const nextOrder = formData.items.length > 0
+                ? Math.max(...formData.items.map(i => i.orderNumber || 0)) + 1
+                : 1;
+            finalItems[finalItems.length - 1].orderNumber = nextOrder;
+        }
+        setFormData({ ...formData, items: finalItems });
     };
 
     const handleUpdateItem = (id: string, field: keyof PostItem, value: string) => {
@@ -874,7 +949,12 @@ const PostManagement: React.FC = () => {
                                     isDeletable={activeDetailTab !== 'article' || formData.items.length > 1}
                                     onMoveUp={(idx) => handleMoveItem(idx, 'up')}
                                     onMoveDown={(idx) => handleMoveItem(idx, 'down')}
-                                    onOpenFileManager={(id) => { setActiveMediaTarget(id); setShowFileManager(true); }}
+                                    onOpenFileManager={(id) => {
+                                        setActiveMediaTarget(id);
+                                        setActiveMediaType('image');
+                                        fetchMedia('image');
+                                        setShowFileManager(true);
+                                    }}
                                 />
                             ) : item.type === 'image' ? (
                                 <PostImageItem
@@ -888,14 +968,59 @@ const PostManagement: React.FC = () => {
                                     isDeletable={activeDetailTab !== 'article' || formData.items.length > 1}
                                     onMoveUp={(idx) => handleMoveItem(idx, 'up')}
                                     onMoveDown={(idx) => handleMoveItem(idx, 'down')}
-                                    onOpenFileManager={(id) => { setActiveMediaTarget(id); setShowFileManager(true); }}
-                                    onOpenUrlMode={(id) => { setActiveMediaTarget(id); setTempUrl(''); setUrlError(null); setIsUrlMode(true); }}
+                                    onOpenFileManager={(id) => {
+                                        setActiveMediaTarget(id);
+                                        setActiveMediaType('image');
+                                        fetchMedia('image');
+                                        setShowFileManager(true);
+                                    }}
+                                    onOpenUrlMode={(id) => { setActiveMediaTarget(id); setActiveMediaType('image'); setTempUrl(''); setUrlError(null); setIsUrlMode(true); }}
                                     onOpenImageEditor={(id) => {
                                         setActiveMediaTarget(id);
                                         editorSaveInFlightRef.current = false;
                                         setIsEditorSaving(false);
                                         setShowImageEditor(true);
                                     }}
+                                />
+                            ) : item.type === 'video' ? (
+                                <PostVideoItem
+                                    key={item.id}
+                                    item={item}
+                                    index={index}
+                                    totalItems={formData.items.length}
+                                    showBlockNumbers={showBlockNumbers}
+                                    onUpdate={handleUpdateItem}
+                                    onRemove={handleRemoveItem}
+                                    isDeletable={activeDetailTab !== 'article' || formData.items.length > 1}
+                                    onMoveUp={(idx) => handleMoveItem(idx, 'up')}
+                                    onMoveDown={(idx) => handleMoveItem(idx, 'down')}
+                                    onOpenFileManager={(id) => {
+                                        setActiveMediaTarget(id);
+                                        setActiveMediaType('video');
+                                        fetchMedia('video');
+                                        setShowFileManager(true);
+                                    }}
+                                    onOpenUrlMode={(id) => { setActiveMediaTarget(id); setActiveMediaType('video'); setTempUrl(''); setUrlError(null); setIsUrlMode(true); }}
+                                />
+                            ) : item.type === 'audio' ? (
+                                <PostAudioItem
+                                    key={item.id}
+                                    item={item}
+                                    index={index}
+                                    totalItems={formData.items.length}
+                                    showBlockNumbers={showBlockNumbers}
+                                    onUpdate={handleUpdateItem}
+                                    onRemove={handleRemoveItem}
+                                    isDeletable={activeDetailTab !== 'article' || formData.items.length > 1}
+                                    onMoveUp={(idx) => handleMoveItem(idx, 'up')}
+                                    onMoveDown={(idx) => handleMoveItem(idx, 'down')}
+                                    onOpenFileManager={(id) => {
+                                        setActiveMediaTarget(id);
+                                        setActiveMediaType('audio');
+                                        fetchMedia('audio');
+                                        setShowFileManager(true);
+                                    }}
+                                    onOpenUrlMode={(id) => { setActiveMediaTarget(id); setActiveMediaType('audio'); setTempUrl(''); setUrlError(null); setIsUrlMode(true); }}
                                 />
                             ) : (
                                 <PostTextItem
@@ -935,6 +1060,20 @@ const PostManagement: React.FC = () => {
                                 <Images size={14} className="shrink-0" />
                                 <span className="leading-none mt-[1px]">Slider Image Ekle</span>
                             </button>
+                            <button
+                                onClick={handleAddVideoItem}
+                                className="flex items-center justify-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-rose-600/10 leading-none"
+                            >
+                                <Video size={14} className="shrink-0" />
+                                <span className="leading-none mt-[1px]">Video Ekle</span>
+                            </button>
+                            <button
+                                onClick={handleAddAudioItem}
+                                className="flex items-center justify-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-amber-600/10 leading-none"
+                            >
+                                <Mic size={14} className="shrink-0" />
+                                <span className="leading-none mt-[1px]">Ses Ekle</span>
+                            </button>
                         </div>
 
 
@@ -959,6 +1098,8 @@ const PostManagement: React.FC = () => {
                                             <button
                                                 onClick={() => {
                                                     setActiveMediaTarget('thumbnail');
+                                                    setActiveMediaType('image');
+                                                    fetchMedia('image');
                                                     editorSaveInFlightRef.current = false;
                                                     setIsEditorSaving(false);
                                                     setShowImageEditor(true);
@@ -984,12 +1125,12 @@ const PostManagement: React.FC = () => {
                                     </div>
                                 ) : (
                                     <div className="flex flex-col items-center justify-center py-8">
-                                        <div onClick={() => { setActiveMediaTarget('thumbnail'); setShowFileManager(true); }} className="flex flex-col items-center cursor-pointer group/pick mb-2">
+                                        <div onClick={() => { setActiveMediaTarget('thumbnail'); setActiveMediaType('image'); fetchMedia('image'); setShowFileManager(true); }} className="flex flex-col items-center cursor-pointer group/pick mb-2">
                                             <Plus size={40} className="text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-2" />
                                             <span className="text-[13px] font-bold text-palette-tan/50 px-4 text-center">Görsel Seç</span>
                                         </div>
                                         <button
-                                            onClick={() => { setActiveMediaTarget('thumbnail'); setIsUrlMode(true); setTempUrl(''); setUrlError(null); }}
+                                            onClick={() => { setActiveMediaTarget('thumbnail'); setActiveMediaType('image'); setIsUrlMode(true); setTempUrl(''); setUrlError(null); }}
                                             className="mt-2 text-[10px] font-black text-palette-tan/60 hover:text-palette-maroon border border-palette-tan/20 px-3 py-1.5 rounded-[3px] bg-white shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 uppercase tracking-wider"
                                         >
                                             <Globe size={11} /> URL İLE EKLE
@@ -1140,6 +1281,7 @@ const PostManagement: React.FC = () => {
                     }}
                     localFiles={localFiles}
                     setLocalFiles={setLocalFiles}
+                    type={activeMediaType}
                 />
             )}
 
@@ -1153,9 +1295,16 @@ const PostManagement: React.FC = () => {
                                 <div className="p-3 bg-palette-beige/20 rounded-full">
                                     <Globe size={24} className="text-palette-maroon" />
                                 </div>
-                                <h3 className="text-lg font-black text-palette-maroon tracking-tight uppercase">Görsel URL Adresi</h3>
-                                <p className="text-[11px] font-bold text-palette-tan/50 leading-relaxed max-w-[200px] mx-auto">
-                                    Eklemek istediğiniz görselin doğrudan bağlantısını aşağıya yapıştırın.
+                                <h3 className="text-lg font-black text-palette-maroon tracking-tight uppercase">
+                                    {activeMediaType === 'video' ? 'Video / Youtube URL' : activeMediaType === 'audio' ? 'Ses / YT Music URL' : 'Görsel URL Adresi'}
+                                </h3>
+                                <p className="text-[11px] font-bold text-palette-tan/50 leading-relaxed max-w-[250px] mx-auto">
+                                    {activeMediaType === 'video'
+                                        ? 'Youtube (Shorts dahil) veya doğrudan video bağlantısını aşağıya yapıştırın.'
+                                        : activeMediaType === 'audio'
+                                            ? 'Youtube Music veya doğrudan ses bağlantısını (MP3 vb.) aşağıya yapıştırın.'
+                                            : 'Eklemek istediğiniz görselin doğrudan bağlantısını aşağıya yapıştırın.'
+                                    }
                                 </p>
                             </div>
 
@@ -1165,8 +1314,9 @@ const PostManagement: React.FC = () => {
                                     type="url"
                                     value={tempUrl}
                                     onChange={(e) => setTempUrl(e.target.value)}
-                                    placeholder="https://örnek.com/gorsel.jpg"
+                                    placeholder={activeMediaType === 'video' ? "https://youtube.com/watch?v=..." : activeMediaType === 'audio' ? "https://music.youtube.com/..." : "https://örnek.com/gorsel.jpg"}
                                     className="w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] px-3 py-2.5 text-sm font-bold text-palette-maroon outline-none focus:border-palette-maroon transition-all placeholder:text-palette-tan/20"
+                                    onKeyDown={(e) => e.key === 'Enter' && handleUrlSubmit()}
                                 />
                                 {urlError && <p className="text-xs font-bold text-red-500 animate-pulse">{urlError}</p>}
                             </div>
@@ -1177,7 +1327,7 @@ const PostManagement: React.FC = () => {
                                     disabled={validatingUrl}
                                     className="flex-1 py-2.5 bg-palette-maroon text-white font-black text-[11px] tracking-widest rounded-[3px] hover:bg-palette-red transition-all shadow-md active:scale-95"
                                 >
-                                    {validatingUrl ? 'DOGRULANIYOR...' : 'GÖRSELİ GETİR'}
+                                    {validatingUrl ? 'DOGRULANIYOR...' : (activeMediaType === 'video' ? 'VİDEOYU GETİR' : activeMediaType === 'audio' ? 'SESİ GETİR' : 'GÖRSELİ GETİR')}
                                 </button>
                                 <button onClick={() => setIsUrlMode(false)} className="px-5 py-2.5 bg-palette-beige/20 text-palette-tan font-black text-[11px] tracking-widest rounded-[3px] hover:bg-palette-beige/40 transition-all">
                                     İPTAL
@@ -1232,7 +1382,8 @@ const MediaManagerModal: React.FC<{
     onSelect: (src: string) => void;
     localFiles: any[];
     setLocalFiles: React.Dispatch<React.SetStateAction<any[]>>;
-}> = ({ onClose, onSelect, localFiles, setLocalFiles }) => {
+    type?: 'image' | 'video' | 'audio';
+}> = ({ onClose, onSelect, localFiles, setLocalFiles, type = 'image' }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [uploading, setUploading] = useState(false);
@@ -1247,7 +1398,7 @@ const MediaManagerModal: React.FC<{
             setUploadProgress(20);
             try {
                 const timer = setInterval(() => setUploadProgress(p => p < 90 ? p + 10 : p), 200);
-                const result = await storageService.uploadFile(file);
+                const result = await storageService.uploadFile(file, undefined, type);
                 clearInterval(timer);
                 setUploadProgress(100);
                 if (result) {
@@ -1259,7 +1410,11 @@ const MediaManagerModal: React.FC<{
                 setTimeout(() => { setUploading(false); setUploadPreview(null); }, 500);
             }
         },
-        accept: { 'image/*': [] }
+        accept: type === 'video'
+            ? { 'video/*': ['.mp4', '.webm', '.mov', '.avi'] }
+            : type === 'audio'
+                ? { 'audio/*': ['.mp3', '.wav', '.ogg', '.m4a', '.aac'] }
+                : { 'image/*': ['.jpg', '.jpeg', '.png', '.webp', '.gif'] }
     });
 
     const filteredFiles = useMemo(() => {
@@ -1339,11 +1494,24 @@ const MediaManagerModal: React.FC<{
 
                             {/* Extensions Tags (Up High) */}
                             <div className="flex flex-wrap justify-center gap-1.5 mb-10">
-                                {['JPG', 'JPEG', 'WEBP', 'PNG', 'GIF'].map(ext => (
-                                    <span key={ext} className="text-[10px] font-black text-palette-tan/40 bg-white border border-palette-tan/10 px-2.5 py-1 rounded-[3px] shadow-sm tracking-tighter">
-                                        {ext}
-                                    </span>
-                                ))}
+                                {type === 'video'
+                                    ? ['MP4', 'WEBM', 'MOV', 'AVI'].map(ext => (
+                                        <span key={ext} className="text-[10px] font-black text-white bg-rose-500 border border-rose-400 px-2.5 py-1 rounded-[3px] shadow-sm tracking-tighter">
+                                            {ext}
+                                        </span>
+                                    ))
+                                    : type === 'audio'
+                                        ? ['MP3', 'WAV', 'OGG', 'M4A', 'AAC'].map(ext => (
+                                            <span key={ext} className="text-[10px] font-black text-white bg-amber-500 border border-amber-400 px-2.5 py-1 rounded-[3px] shadow-sm tracking-tighter">
+                                                {ext}
+                                            </span>
+                                        ))
+                                        : ['JPG', 'JPEG', 'WEBP', 'PNG', 'GIF'].map(ext => (
+                                            <span key={ext} className="text-[10px] font-black text-palette-tan/40 bg-white border border-palette-tan/10 px-2.5 py-1 rounded-[3px] shadow-sm tracking-tighter">
+                                                {ext}
+                                            </span>
+                                        ))
+                                }
                             </div>
 
                             <div className="mb-6 relative">
@@ -1370,8 +1538,22 @@ const MediaManagerModal: React.FC<{
                                     onClick={(e) => e.stopPropagation()}
                                     className="mt-10 w-full animate-in zoom-in-95 duration-300 flex flex-col items-center"
                                 >
-                                    <div className="relative aspect-square w-full max-w-[160px] rounded-[3px] overflow-hidden border border-palette-tan/20 shadow-2xl ring-4 ring-white">
-                                        <img src={uploadPreview || ''} className="w-full h-full object-cover opacity-40 blur-[1px]" />
+                                    <div className="relative aspect-square w-full max-w-[160px] rounded-[3px] overflow-hidden border border-palette-tan/20 shadow-2xl ring-4 ring-white bg-slate-900">
+                                        {type === 'video' ? (
+                                            <div className="w-full h-full relative">
+                                                <video
+                                                    src={uploadPreview || ''}
+                                                    className="w-full h-full object-cover opacity-60"
+                                                    muted
+                                                    playsInline
+                                                />
+                                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                                    <Video size={48} className="text-white opacity-20" />
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <img src={uploadPreview || ''} className="w-full h-full object-cover opacity-40 blur-[1px]" />
+                                        )}
                                         <div className="absolute inset-0 flex flex-col items-center justify-center bg-palette-maroon/10 backdrop-blur-[1px]">
                                             <div className="relative">
                                                 <Loader2 size={32} className="text-palette-maroon animate-spin" />
@@ -1402,8 +1584,10 @@ const MediaManagerModal: React.FC<{
                     >
                         {filteredFiles.length === 0 ? (
                             <div className="h-full flex flex-col items-center justify-center text-palette-tan/10">
-                                <ImageIcon size={80} strokeWidth={0.5} className="mb-6" />
-                                <p className="text-[12px] font-black tracking-[0.3em] uppercase opacity-50">Empty Vault</p>
+                                {type === 'video' ? <Film size={80} strokeWidth={0.5} className="mb-6" /> : type === 'audio' ? <Mic size={80} strokeWidth={0.5} className="mb-6" /> : <ImageIcon size={80} strokeWidth={0.5} className="mb-6" />}
+                                <p className="text-[12px] font-black tracking-[0.3em] uppercase opacity-50">
+                                    Empty {type === 'video' ? 'Video' : type === 'audio' ? 'Audio' : 'Image'} Vault
+                                </p>
                             </div>
                         ) : (
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-8 pb-10">
@@ -1424,12 +1608,33 @@ const MediaManagerModal: React.FC<{
                                             ? 'border-emerald-500 ring-[8px] ring-emerald-500/5 shadow-2xl'
                                             : 'border-palette-tan/10 hover:border-palette-maroon/40 group-hover:shadow-xl bg-palette-beige/5'
                                             }`}>
-                                            <img
-                                                src={file.thumb || file.src}
-                                                className={`w-full h-full object-contain p-1 transition-all duration-700 ${selectedImage === file.src ? 'scale-105' : 'group-hover:scale-105 group-hover:rotate-1'
-                                                    }`}
-                                                loading="lazy"
-                                            />
+                                            {type === 'video' ? (
+                                                file.thumb ? (
+                                                    <img
+                                                        src={file.thumb}
+                                                        className={`w-full h-full object-cover transition-all duration-700 ${selectedImage === file.src ? 'scale-105' : 'group-hover:scale-105 group-hover:rotate-1'
+                                                            }`}
+                                                        loading="lazy"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full flex flex-col items-center justify-center bg-slate-900">
+                                                        <Video size={48} className="text-white/20 mb-2" />
+                                                        <span className="text-[8px] font-black text-white/40 uppercase tracking-widest">{file.value?.split('.').pop()}</span>
+                                                    </div>
+                                                )
+                                            ) : type === 'audio' ? (
+                                                <div className="w-full h-full flex flex-col items-center justify-center bg-amber-50">
+                                                    <Mic size={48} className="text-amber-500 mb-2 opacity-40 group-hover:opacity-100 transition-opacity" />
+                                                    <span className="text-[8px] font-black text-amber-800/40 uppercase tracking-widest">{file.value?.split('.').pop()}</span>
+                                                </div>
+                                            ) : (
+                                                <img
+                                                    src={file.thumb || file.src}
+                                                    className={`w-full h-full object-contain p-1 transition-all duration-700 ${selectedImage === file.src ? 'scale-105' : 'group-hover:scale-105 group-hover:rotate-1'
+                                                        }`}
+                                                    loading="lazy"
+                                                />
+                                            )}
 
                                             {/* Status Badge */}
                                             {selectedImage === file.src && (
@@ -1478,7 +1683,7 @@ const MediaManagerModal: React.FC<{
                             className="flex items-center justify-center gap-2 h-10 px-8 bg-emerald-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.2em] shadow-2xl shadow-emerald-600/20 hover:bg-emerald-700 transition-all disabled:opacity-20 disabled:shadow-none active:scale-95"
                         >
                             <CheckCircle2 size={18} />
-                            <span>USE THIS IMAGE</span>
+                            <span>USE THIS {type === 'video' ? 'VIDEO' : type === 'audio' ? 'AUDIO' : 'IMAGE'}</span>
                         </button>
                         <button
                             onClick={onClose}

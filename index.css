@@ -1,8 +1,14 @@
-@import url('https://fonts.googleapis.com/css2?family=Anton&family=Archivo+Black&family=Bebas+Neue&family=Cinzel:wght@400;700;900&family=Cormorant+Garamond:wght@400;700&family=DM+Serif+Display&family=Fjalla+One&family=Libre+Baskerville:wght@400;700&family=Merriweather:wght@400;700;900&family=Montserrat:wght@400;700;900&family=Open+Sans:wght@400;700;800&family=Oswald:wght@400;700&family=Poppins:wght@400;700;900&family=Raleway:wght@400;700;900&family=Roboto+Slab:wght@400;700;900&family=Source+Serif+4:wght@400;700;900&family=Teko:wght@400;700&family=Ubuntu:wght@400;700&family=Lato:wght@400;700;900&family=Playfair+Display:wght@400;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Archivo+Black&family=Bebas+Neue&family=Cinzel:wght@400;700;900&family=Cormorant+Garamond:wght@400;700&family=DM+Serif+Display&family=Fjalla+One&family=Libre+Baskerville:wght@400;700&family=Merriweather:wght@400;700;900&family=Montserrat:wght@400;700;900&family=Open+Sans:wght@400;700;800&family=Oswald:wght@400;700&family=Poppins:wght@400;700;900&family=Raleway:wght@400;700;900&family=Roboto+Slab:wght@400;700;900&family=Source+Serif+4:wght@400;700;900&family=Space+Grotesk:wght@400;700&family=Teko:wght@400;700&family=Ubuntu:wght@400;700&family=Lato:wght@400;700;900&family=Playfair+Display:wght@400;700;900&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Scaleflex UI poppers (used by Filerobot) are portaled to #SfxPopper.
+   Our admin modals use very high z-index, so ensure poppers render above them. */
+#SfxPopper .SfxPopper-wrapper {
+    z-index: 100000 !important;
+}
 
 
 /* Local Font Faces - 2025 Performance Optimization */

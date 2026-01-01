@@ -10,15 +10,15 @@ export interface MediaItem {
 }
 
 export const storageService = {
-    async getFiles(): Promise<MediaItem[]> {
+    async getFiles(type: 'image' | 'video' | 'audio' = 'image'): Promise<MediaItem[]> {
         try {
-            const response = await fetch('/api/storage/list');
+            const response = await fetch(`/api/storage/list?type=${type}`);
             if (!response.ok) throw new Error('Failed to list files');
             const files = await response.json();
             return files.map((f: any) => ({
                 ...f,
-                type: 'file',
-                path: f.id.split('/')[0] // The date folder
+                type: f.type || 'file',
+                path: f.id.split('/')[1] // The date folder
             }));
         } catch (err) {
             console.error('Storage error:', err);
@@ -26,12 +26,15 @@ export const storageService = {
         }
     },
 
-    async uploadFile(file: File, customPath?: string): Promise<MediaItem | null> {
+    async uploadFile(file: File, customPath?: string, type?: 'image' | 'video' | 'audio'): Promise<MediaItem | null> {
         try {
             const formData = new FormData();
             formData.append('file', file);
             if (customPath) {
                 formData.append('customPath', customPath);
+            }
+            if (type) {
+                formData.append('type', type);
             }
 
             const controller = new AbortController();
