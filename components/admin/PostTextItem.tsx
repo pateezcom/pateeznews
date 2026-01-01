@@ -5,7 +5,7 @@ import { useLanguage } from '../../context/LanguageContext';
 
 export interface PostItem {
     id: string;
-    type?: 'text' | 'image' | 'slider' | 'video' | 'audio' | 'file' | 'social' | 'flipcard' | 'beforeafter';
+    type?: 'text' | 'image' | 'slider' | 'video' | 'audio' | 'file' | 'social' | 'flipcard' | 'beforeafter' | 'poll';
     title: string;
     description: string;
     mediaUrl?: string;
@@ -29,6 +29,14 @@ export interface PostItem {
         beforeLabel: string;
         afterLabel: string;
     };
+    options?: {
+        id: string;
+        text: string;
+        votes: number;
+        image?: string;
+    }[];
+    isImagePoll?: boolean;
+    pollColumns?: 2 | 3;
 }
 
 export const QUILL_MODULES = {
