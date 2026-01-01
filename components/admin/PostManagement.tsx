@@ -12,6 +12,8 @@ import PostBeforeAfterItem from './PostBeforeAfterItem';
 import PostPollItem from './PostPollItem';
 import PostVSItem from './PostVSItem';
 import PostReviewItem from './PostReviewItem';
+import PostQuoteItem from './PostQuoteItem';
+import PostIframeItem from './PostIframeItem';
 import 'react-quill-new/dist/quill.snow.css';
 import { useDropzone } from 'react-dropzone';
 import { NavigationItem } from '../../types';
@@ -21,7 +23,7 @@ import {
     Save, FileText, Settings2, Search,
     Globe, Loader2, Share2,
     Calendar, Clock, SortAsc, SortDesc, Hash, Video, ShieldCheck, ListOrdered, Utensils, BarChart2,
-    Check, ChevronDown, ChevronRight, Edit3, Images, Film, Mic, Paperclip, RotateCw, ArrowLeftRight, Swords, Award
+    Check, ChevronDown, ChevronRight, Edit3, Images, Film, Mic, Paperclip, RotateCw, ArrowLeftRight, Swords, Award, Quote
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { storageService, MediaItem } from '../../services/storageService';
@@ -1310,6 +1312,56 @@ const PostManagement: React.FC = () => {
         setFormData({ ...formData, items: finalItems });
     };
 
+    const handleAddQuoteItem = () => {
+        const newItem: PostItem = {
+            id: Math.random().toString(36).substr(2, 9),
+            type: 'quote',
+            title: '',
+            description: '',
+            orderNumber: 0
+        };
+
+        const newItems = [...formData.items, newItem];
+        let finalItems = newItems;
+        if (activeSort) {
+            finalItems = newItems.map((item, idx) => ({
+                ...item,
+                orderNumber: activeSort === 'asc' ? (idx + 1) : (newItems.length - idx)
+            }));
+        } else {
+            const nextOrder = formData.items.length > 0
+                ? Math.max(...formData.items.map(i => i.orderNumber || 0)) + 1
+                : 1;
+            finalItems[finalItems.length - 1].orderNumber = nextOrder;
+        }
+        setFormData({ ...formData, items: finalItems });
+    };
+
+    const handleAddIframeItem = () => {
+        const newItem: PostItem = {
+            id: Math.random().toString(36).substr(2, 9),
+            type: 'iframe',
+            title: '',
+            description: '',
+            orderNumber: 0
+        };
+
+        const newItems = [...formData.items, newItem];
+        let finalItems = newItems;
+        if (activeSort) {
+            finalItems = newItems.map((item, idx) => ({
+                ...item,
+                orderNumber: activeSort === 'asc' ? (idx + 1) : (newItems.length - idx)
+            }));
+        } else {
+            const nextOrder = formData.items.length > 0
+                ? Math.max(...formData.items.map(i => i.orderNumber || 0)) + 1
+                : 1;
+            finalItems[finalItems.length - 1].orderNumber = nextOrder;
+        }
+        setFormData({ ...formData, items: finalItems });
+    };
+
     const handleRemoveItem = (id: string) => {
         if (activeDetailTab === 'article' && formData.items.length <= 1) return;
         let filtered = formData.items.filter(item => item.id !== id);
@@ -1791,6 +1843,32 @@ const PostManagement: React.FC = () => {
                                         setShowImageEditor(true);
                                     }}
                                 />
+                            ) : item.type === 'iframe' ? (
+                                <PostIframeItem
+                                    key={item.id}
+                                    item={item}
+                                    index={index}
+                                    totalItems={formData.items.length}
+                                    showBlockNumbers={showBlockNumbers}
+                                    onUpdate={handleUpdateItem}
+                                    onRemove={handleRemoveItem}
+                                    isDeletable={activeDetailTab !== 'article' || formData.items.length > 1}
+                                    onMoveUp={(idx) => handleMoveItem(idx, 'up')}
+                                    onMoveDown={(idx) => handleMoveItem(idx, 'down')}
+                                />
+                            ) : item.type === 'quote' ? (
+                                <PostQuoteItem
+                                    key={item.id}
+                                    item={item}
+                                    index={index}
+                                    totalItems={formData.items.length}
+                                    showBlockNumbers={showBlockNumbers}
+                                    onUpdate={handleUpdateItem}
+                                    onRemove={handleRemoveItem}
+                                    isDeletable={activeDetailTab !== 'article' || formData.items.length > 1}
+                                    onMoveUp={(idx) => handleMoveItem(idx, 'up')}
+                                    onMoveDown={(idx) => handleMoveItem(idx, 'down')}
+                                />
                             ) : item.type === 'poll' ? (
                                 <PostPollItem
                                     key={item.id}
@@ -2005,6 +2083,20 @@ const PostManagement: React.FC = () => {
                             >
                                 <Award size={14} className="shrink-0" />
                                 <span className="leading-none mt-[1px]">İnceleme ekle</span>
+                            </button>
+                            <button
+                                onClick={handleAddQuoteItem}
+                                className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-slate-800/10 leading-none"
+                            >
+                                <Quote size={14} className="shrink-0" />
+                                <span className="leading-none mt-[1px]">Alıntı ekle</span>
+                            </button>
+                            <button
+                                onClick={handleAddIframeItem}
+                                className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-700 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-indigo-700/10 leading-none"
+                            >
+                                <Globe size={14} className="shrink-0" />
+                                <span className="leading-none mt-[1px]">Iframe ekle</span>
                             </button>
                         </div>
 
