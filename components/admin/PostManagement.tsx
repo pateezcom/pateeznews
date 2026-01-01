@@ -63,6 +63,70 @@ const FIE_TEXT_FONT_OPTIONS = FIE_TEXT_FONTS.map((font) => ({
 
 const FIE_TEXT_DEFAULT_FONT = 'arial';
 
+const FIE_EMOJI_PACK = [
+    '🚨', // breaking
+    '⚡', // fast
+    '🔥', // hot
+    '📢', // announcement
+    '📣', // megaphone
+    '📰', // newspaper
+    '🎙️', // mic
+    '📍', // location
+    '📌', // pin
+    '🛑', // stop
+    '✅', // check
+    '❌', // cross
+    '❗', // exclamation
+    '❓', // question
+    '💥', // boom
+    '👀', // eyes
+    '💬', // chat
+    '🗣️', // speaking
+    '⏰', // alarm
+    '🕒', // time
+    '📸', // camera
+    '🎥', // video
+    '💰', // money
+    '📈', // up
+    '📉', // down
+    '🏆', // trophy
+    '🇹🇷', // tr flag
+] as const;
+
+const FIE_EMOJI_STICKER_CACHE = new Map<string, string>();
+
+const createEmojiStickerDataUrl = (emoji: string, sizePx = 160) => {
+    if (typeof document === 'undefined') return '';
+
+    const dpr = typeof window !== 'undefined' && typeof window.devicePixelRatio === 'number'
+        ? Math.max(1, Math.min(window.devicePixelRatio, 3))
+        : 1;
+
+    const cacheKey = `${emoji}|${sizePx}|${dpr}`;
+    const cached = FIE_EMOJI_STICKER_CACHE.get(cacheKey);
+    if (cached) return cached;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(sizePx * dpr);
+    canvas.height = Math.round(sizePx * dpr);
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return '';
+
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, sizePx, sizePx);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    const fontSize = Math.round(sizePx * 0.78);
+    ctx.font = `${fontSize}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+    ctx.fillText(emoji, sizePx / 2, sizePx / 2);
+
+    const url = canvas.toDataURL('image/png');
+    FIE_EMOJI_STICKER_CACHE.set(cacheKey, url);
+    return url;
+};
+
 const SC_DOM_PROP_BLOCKLIST = new Set([
     'showTabsDrawer',
     'isPhoneScreen',
@@ -363,12 +427,27 @@ const PostManagement: React.FC = () => {
         return false;
     }, []);
 
+    const emojiStickerGallery = React.useMemo(() => {
+        if (!showImageEditor) return [];
+
+        return FIE_EMOJI_PACK
+            .map((emoji) => {
+                const url = createEmojiStickerDataUrl(emoji, 160);
+                if (!url) return null;
+                return { originalUrl: url, previewUrl: url };
+            })
+            .filter(Boolean) as { originalUrl: string; previewUrl: string }[];
+    }, [showImageEditor]);
+
     const editorConfig = React.useMemo(() => ({
         annotationsCommon: { fill: '#ff0000' },
         theme: {
             typography: {
                 fontFamily: `${FIE_TEXT_FONTS.join(', ')}, sans-serif`
             }
+        },
+        Image: {
+            gallery: emojiStickerGallery,
         },
         Text: {
             text: 'Buzz Haber',
@@ -400,7 +479,7 @@ const PostManagement: React.FC = () => {
         [TABS.ADJUST]: {
             hideResize: true,
         },
-    }), [handleEditorBeforeSave]);
+    }), [handleEditorBeforeSave, emojiStickerGallery]);
 
     useEffect(() => {
         if (selectedLanguage) {
