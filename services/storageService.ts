@@ -10,7 +10,7 @@ export interface MediaItem {
 }
 
 export const storageService = {
-    async getFiles(type: 'image' | 'video' | 'audio' = 'image'): Promise<MediaItem[]> {
+    async getFiles(type: 'image' | 'video' | 'audio' | 'file' = 'image'): Promise<MediaItem[]> {
         try {
             const response = await fetch(`/api/storage/list?type=${type}`);
             if (!response.ok) throw new Error('Failed to list files');
@@ -26,7 +26,7 @@ export const storageService = {
         }
     },
 
-    async uploadFile(file: File, customPath?: string, type?: 'image' | 'video' | 'audio'): Promise<MediaItem | null> {
+    async uploadFile(file: File, customPath?: string, type?: 'image' | 'video' | 'audio' | 'file'): Promise<MediaItem | null> {
         try {
             const formData = new FormData();
             formData.append('file', file);

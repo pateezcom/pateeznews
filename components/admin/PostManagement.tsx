@@ -5,6 +5,7 @@ import PostImageItem from './PostImageItem';
 import PostSliderImageItem from './PostSliderImageItem';
 import PostVideoItem from './PostVideoItem';
 import PostAudioItem from './PostAudioItem';
+import PostFileItem from './PostFileItem';
 import 'react-quill-new/dist/quill.snow.css';
 import { useDropzone } from 'react-dropzone';
 import { NavigationItem } from '../../types';
@@ -14,7 +15,7 @@ import {
     Save, FileText, Settings2, Search,
     Globe, Loader2, Share2,
     Calendar, Clock, SortAsc, SortDesc, Hash, Video, ShieldCheck, ListOrdered, Utensils, BarChart2,
-    Check, ChevronDown, ChevronRight, Edit3, Images, Film, Mic
+    Check, ChevronDown, ChevronRight, Edit3, Images, Film, Mic, Paperclip
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { storageService, MediaItem } from '../../services/storageService';
@@ -62,8 +63,37 @@ const FIE_TEXT_FONT_OPTIONS = FIE_TEXT_FONTS.map((font) => ({
 
 const FIE_TEXT_DEFAULT_FONT = 'arial';
 
-// SC v6 Filter for third-party libraries
-const shouldForwardProp = (prop: string) => isPropValid(prop);
+const SC_DOM_PROP_BLOCKLIST = new Set([
+    'showTabsDrawer',
+    'isPhoneScreen',
+    'noMargin',
+    'active',
+    'showBackButton',
+    'hasChildren',
+    'fullWidth',
+    'isValueExists',
+    'hideEllipsis',
+    'watermarkTool',
+    'maxWidth',
+    'icon',
+    'isWarning',
+    'isError',
+    'primary',
+    'variant',
+    'iconShadow',
+    'alignment',
+    'align',
+    'warning',
+]);
+
+// SC v6 filter: only filter DOM props, forward all props to custom components.
+const shouldForwardProp = (prop: string, elementToBeRendered: unknown) => {
+    if (prop.startsWith('$')) return false; // transient props
+    if (typeof elementToBeRendered === 'string') {
+        return isPropValid(prop) && !SC_DOM_PROP_BLOCKLIST.has(prop);
+    }
+    return true;
+};
 
 // Premium Quill Overrides
 const QUILL_CUSTOM_STYLE = `
@@ -144,7 +174,7 @@ const PostManagement: React.FC = () => {
     const [activeMediaTarget, setActiveMediaTarget] = useState<string | 'thumbnail' | null>(null);
     const [tagInput, setTagInput] = useState('');
     const [activeDetailTab, setActiveDetailTab] = useState<'article' | 'quiz' | 'poll' | 'video' | 'contents' | 'recipe'>('article');
-    const [activeMediaType, setActiveMediaType] = useState<'image' | 'video' | 'audio'>('image');
+    const [activeMediaType, setActiveMediaType] = useState<'image' | 'video' | 'audio' | 'file'>('image');
     const [categories, setCategories] = useState<NavigationItem[]>([]);
     const [languages, setLanguages] = useState<Language[]>([]);
     const [selectedLanguage, setSelectedLanguage] = useState('tr');
@@ -447,7 +477,7 @@ const PostManagement: React.FC = () => {
         }
     };
 
-    const fetchMedia = async (type: 'image' | 'video' | 'audio' = 'image') => {
+    const fetchMedia = async (type: 'image' | 'video' | 'audio' | 'file' = 'image') => {
         const files = await storageService.getFiles(type);
         setLocalFiles(files);
     };
@@ -613,6 +643,33 @@ const PostManagement: React.FC = () => {
         const newItem: PostItem = {
             id: Math.random().toString(36).substr(2, 9),
             type: 'audio',
+            title: '',
+            description: '',
+            mediaUrl: '',
+            createdAt: Date.now(),
+            orderNumber: 0
+        };
+
+        const newItems = [...formData.items, newItem];
+        let finalItems = newItems;
+        if (activeSort) {
+            finalItems = newItems.map((item, idx) => ({
+                ...item,
+                orderNumber: activeSort === 'asc' ? (idx + 1) : (newItems.length - idx)
+            }));
+        } else {
+            const nextOrder = formData.items.length > 0
+                ? Math.max(...formData.items.map(i => i.orderNumber || 0)) + 1
+                : 1;
+            finalItems[finalItems.length - 1].orderNumber = nextOrder;
+        }
+        setFormData({ ...formData, items: finalItems });
+    };
+
+    const handleAddFileItem = () => {
+        const newItem: PostItem = {
+            id: Math.random().toString(36).substr(2, 9),
+            type: 'file',
             title: '',
             description: '',
             mediaUrl: '',
@@ -1022,6 +1079,25 @@ const PostManagement: React.FC = () => {
                                     }}
                                     onOpenUrlMode={(id) => { setActiveMediaTarget(id); setActiveMediaType('audio'); setTempUrl(''); setUrlError(null); setIsUrlMode(true); }}
                                 />
+                            ) : item.type === 'file' ? (
+                                <PostFileItem
+                                    key={item.id}
+                                    item={item}
+                                    index={index}
+                                    totalItems={formData.items.length}
+                                    showBlockNumbers={showBlockNumbers}
+                                    onUpdate={handleUpdateItem}
+                                    onRemove={handleRemoveItem}
+                                    isDeletable={activeDetailTab !== 'article' || formData.items.length > 1}
+                                    onMoveUp={(idx) => handleMoveItem(idx, 'up')}
+                                    onMoveDown={(idx) => handleMoveItem(idx, 'down')}
+                                    onOpenFileManager={(id) => {
+                                        setActiveMediaTarget(id);
+                                        setActiveMediaType('file');
+                                        fetchMedia('file');
+                                        setShowFileManager(true);
+                                    }}
+                                />
                             ) : (
                                 <PostTextItem
                                     key={item.id}
@@ -1073,6 +1149,13 @@ const PostManagement: React.FC = () => {
                             >
                                 <Mic size={14} className="shrink-0" />
                                 <span className="leading-none mt-[1px]">Ses Ekle</span>
+                            </button>
+                            <button
+                                onClick={handleAddFileItem}
+                                className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-slate-600/10 leading-none"
+                            >
+                                <Paperclip size={14} className="shrink-0" />
+                                <span className="leading-none mt-[1px]">Dosya Ekle</span>
                             </button>
                         </div>
 
@@ -1361,7 +1444,7 @@ const PostManagement: React.FC = () => {
                             StyleSheetManager reintroduced with aggressive filtering to fix "Unknown prop" errors.
                             The filter ensures only valid HTML attributes are passed to the DOM.
                         */}
-                        <StyleSheetManager shouldForwardProp={(prop) => isPropValid(prop) && !['showTabsDrawer', 'isPhoneScreen', 'noMargin', 'active', 'showBackButton', 'hasChildren', 'fullWidth', 'isValueExists', 'hideEllipsis', 'watermarkTool', 'maxWidth', 'icon', 'isWarning', 'isError', 'primary', 'variant', 'iconShadow', 'alignment', 'align', 'warning'].includes(prop)}>
+                        <StyleSheetManager shouldForwardProp={shouldForwardProp}>
                             <FilerobotEditor
                                 {...editorConfig}
                                 source={activeMediaTarget === 'thumbnail' ? formData.thumbnail : formData.items.find(i => i.id === activeMediaTarget)?.mediaUrl || ''}
@@ -1382,7 +1465,7 @@ const MediaManagerModal: React.FC<{
     onSelect: (src: string) => void;
     localFiles: any[];
     setLocalFiles: React.Dispatch<React.SetStateAction<any[]>>;
-    type?: 'image' | 'video' | 'audio';
+    type?: 'image' | 'video' | 'audio' | 'file';
 }> = ({ onClose, onSelect, localFiles, setLocalFiles, type = 'image' }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -1414,7 +1497,9 @@ const MediaManagerModal: React.FC<{
             ? { 'video/*': ['.mp4', '.webm', '.mov', '.avi'] }
             : type === 'audio'
                 ? { 'audio/*': ['.mp3', '.wav', '.ogg', '.m4a', '.aac'] }
-                : { 'image/*': ['.jpg', '.jpeg', '.png', '.webp', '.gif'] }
+                : type === 'file'
+                    ? { 'application/*': ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.txt'] }
+                    : { 'image/*': ['.jpg', '.jpeg', '.png', '.webp', '.gif'] }
     });
 
     const filteredFiles = useMemo(() => {
@@ -1506,11 +1591,17 @@ const MediaManagerModal: React.FC<{
                                                 {ext}
                                             </span>
                                         ))
-                                        : ['JPG', 'JPEG', 'WEBP', 'PNG', 'GIF'].map(ext => (
-                                            <span key={ext} className="text-[10px] font-black text-palette-tan/40 bg-white border border-palette-tan/10 px-2.5 py-1 rounded-[3px] shadow-sm tracking-tighter">
-                                                {ext}
-                                            </span>
-                                        ))
+                                        : type === 'file'
+                                            ? ['PDF', 'DOCX', 'XLSX', 'PPTX'].map(ext => (
+                                                <span key={ext} className="text-[10px] font-black text-white bg-slate-500 border border-slate-400 px-2.5 py-1 rounded-[3px] shadow-sm tracking-tighter">
+                                                    {ext}
+                                                </span>
+                                            ))
+                                            : ['JPG', 'JPEG', 'WEBP', 'PNG', 'GIF'].map(ext => (
+                                                <span key={ext} className="text-[10px] font-black text-palette-tan/40 bg-white border border-palette-tan/10 px-2.5 py-1 rounded-[3px] shadow-sm tracking-tighter">
+                                                    {ext}
+                                                </span>
+                                            ))
                                 }
                             </div>
 
@@ -1584,9 +1675,9 @@ const MediaManagerModal: React.FC<{
                     >
                         {filteredFiles.length === 0 ? (
                             <div className="h-full flex flex-col items-center justify-center text-palette-tan/10">
-                                {type === 'video' ? <Film size={80} strokeWidth={0.5} className="mb-6" /> : type === 'audio' ? <Mic size={80} strokeWidth={0.5} className="mb-6" /> : <ImageIcon size={80} strokeWidth={0.5} className="mb-6" />}
+                                {type === 'video' ? <Film size={80} strokeWidth={0.5} className="mb-6" /> : type === 'audio' ? <Mic size={80} strokeWidth={0.5} className="mb-6" /> : type === 'file' ? <FileText size={80} strokeWidth={0.5} className="mb-6" /> : <ImageIcon size={80} strokeWidth={0.5} className="mb-6" />}
                                 <p className="text-[12px] font-black tracking-[0.3em] uppercase opacity-50">
-                                    Empty {type === 'video' ? 'Video' : type === 'audio' ? 'Audio' : 'Image'} Vault
+                                    Empty {type === 'video' ? 'Video' : type === 'audio' ? 'Audio' : type === 'file' ? 'File' : 'Image'} Vault
                                 </p>
                             </div>
                         ) : (
@@ -1626,6 +1717,11 @@ const MediaManagerModal: React.FC<{
                                                 <div className="w-full h-full flex flex-col items-center justify-center bg-amber-50">
                                                     <Mic size={48} className="text-amber-500 mb-2 opacity-40 group-hover:opacity-100 transition-opacity" />
                                                     <span className="text-[8px] font-black text-amber-800/40 uppercase tracking-widest">{file.value?.split('.').pop()}</span>
+                                                </div>
+                                            ) : type === 'file' ? (
+                                                <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50">
+                                                    <Paperclip size={48} className="text-slate-500 mb-2 opacity-40 group-hover:opacity-100 transition-opacity" />
+                                                    <span className="text-[8px] font-black text-slate-800/40 uppercase tracking-widest">{file.value?.split('.').pop()}</span>
                                                 </div>
                                             ) : (
                                                 <img
@@ -1683,7 +1779,7 @@ const MediaManagerModal: React.FC<{
                             className="flex items-center justify-center gap-2 h-10 px-8 bg-emerald-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.2em] shadow-2xl shadow-emerald-600/20 hover:bg-emerald-700 transition-all disabled:opacity-20 disabled:shadow-none active:scale-95"
                         >
                             <CheckCircle2 size={18} />
-                            <span>USE THIS {type === 'video' ? 'VIDEO' : type === 'audio' ? 'AUDIO' : 'IMAGE'}</span>
+                            <span>USE THIS {type === 'video' ? 'VIDEO' : type === 'audio' ? 'AUDIO' : type === 'file' ? 'FILE' : 'IMAGE'}</span>
                         </button>
                         <button
                             onClick={onClose}

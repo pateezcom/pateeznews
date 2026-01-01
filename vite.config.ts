@@ -73,10 +73,12 @@ export default defineConfig(({ mode }) => {
             const imageBaseDir = path.join(uploadRootDir, 'image');
             const videoBaseDir = path.join(uploadRootDir, 'video');
             const audioBaseDir = path.join(uploadRootDir, 'audio');
+            const fileBaseDir = path.join(uploadRootDir, 'file');
 
             if (!fs.existsSync(imageBaseDir)) fs.mkdirSync(imageBaseDir, { recursive: true });
             if (!fs.existsSync(videoBaseDir)) fs.mkdirSync(videoBaseDir, { recursive: true });
             if (!fs.existsSync(audioBaseDir)) fs.mkdirSync(audioBaseDir, { recursive: true });
+            if (!fs.existsSync(fileBaseDir)) fs.mkdirSync(fileBaseDir, { recursive: true });
 
             const getMimeType = (filePath: string) => {
               const ext = path.extname(filePath).toLowerCase();
@@ -90,6 +92,10 @@ export default defineConfig(({ mode }) => {
               if (ext === '.ogg') return 'audio/ogg';
               if (ext === '.m4a') return 'audio/mp4';
               if (ext === '.aac') return 'audio/aac';
+              if (ext === '.pdf') return 'application/pdf';
+              if (ext === '.doc' || ext === '.docx') return 'application/msword';
+              if (ext === '.xls' || ext === '.xlsx') return 'application/vnd.ms-excel';
+              if (ext === '.ppt' || ext === '.pptx') return 'application/vnd.ms-powerpoint';
               return 'application/octet-stream';
             };
 
@@ -135,6 +141,20 @@ export default defineConfig(({ mode }) => {
                         type: 'audio'
                       });
                     }
+                  } else if (type === 'file') {
+                    const fileExts = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.txt'];
+                    const ext = path.extname(file).toLowerCase();
+                    if (fileExts.includes(ext)) {
+                      arrayOfFiles.push({
+                        id: `file/${relativePath ? relativePath + '/' : ''}${file}`,
+                        value: file,
+                        size: stats.size,
+                        date: stats.mtimeMs / 1000,
+                        src: `/api/storage/file/file/${relativePath ? relativePath + '/' : ''}${file}`,
+                        thumb: null,
+                        type: 'file'
+                      });
+                    }
                   } else {
                     // Default to image
                     if (file.endsWith('_xl.webp')) {
@@ -160,7 +180,7 @@ export default defineConfig(({ mode }) => {
               try {
                 const url = new URL(req.url, `http://${req.headers.host}`);
                 const type = url.searchParams.get('type') || 'image';
-                const baseDir = type === 'video' ? videoBaseDir : (type === 'audio' ? audioBaseDir : imageBaseDir);
+                const baseDir = type === 'video' ? videoBaseDir : (type === 'audio' ? audioBaseDir : (type === 'file' ? fileBaseDir : imageBaseDir));
                 const fileData = getAllFiles(baseDir, type, baseDir);
                 res.setHeader('Content-Type', 'application/json');
                 res.end(JSON.stringify(fileData));
@@ -181,6 +201,8 @@ export default defineConfig(({ mode }) => {
                 fullPath = path.join(videoBaseDir, relativePath.replace('video/', ''));
               } else if (relativePath.startsWith('audio/')) {
                 fullPath = path.join(audioBaseDir, relativePath.replace('audio/', ''));
+              } else if (relativePath.startsWith('file/')) {
+                fullPath = path.join(fileBaseDir, relativePath.replace('file/', ''));
               } else if (relativePath.startsWith('image/')) {
                 fullPath = path.join(imageBaseDir, relativePath.replace('image/', ''));
               } else {
@@ -211,14 +233,17 @@ export default defineConfig(({ mode }) => {
                 try {
                   const file = files.file[0];
                   const today = new Date().toISOString().split('T')[0];
-                  const type = fields.type?.[0] || (file.originalFilename.match(/\.(mp4|webm|mov|avi)$/i) ? 'video' : (file.originalFilename.match(/\.(mp3|wav|ogg|m4a|aac)$/i) ? 'audio' : 'image'));
-                  const baseDir = type === 'video' ? videoBaseDir : (type === 'audio' ? audioBaseDir : imageBaseDir);
+                  const type = fields.type?.[0] ||
+                    (file.originalFilename.match(/\.(mp4|webm|mov|avi)$/i) ? 'video' :
+                      (file.originalFilename.match(/\.(mp3|wav|ogg|m4a|aac)$/i) ? 'audio' :
+                        (file.originalFilename.match(/\.(pdf|doc|docx|xls|xlsx|ppt|pptx)$/i) ? 'file' : 'image')));
+                  const baseDir = type === 'video' ? videoBaseDir : (type === 'audio' ? audioBaseDir : (type === 'file' ? fileBaseDir : imageBaseDir));
 
                   let targetDir = path.join(baseDir, today);
                   let cleanFileName = path.parse(file.originalFilename).name.replace(/\s+/g, '-').toLowerCase();
 
                   if (fields.customPath && fields.customPath.length > 0) {
-                    const fullPathId = fields.customPath[0].replace(/^(image|video|audio)\//, '');
+                    const fullPathId = fields.customPath[0].replace(/^(image|video|audio|file)\//, '');
                     const parts = fullPathId.split('/');
                     if (parts.length >= 2) {
                       targetDir = path.join(baseDir, parts[0]);
@@ -258,6 +283,18 @@ export default defineConfig(({ mode }) => {
                       src: `/api/storage/file/audio/${finalDateDir}/${cleanFileName}.mp3`,
                       type: 'audio'
                     }));
+                  } else if (type === 'file') {
+                    const finalPath = path.join(targetDir, file.originalFilename);
+                    fs.copyFileSync(file.path, finalPath);
+                    fs.unlinkSync(file.path);
+
+                    const finalDateDir = targetDir.split(path.sep).pop();
+                    res.end(JSON.stringify({
+                      id: `file/${finalDateDir}/${file.originalFilename}`,
+                      value: file.originalFilename,
+                      src: `/api/storage/file/file/${finalDateDir}/${file.originalFilename}`,
+                      type: 'file'
+                    }));
                   } else {
                     const originalImage = sharp(file.path);
                     await originalImage.clone().webp({ quality: 100, lossless: true }).toFile(path.join(targetDir, `${cleanFileName}_xl.webp`));
@@ -295,6 +332,9 @@ export default defineConfig(({ mode }) => {
                 }
               } else if (fullPathId.startsWith('audio/')) {
                 const filePath = path.join(audioBaseDir, fullPathId.replace('audio/', ''));
+                if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+              } else if (fullPathId.startsWith('file/')) {
+                const filePath = path.join(fileBaseDir, fullPathId.replace('file/', ''));
                 if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
               } else {
                 const imagePathId = fullPathId.replace('image/', '');
