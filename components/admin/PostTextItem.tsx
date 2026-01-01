@@ -5,7 +5,7 @@ import { useLanguage } from '../../context/LanguageContext';
 
 export interface PostItem {
     id: string;
-    type?: 'text' | 'image' | 'slider' | 'video' | 'audio' | 'file';
+    type?: 'text' | 'image' | 'slider' | 'video' | 'audio' | 'file' | 'social';
     title: string;
     description: string;
     mediaUrl?: string;

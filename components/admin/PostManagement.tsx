@@ -6,6 +6,7 @@ import PostSliderImageItem from './PostSliderImageItem';
 import PostVideoItem from './PostVideoItem';
 import PostAudioItem from './PostAudioItem';
 import PostFileItem from './PostFileItem';
+import PostSocialItem from './PostSocialItem';
 import 'react-quill-new/dist/quill.snow.css';
 import { useDropzone } from 'react-dropzone';
 import { NavigationItem } from '../../types';
@@ -23,6 +24,12 @@ import { useLanguage } from '../../context/LanguageContext';
 import FilerobotImageEditor, { TABS, TOOLS } from 'react-filerobot-image-editor';
 import { StyleSheetManager } from 'styled-components';
 import isPropValid from '@emotion/is-prop-valid';
+import Popper from '@scaleflex/ui/core/popper';
+import { Emoji as EmojiIcon } from '@scaleflex/icons';
+import ToolsBarItemButton from 'react-filerobot-image-editor/lib/components/ToolsBar/ToolsBarItemButton';
+import useStore from 'react-filerobot-image-editor/lib/hooks/useStore';
+import { SET_ANNOTATION } from 'react-filerobot-image-editor/lib/actions';
+import { TOOLS_ITEMS as FIE_DEFAULT_TOOLS_ITEMS } from 'react-filerobot-image-editor/lib/components/tools/tools.constants';
 
 const FilerobotEditor: any = FilerobotImageEditor;
 
@@ -63,7 +70,7 @@ const FIE_TEXT_FONT_OPTIONS = FIE_TEXT_FONTS.map((font) => ({
 
 const FIE_TEXT_DEFAULT_FONT = 'arial';
 
-const FIE_EMOJI_PACK = [
+const FIE_EMOJI_BASE = [
     '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣',
     '😊', '😇', '🙂', '🙃', '😉', '😌',
     '😍', '🥰', '😘', '😗', '😙', '😚',
@@ -129,11 +136,54 @@ const FIE_EMOJI_PACK = [
 
     '☕', '🍿', '🍔', '🍟', '🍕', '🌭',
     '🍺', '🍷',
-
-    '🇹🇷',
 ] as const;
 
-const FIE_EMOJI_LIST = Array.from(new Set(FIE_EMOJI_PACK));
+const FIE_FLAG_COUNTRY_CODES = [
+    'AD', 'AE', 'AF', 'AG', 'AI', 'AL', 'AM', 'AO', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AW', 'AX', 'AZ',
+    'BA', 'BB', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BL', 'BM', 'BN', 'BO', 'BQ', 'BR', 'BS', 'BT', 'BV', 'BW', 'BY', 'BZ',
+    'CA', 'CC', 'CD', 'CF', 'CG', 'CH', 'CI', 'CK', 'CL', 'CM', 'CN', 'CO', 'CR', 'CU', 'CV', 'CW', 'CX', 'CY', 'CZ',
+    'DE', 'DJ', 'DK', 'DM', 'DO', 'DZ',
+    'EC', 'EE', 'EG', 'EH', 'ER', 'ES', 'ET',
+    'FI', 'FJ', 'FK', 'FM', 'FO', 'FR',
+    'GA', 'GB', 'GD', 'GE', 'GF', 'GG', 'GH', 'GI', 'GL', 'GM', 'GN', 'GP', 'GQ', 'GR', 'GS', 'GT', 'GU', 'GW', 'GY',
+    'HK', 'HM', 'HN', 'HR', 'HT', 'HU',
+    'ID', 'IE', 'IL', 'IM', 'IN', 'IO', 'IQ', 'IR', 'IS', 'IT',
+    'JE', 'JM', 'JO', 'JP',
+    'KE', 'KG', 'KH', 'KI', 'KM', 'KN', 'KP', 'KR', 'KW', 'KY', 'KZ',
+    'LA', 'LB', 'LC', 'LI', 'LK', 'LR', 'LS', 'LT', 'LU', 'LV', 'LY',
+    'MA', 'MC', 'MD', 'ME', 'MF', 'MG', 'MH', 'MK', 'ML', 'MM', 'MN', 'MO', 'MP', 'MQ', 'MR', 'MS', 'MT', 'MU', 'MV', 'MW', 'MX', 'MY', 'MZ',
+    'NA', 'NC', 'NE', 'NF', 'NG', 'NI', 'NL', 'NO', 'NP', 'NR', 'NU', 'NZ',
+    'OM',
+    'PA', 'PE', 'PF', 'PG', 'PH', 'PK', 'PL', 'PM', 'PN', 'PR', 'PS', 'PT', 'PW', 'PY',
+    'QA',
+    'RE', 'RO', 'RS', 'RU', 'RW',
+    'SA', 'SB', 'SC', 'SD', 'SE', 'SG', 'SH', 'SI', 'SJ', 'SK', 'SL', 'SM', 'SN', 'SO', 'SR', 'SS', 'ST', 'SV', 'SX', 'SY', 'SZ',
+    'TC', 'TD', 'TF', 'TG', 'TH', 'TJ', 'TK', 'TL', 'TM', 'TN', 'TO', 'TR', 'TT', 'TV', 'TW', 'TZ',
+    'UA', 'UG', 'UM', 'US', 'UY', 'UZ',
+    'VA', 'VC', 'VE', 'VG', 'VI', 'VN', 'VU',
+    'WF', 'WS',
+    'YE', 'YT',
+    'ZA', 'ZM', 'ZW',
+    'XK',
+] as const;
+
+const countryCodeToFlagEmoji = (countryCode: string) => {
+    const code = countryCode.trim().toUpperCase();
+    if (!/^[A-Z]{2}$/.test(code)) return '';
+    const regionalIndicatorA = 0x1F1E6;
+    return String.fromCodePoint(
+        ...code.split('').map((char) => regionalIndicatorA + (char.charCodeAt(0) - 65))
+    );
+};
+
+const FIE_FLAG_EMOJIS = Array.from(
+    new Set(FIE_FLAG_COUNTRY_CODES.map(countryCodeToFlagEmoji).filter(Boolean))
+);
+
+const FIE_EMOJI_LIST = Array.from(new Set([...FIE_EMOJI_BASE, ...FIE_FLAG_EMOJIS]));
+
+const FIE_EMOJI_TOOL_ID = 'Emoji';
+const FIE_EMOJI_TOGGLE_EVENT = 'fie:emoji-toggle';
 
 const FIE_EMOJI_STICKER_CACHE = new Map<string, string>();
 
@@ -167,6 +217,175 @@ const createEmojiStickerDataUrl = (emoji: string, sizePx = 128) => {
     const url = canvas.toDataURL('image/png');
     FIE_EMOJI_STICKER_CACHE.set(cacheKey, url);
     return url;
+};
+
+const FieEmojiToolButton = ({ selectTool, isSelected }: any) => (
+    <ToolsBarItemButton
+        className="FIE_emoji-tool-button"
+        id={FIE_EMOJI_TOOL_ID}
+        label="Emoji"
+        Icon={EmojiIcon}
+        onClick={(toolId: string) => {
+            selectTool(toolId);
+            if (typeof window !== 'undefined') {
+                window.dispatchEvent(new Event(FIE_EMOJI_TOGGLE_EVENT));
+            }
+        }}
+        isSelected={isSelected}
+    />
+);
+
+const FieEmojiToolOptions = () => {
+    const store: any = useStore();
+    const dispatch = store?.dispatch;
+    const originalSource = store?.originalSource;
+    const shownImageDimensions = store?.shownImageDimensions;
+    const crop = store?.adjustments?.crop ?? {};
+
+    const [open, setOpen] = React.useState(true);
+    const [tab, setTab] = React.useState<'emoji' | 'flags'>('emoji');
+    const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
+
+    React.useEffect(() => {
+        if (typeof document === 'undefined') return;
+        const el = document.querySelector(
+            `[data-testid="FIE-tools-bar-item-button-${FIE_EMOJI_TOOL_ID.toLowerCase()}"]`
+        ) as HTMLElement | null;
+        setAnchorEl(el);
+    }, []);
+
+    React.useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const handler = () => setOpen(true);
+        window.addEventListener(FIE_EMOJI_TOGGLE_EVENT, handler);
+        return () => window.removeEventListener(FIE_EMOJI_TOGGLE_EVENT, handler);
+    }, []);
+
+    const items = tab === 'flags' ? FIE_FLAG_EMOJIS : (FIE_EMOJI_BASE as unknown as string[]);
+
+    const addSticker = React.useCallback((emoji: string) => {
+        const dataUrl = createEmojiStickerDataUrl(emoji, 128);
+        if (!dataUrl || typeof Image === 'undefined' || typeof dispatch !== 'function') return;
+
+        const img = new Image();
+        img.onload = () => {
+            const initialScale = shownImageDimensions?.originalSourceInitialScale || 1;
+            const baseWidth = (crop?.width ? crop.width / initialScale : undefined) || originalSource?.width || 0;
+            const baseHeight = (crop?.height ? crop.height / initialScale : undefined) || originalSource?.height || 0;
+            const baseX = (crop?.x ? crop.x / initialScale : undefined) || 0;
+            const baseY = (crop?.y ? crop.y / initialScale : undefined) || 0;
+
+            const spacing = 0.15;
+            const fitScale = Math.min(
+                1,
+                baseWidth / (img.width + img.width * spacing),
+                baseHeight / (img.height + img.height * spacing)
+            );
+
+            dispatch({
+                type: SET_ANNOTATION,
+                payload: {
+                    name: TOOLS.IMAGE,
+                    image: img,
+                    x: baseX + baseWidth / 2 - (img.width * fitScale) / 2,
+                    y: baseY + baseHeight / 2 - (img.height * fitScale) / 2,
+                    width: img.width * fitScale,
+                    height: img.height * fitScale,
+                    opacity: 1,
+                    selectOnSet: false,
+                },
+            });
+
+            setOpen(false);
+        };
+        img.src = dataUrl;
+    }, [dispatch, shownImageDimensions?.originalSourceInitialScale, crop?.width, crop?.height, crop?.x, crop?.y, originalSource?.width, originalSource?.height]);
+
+    return (
+        <div className="FIE_emoji-tool-options" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button
+                type="button"
+                onClick={() => { setTab('emoji'); setOpen(true); }}
+                style={{
+                    border: '1px solid rgba(0,0,0,0.12)',
+                    borderRadius: 4,
+                    padding: '6px 10px',
+                    background: tab === 'emoji' ? 'rgba(0,0,0,0.04)' : '#fff',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                }}
+            >
+                Emojiler
+            </button>
+            <button
+                type="button"
+                onClick={() => { setTab('flags'); setOpen(true); }}
+                style={{
+                    border: '1px solid rgba(0,0,0,0.12)',
+                    borderRadius: 4,
+                    padding: '6px 10px',
+                    background: tab === 'flags' ? 'rgba(0,0,0,0.04)' : '#fff',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                }}
+            >
+                Bayraklar
+            </button>
+            <button
+                type="button"
+                onClick={() => setOpen((v) => !v)}
+                style={{
+                    border: '1px solid rgba(0,0,0,0.12)',
+                    borderRadius: 4,
+                    padding: '6px 10px',
+                    background: '#fff',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                }}
+            >
+                {open ? 'Kapat' : 'Aç'}
+            </button>
+
+            <Popper
+                className="FIE_emoji-picker"
+                anchorEl={anchorEl}
+                open={open && !!anchorEl}
+                position="top"
+                overlay
+                onClick={() => setOpen(false)}
+                wrapperStyles={{ maxWidth: 520 }}
+            >
+                <div style={{ background: '#fff', borderRadius: 6, padding: 8, maxWidth: 520, maxHeight: 360, overflow: 'auto' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 6 }}>
+                        {items.map((emoji) => (
+                            <button
+                                key={`${tab}-${emoji}`}
+                                type="button"
+                                onClick={() => addSticker(emoji)}
+                                style={{
+                                    width: 34,
+                                    height: 34,
+                                    border: '1px solid rgba(0,0,0,0.08)',
+                                    borderRadius: 6,
+                                    background: '#fff',
+                                    cursor: 'pointer',
+                                    fontSize: 20,
+                                    lineHeight: '32px',
+                                    padding: 0,
+                                }}
+                                aria-label={emoji}
+                            >
+                                {emoji}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </Popper>
+        </div>
+    );
 };
 
 const SC_DOM_PROP_BLOCKLIST = new Set([
@@ -469,18 +688,6 @@ const PostManagement: React.FC = () => {
         return false;
     }, []);
 
-    const emojiStickerGallery = React.useMemo(() => {
-        if (!showImageEditor) return [];
-
-        return FIE_EMOJI_LIST
-            .map((emoji) => {
-                const url = createEmojiStickerDataUrl(emoji, 128);
-                if (!url) return null;
-                return { originalUrl: url, previewUrl: url };
-            })
-            .filter(Boolean) as { originalUrl: string; previewUrl: string }[];
-    }, [showImageEditor]);
-
     const editorConfig = React.useMemo(() => ({
         annotationsCommon: { fill: '#ff0000' },
         theme: {
@@ -488,8 +695,13 @@ const PostManagement: React.FC = () => {
                 fontFamily: `${FIE_TEXT_FONTS.join(', ')}, sans-serif`
             }
         },
-        Image: {
-            gallery: emojiStickerGallery,
+        tools: {
+            ...FIE_DEFAULT_TOOLS_ITEMS,
+            [FIE_EMOJI_TOOL_ID]: {
+                id: FIE_EMOJI_TOOL_ID,
+                Item: FieEmojiToolButton,
+                ItemOptions: FieEmojiToolOptions,
+            },
         },
         Text: {
             text: 'Buzz Haber',
@@ -508,7 +720,7 @@ const PostManagement: React.FC = () => {
         Rotate: { angle: 90, componentType: 'slider' },
         tabsIds: [TABS.ADJUST, TABS.FILTERS, TABS.FINETUNE, TABS.ANNOTATE, TABS.WATERMARK],
         defaultTabId: TABS.ANNOTATE,
-        defaultToolId: TOOLS.IMAGE,
+        defaultToolId: TOOLS.TEXT,
         closeAfterSave: true,
         defaultSavedImageType: 'webp',
         defaultSavedImageQuality: 1,
@@ -521,12 +733,12 @@ const PostManagement: React.FC = () => {
             [TABS.FINETUNE]: [TOOLS.BRIGHTNESS, TOOLS.CONTRAST, TOOLS.HSV, TOOLS.BLUR, TOOLS.WARMTH],
             [TABS.FILTERS]: [TOOLS.FILTERS],
             [TABS.WATERMARK]: [TOOLS.WATERMARK],
-            [TABS.ANNOTATE]: [TOOLS.IMAGE, TOOLS.TEXT, TOOLS.RECT, TOOLS.ELLIPSE, TOOLS.POLYGON, TOOLS.PEN, TOOLS.LINE, TOOLS.ARROW],
+            [TABS.ANNOTATE]: [TOOLS.TEXT, TOOLS.IMAGE, TOOLS.RECT, TOOLS.ELLIPSE, TOOLS.POLYGON, TOOLS.PEN, TOOLS.LINE, TOOLS.ARROW, FIE_EMOJI_TOOL_ID],
         },
         [TABS.ADJUST]: {
             hideResize: true,
         },
-    }), [handleEditorBeforeSave, emojiStickerGallery]);
+    }), [handleEditorBeforeSave]);
 
     useEffect(() => {
         if (selectedLanguage) {
@@ -796,6 +1008,33 @@ const PostManagement: React.FC = () => {
         const newItem: PostItem = {
             id: Math.random().toString(36).substr(2, 9),
             type: 'file',
+            title: '',
+            description: '',
+            mediaUrl: '',
+            createdAt: Date.now(),
+            orderNumber: 0
+        };
+
+        const newItems = [...formData.items, newItem];
+        let finalItems = newItems;
+        if (activeSort) {
+            finalItems = newItems.map((item, idx) => ({
+                ...item,
+                orderNumber: activeSort === 'asc' ? (idx + 1) : (newItems.length - idx)
+            }));
+        } else {
+            const nextOrder = formData.items.length > 0
+                ? Math.max(...formData.items.map(i => i.orderNumber || 0)) + 1
+                : 1;
+            finalItems[finalItems.length - 1].orderNumber = nextOrder;
+        }
+        setFormData({ ...formData, items: finalItems });
+    };
+
+    const handleAddSocialItem = () => {
+        const newItem: PostItem = {
+            id: Math.random().toString(36).substr(2, 9),
+            type: 'social',
             title: '',
             description: '',
             mediaUrl: '',
@@ -1224,6 +1463,19 @@ const PostManagement: React.FC = () => {
                                         setShowFileManager(true);
                                     }}
                                 />
+                            ) : item.type === 'social' ? (
+                                <PostSocialItem
+                                    key={item.id}
+                                    item={item}
+                                    index={index}
+                                    totalItems={formData.items.length}
+                                    showBlockNumbers={showBlockNumbers}
+                                    onUpdate={handleUpdateItem}
+                                    onRemove={handleRemoveItem}
+                                    isDeletable={activeDetailTab !== 'article' || formData.items.length > 1}
+                                    onMoveUp={(idx) => handleMoveItem(idx, 'up')}
+                                    onMoveDown={(idx) => handleMoveItem(idx, 'down')}
+                                />
                             ) : (
                                 <PostTextItem
                                     key={item.id}
@@ -1282,6 +1534,13 @@ const PostManagement: React.FC = () => {
                             >
                                 <Paperclip size={14} className="shrink-0" />
                                 <span className="leading-none mt-[1px]">{t('admin.post.add.file')}</span>
+                            </button>
+                            <button
+                                onClick={handleAddSocialItem}
+                                className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-blue-500/10 leading-none"
+                            >
+                                <Share2 size={14} className="shrink-0" />
+                                <span className="leading-none mt-[1px]">{t('admin.post.add.social')}</span>
                             </button>
                         </div>
 
