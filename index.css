@@ -1,6 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Archivo+Black&family=Bebas+Neue&family=Cinzel:wght@400;700;900&family=Cormorant+Garamond:wght@400;700&family=DM+Serif+Display&family=Fjalla+One&family=Libre+Baskerville:wght@400;700&family=Merriweather:wght@400;700;900&family=Montserrat:wght@400;700;900&family=Open+Sans:wght@400;700;800&family=Oswald:wght@400;700&family=Poppins:wght@400;700;900&family=Raleway:wght@400;700;900&family=Roboto+Slab:wght@400;700;900&family=Source+Serif+4:wght@400;700;900&family=Teko:wght@400;700&family=Ubuntu:wght@400;700&family=Lato:wght@400;700;900&family=Playfair+Display:wght@400;700;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 
 /* Local Font Faces - 2025 Performance Optimization */
 @font-face {
@@ -82,13 +85,7 @@
     font-family: 'Roboto', sans-serif !important;
 }
 
-.admin-font *,
-.admin-font h1,
-.admin-font h2,
-.admin-font h3,
-.admin-font h4,
-.admin-font h5,
-.admin-font h6 {
+.admin-font :not(.FIE_root):not(.FIE_root *):not(.fie-font-preload):not(.fie-font-preload *) {
     font-family: 'Roboto', sans-serif !important;
     text-shadow: none !important;
     -webkit-text-stroke: 0 !important;

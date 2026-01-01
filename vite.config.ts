@@ -131,9 +131,8 @@ export default defineConfig(({ mode }) => {
             if (req.url === '/api/storage/upload' && req.method === 'POST') {
               const form = new multiparty.Form();
               form.parse(req, async (err, fields, files) => {
-                console.log('--- [TERMINAL DEBUG] Upload Request Received ---');
                 if (err) {
-                  console.error('--- [TERMINAL DEBUG] Upload Form Parse Error:', err.message);
+                  console.error('Upload form parse error:', err.message);
                   res.statusCode = 500;
                   res.end(err.message);
                   return;
@@ -141,7 +140,6 @@ export default defineConfig(({ mode }) => {
 
                 try {
                   const file = files.file[0];
-                  console.log(`--- [TERMINAL DEBUG] File received: ${file.originalFilename}, Size: ${file.size}`);
                   const today = new Date().toISOString().split('T')[0];
 
                   let targetDir;
@@ -158,7 +156,6 @@ export default defineConfig(({ mode }) => {
                       targetDir = path.join(baseDir, datePart);
                       cleanFileName = namePart;
                       customId = fullPathId;
-                      console.log('--- OVERWRITE MODE ---', fullPathId);
                     } else {
                       // Fallback
                       targetDir = path.join(baseDir, today);
@@ -181,7 +178,6 @@ export default defineConfig(({ mode }) => {
                   }
 
 
-                  console.log('--- UPLOAD START ---', file.originalFilename);
                   const originalImage = sharp(file.path);
 
                   try {
@@ -190,7 +186,6 @@ export default defineConfig(({ mode }) => {
                       .clone()
                       .webp({ quality: 100, lossless: true })
                       .toFile(path.join(targetDir, `${cleanFileName}_xl.webp`));
-                    console.log('XL Processed');
 
                     // 2. Process SM (Thumbnail - Still 300px for performance)
                     await originalImage
@@ -203,10 +198,8 @@ export default defineConfig(({ mode }) => {
                       })
                       .webp({ quality: 90 })
                       .toFile(path.join(targetDir, `${cleanFileName}_sm.webp`));
-                    console.log('SM Processed');
 
                     fs.unlinkSync(file.path);
-                    console.log('Temp file deleted');
 
                     const finalId = customId || `${today}/${cleanFileName}`;
                     const finalDateDir = customId ? customId.split('/')[0] : today;
@@ -217,7 +210,6 @@ export default defineConfig(({ mode }) => {
                       src: `/api/storage/file/${finalDateDir}/${cleanFileName}_xl.webp`,
                       thumb: `/api/storage/file/${finalDateDir}/${cleanFileName}_sm.webp`
                     }));
-                    console.log('--- UPLOAD SUCCESS ---');
                   } catch (sharpError) {
                     console.error('SHARP ERROR:', sharpError);
                     res.statusCode = 500;
@@ -233,7 +225,6 @@ export default defineConfig(({ mode }) => {
 
             // DELETE FILE (Delete all sizes)
             if (req.url.startsWith('/api/storage/delete/') && req.method === 'DELETE') {
-              console.log('--- [TERMINAL DEBUG] Delete Request Received ---', req.url);
               const urlParts = req.url.split('?')[0];
               const filePathStr = decodeURIComponent(urlParts.replace('/api/storage/delete/', ''));
               const dirPath = path.join(baseDir, path.dirname(filePathStr));

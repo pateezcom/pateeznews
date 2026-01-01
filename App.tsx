@@ -43,27 +43,47 @@ const App: React.FC = () => {
     try {
       const { data: postsData, error: postsError } = await supabase
         .from('posts')
-        .select('*, profiles!publisher_id(username, full_name, avatar_url)')
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (!postsError && postsData && postsData.length > 0) {
-        const mappedNews: NewsItem[] = postsData.map((item: any) => ({
-          id: item.id,
-          type: item.type,
-          title: item.title,
-          summary: item.summary,
-          content: item.content,
-          category: item.category,
-          source: item.profiles?.username || 'Buzz Haber',
-          author: item.profiles?.full_name || 'Editör',
-          timestamp: new Date(item.created_at).toLocaleDateString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
-          mediaUrl: item.media_url || '',
-          thumbnail: item.thumbnail_url || 'https://picsum.photos/800/600',
-          likes: item.likes_count || 0,
-          comments: item.comments_count || 0,
-          shares: item.shares_count || 0,
-          ...item.card_data
-        }));
+      if (postsError) throw postsError;
+
+      const publisherIds = Array.from(
+        new Set((postsData || []).map((p: any) => p.publisher_id).filter(Boolean))
+      );
+      const profilesById = new Map<string, any>();
+
+      if (publisherIds.length > 0) {
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, username, full_name, avatar_url')
+          .in('id', publisherIds);
+
+        if (profilesError) throw profilesError;
+        (profilesData || []).forEach((profile: any) => profilesById.set(profile.id, profile));
+      }
+
+      if (postsData && postsData.length > 0) {
+        const mappedNews: NewsItem[] = postsData.map((item: any) => {
+          const profile = item.publisher_id ? profilesById.get(item.publisher_id) : null;
+          return {
+            id: item.id,
+            type: item.type,
+            title: item.title,
+            summary: item.summary,
+            content: item.content,
+            category: item.category,
+            source: profile?.username || 'Buzz Haber',
+            author: profile?.full_name || 'Editör',
+            timestamp: new Date(item.created_at).toLocaleDateString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
+            mediaUrl: item.media_url || '',
+            thumbnail: item.thumbnail_url || 'https://picsum.photos/800/600',
+            likes: item.likes_count || 0,
+            comments: item.comments_count || 0,
+            shares: item.shares_count || 0,
+            ...item.card_data
+          };
+        });
         setNewsItems(mappedNews);
         return mappedNews;
       }

@@ -1,6 +1,8 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import PostTextItem, { PostItem } from './PostTextItem';
+import PostImageItem from './PostImageItem';
+import PostSliderImageItem from './PostSliderImageItem';
 import 'react-quill-new/dist/quill.snow.css';
 import { useDropzone } from 'react-dropzone';
 import { NavigationItem } from '../../types';
@@ -10,7 +12,7 @@ import {
     Save, FileText, Settings2, Search,
     Globe, Loader2, Share2,
     Calendar, Clock, SortAsc, SortDesc, Hash, Video, ShieldCheck, ListOrdered, Utensils, BarChart2,
-    Check, ChevronDown, ChevronRight, Edit3
+    Check, ChevronDown, ChevronRight, Edit3, Images
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { storageService, MediaItem } from '../../services/storageService';
@@ -20,6 +22,39 @@ import { StyleSheetManager } from 'styled-components';
 import isPropValid from '@emotion/is-prop-valid';
 
 const FilerobotEditor: any = FilerobotImageEditor;
+
+const FIE_TEXT_FONTS = [
+    'Bebas Neue',
+    'Anton',
+    'Archivo Black',
+    'Fjalla One',
+    'Teko',
+    'Inter',
+    'Roboto',
+    'Montserrat',
+    'Poppins',
+    'Oswald',
+    'Raleway',
+    'Open Sans',
+    'Lato',
+    'Roboto Slab',
+    'Merriweather',
+    'Libre Baskerville',
+    'Cormorant Garamond',
+    'Source Serif 4',
+    'DM Serif Display',
+    'Playfair Display',
+    'Cinzel',
+    'Ubuntu',
+    'Arial'
+];
+
+const FIE_TEXT_FONT_OPTIONS = FIE_TEXT_FONTS.map((font) => ({
+    label: font,
+    value: font.toLowerCase()
+}));
+
+const FIE_TEXT_DEFAULT_FONT = 'arial';
 
 // SC v6 Filter for third-party libraries
 const shouldForwardProp = (prop: string) => isPropValid(prop);
@@ -39,6 +74,9 @@ const QUILL_CUSTOM_STYLE = `
     font-size: 15px !important;
     color: #4a0404 !important;
     min-height: 200px !important;
+  }
+  .quill-modern-wrapper.compact-quill .ql-container.ql-snow {
+    min-height: 140px !important;
   }
   .quill-modern-wrapper .ql-editor {
     padding: 24px !important;
@@ -90,10 +128,14 @@ const PostManagement: React.FC = () => {
     const [isUrlMode, setIsUrlMode] = useState(false);
     const [showFileManager, setShowFileManager] = useState(false);
     const [showImageEditor, setShowImageEditor] = useState(false);
+    const [isEditorSaving, setIsEditorSaving] = useState(false);
+    const [isThumbnailLoading, setIsThumbnailLoading] = useState(false);
+    const editorSaveInFlightRef = React.useRef(false);
     const [localFiles, setLocalFiles] = useState<any[]>([]);
     const [validatingUrl, setValidatingUrl] = useState(false);
     const [urlError, setUrlError] = useState<string | null>(null);
     const [tempUrl, setTempUrl] = useState('');
+    const [activeMediaTarget, setActiveMediaTarget] = useState<string | 'thumbnail' | null>(null);
     const [tagInput, setTagInput] = useState('');
     const [activeDetailTab, setActiveDetailTab] = useState<'article' | 'quiz' | 'poll' | 'video' | 'contents' | 'recipe'>('article');
     const [categories, setCategories] = useState<NavigationItem[]>([]);
@@ -107,73 +149,150 @@ const PostManagement: React.FC = () => {
         fetchLanguages();
     }, []);
 
+    useEffect(() => {
+        if (activeDetailTab === 'article' && formData.items.length === 0) {
+            handleAddItem();
+        }
+    }, [activeDetailTab]);
+
     const handleEditorSave = React.useCallback(async (editedImageObject: any) => {
-        const tStart = Date.now();
-        console.log(`[DEBUG ${tStart}] handleEditorSave started`);
+        if (editorSaveInFlightRef.current) return;
+        editorSaveInFlightRef.current = true;
+        setIsEditorSaving(true);
 
         try {
-            // Log only keys to avoid freezing with huge base64 strings
-            console.log(`[DEBUG ${Date.now()}] Image Object Keys:`, editedImageObject ? Object.keys(editedImageObject) : "NULL");
-
             // Get original filename to preserve it if possible
             let originalName = `edited-${Date.now()}`;
             // Extract existing "date/filename" path if we are editing an existing image
             let customPath: string | undefined = undefined;
 
-            if (formData.thumbnail) {
-                try {
-                    console.log(`[DEBUG ${Date.now()}] Parsing existing thumbnail:`, formData.thumbnail);
-                    // Check if it's a local storage URL
-                    if (formData.thumbnail.includes('/api/storage/file/')) {
-                        const regex = /\/api\/storage\/file\/([^\/]+\/[^\/_?]+)(_xl\.webp)?/;
-                        const match = formData.thumbnail.match(regex);
-                        if (match && match[1]) {
-                            customPath = match[1]; // e.g. "2024-12-31/filename"
+            const currentMediaUrl = activeMediaTarget === 'thumbnail'
+                ? formData.thumbnail
+                : formData.items.find(i => i.id === activeMediaTarget)?.mediaUrl;
 
-                            // Also update originalName from the path
-                            const namePart = customPath.split('/')[1];
+            if (currentMediaUrl) {
+                try {
+                    // Check if it's a local storage URL
+                    if (currentMediaUrl.includes('/api/storage/file/')) {
+                        const urlWithoutQuery = currentMediaUrl.split('?')[0];
+                        const idx = urlWithoutQuery.indexOf('/api/storage/file/');
+                        const rawPath = idx >= 0 ? urlWithoutQuery.slice(idx + '/api/storage/file/'.length) : '';
+                        const decodedPath = (() => {
+                            try {
+                                return decodeURIComponent(rawPath);
+                            } catch {
+                                return rawPath;
+                            }
+                        })();
+
+                        const [datePart, ...fileParts] = decodedPath.split('/');
+                        const fileWithExt = fileParts.join('/');
+                        if (datePart && fileWithExt) {
+                            const normalizeLower = (s: string) => s.toLowerCase();
+                            let baseName = fileWithExt;
+                            if (normalizeLower(baseName).endsWith('_xl.webp')) baseName = baseName.slice(0, -'_xl.webp'.length);
+                            if (normalizeLower(baseName).endsWith('_sm.webp')) baseName = baseName.slice(0, -'_sm.webp'.length);
+                            if (normalizeLower(baseName).endsWith('.webp')) baseName = baseName.slice(0, -'.webp'.length);
+
+                            customPath = `${datePart}/${baseName}`; // e.g. "2024-12-31/filename"
+                            const namePart = baseName.split('/').pop();
                             if (namePart) originalName = namePart;
-                            console.log(`[DEBUG ${Date.now()}] Found customPath:`, customPath);
                         }
                     }
                 } catch (e) {
-                    console.error(`[DEBUG ${Date.now()}] Filename extraction failed:`, e);
+                    console.error('Filename extraction failed:', e);
                 }
             }
 
             let file: File;
-            console.log(`[DEBUG ${Date.now()}] Converting to File object...`);
 
-            if (editedImageObject?.imageBlob) {
-                file = new File([editedImageObject.imageBlob], `${originalName}.webp`, { type: 'image/webp' });
-                console.log(`[DEBUG ${Date.now()}] Blob conversion done. Size:`, file.size);
+            const extRaw = typeof editedImageObject?.extension === 'string' ? editedImageObject.extension : 'webp';
+            const extension = extRaw.replace(/^\./, '').toLowerCase() || 'webp';
+            const mimeFromExt =
+                extension === 'jpg' || extension === 'jpeg' ? 'image/jpeg' :
+                    extension === 'png' ? 'image/png' :
+                        extension === 'webp' ? 'image/webp' :
+                            'application/octet-stream';
+            const mimeType = typeof editedImageObject?.mimeType === 'string'
+                ? (editedImageObject.mimeType === 'image/jpg' ? 'image/jpeg' : editedImageObject.mimeType)
+                : mimeFromExt;
+
+            const normalizeQuality = (q: unknown) => {
+                if (typeof q !== 'number' || Number.isNaN(q)) return undefined;
+                if (q <= 0) return undefined;
+                if (q > 1) return Math.min(q / 100, 1);
+                return q;
+            };
+            const quality = normalizeQuality(editedImageObject?.quality);
+
+            const safeBaseName = originalName.replace(/\.[a-z0-9]+$/i, '') || `edited-${Date.now()}`;
+
+            let blob: Blob | null = null;
+            if (editedImageObject?.imageCanvas && typeof editedImageObject.imageCanvas.toBlob === 'function') {
+                const canvas: HTMLCanvasElement = editedImageObject.imageCanvas;
+                const makeBlob = (type: string, q?: number) =>
+                    new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, q));
+
+                const withTimeout = <T,>(p: Promise<T>, ms: number, label: string) =>
+                    Promise.race([
+                        p,
+                        new Promise<T>((_, reject) => setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms))
+                    ]);
+
+                blob = await withTimeout(makeBlob(mimeType, quality), 30_000, 'Canvas export');
+                if (!blob && mimeType !== 'image/png') {
+                    blob = await withTimeout(makeBlob('image/png'), 30_000, 'Canvas export (png fallback)');
+                }
+                if (!blob) throw new Error('Canvas export failed');
+            } else if (editedImageObject?.imageBlob) {
+                blob = editedImageObject.imageBlob;
             } else if (editedImageObject?.imageBase64) {
-                console.log(`[DEBUG ${Date.now()}] Base64 detected, fetching...`);
+                const base64Str: string = editedImageObject.imageBase64;
+                const dataUrl = base64Str.startsWith('data:')
+                    ? base64Str
+                    : `data:${mimeType};base64,${base64Str}`;
                 try {
-                    const response = await fetch(editedImageObject.imageBase64);
-                    const blob = await response.blob();
-                    file = new File([blob], `${originalName}.webp`, { type: 'image/webp' });
-                    console.log(`[DEBUG ${Date.now()}] Base64 -> Blob conversion done. Size:`, file.size);
+                    const response = await fetch(dataUrl);
+                    blob = await response.blob();
                 } catch (fetchErr) {
-                    console.error(`[DEBUG ${Date.now()}] Base64 fetch failed:`, fetchErr);
+                    console.error('Base64 conversion failed:', fetchErr);
                     throw fetchErr;
                 }
+            } else if (editedImageObject?.cloudimageUrl) {
+                const response = await fetch(editedImageObject.cloudimageUrl);
+                blob = await response.blob();
             } else {
-                console.error(`[DEBUG ${Date.now()}] No image data received from editor`);
+                console.error('No image data received from editor');
                 setShowImageEditor(false);
                 return;
             }
 
-            console.log(`[DEBUG ${Date.now()}] Uploading file via storageService...`);
+            if (!blob) {
+                console.error('Blob creation failed');
+                setShowImageEditor(false);
+                return;
+            }
+
+            const finalMimeType = blob.type || mimeType;
+            const finalExtension =
+                finalMimeType === 'image/jpeg' ? 'jpg' :
+                    finalMimeType === 'image/png' ? 'png' :
+                        finalMimeType === 'image/webp' ? 'webp' :
+                            extension;
+            file = new File([blob], `${safeBaseName}.${finalExtension}`, { type: finalMimeType });
+
             const result = await storageService.uploadFile(file, customPath);
-            console.log(`[DEBUG ${Date.now()}] Upload result:`, result ? "SUCCESS" : "NULL");
 
             if (result) {
                 // Force cache bust
                 const newSrc = `${result.src}?v=${Date.now()}`;
-                console.log(`[DEBUG ${Date.now()}] Updating state with new src:`, newSrc);
 
-                setFormData(prev => ({ ...prev, thumbnail: newSrc }));
+                if (activeMediaTarget === 'thumbnail') {
+                    setIsThumbnailLoading(true);
+                    setFormData(prev => ({ ...prev, thumbnail: newSrc }));
+                } else if (activeMediaTarget) {
+                    handleUpdateItem(activeMediaTarget, 'mediaUrl', newSrc);
+                }
 
                 // Update local files list
                 setLocalFiles(prev => {
@@ -181,29 +300,59 @@ const PostManagement: React.FC = () => {
                     const filtered = prev.filter(p => p.id !== result.id);
                     return [result, ...filtered];
                 });
-                console.log(`[DEBUG ${Date.now()}] State updates queued.`);
             } else {
-                console.error(`[DEBUG ${Date.now()}] Upload failed (returned null)`);
+                console.error('Upload failed');
             }
         } catch (err) {
-            console.error(`[DEBUG ${Date.now()}] Editor save failed with error:`, err);
+            console.error('Editor save failed:', err);
         } finally {
-            console.log(`[DEBUG ${Date.now()}] Closing editor (finally block)`);
             // ALWAYS close the editor
+            editorSaveInFlightRef.current = false;
+            setIsEditorSaving(false);
             setShowImageEditor(false);
         }
-    }, [formData.thumbnail, storageService]);
+    }, [formData.thumbnail, activeMediaTarget, formData.items]);
 
-    const handleEditorClose = React.useCallback(() => {
+    const handleEditorClose = React.useCallback((closeReason?: any, haveNotSavedChanges?: any) => {
+        editorSaveInFlightRef.current = false;
+        setIsEditorSaving(false);
         setShowImageEditor(false);
+    }, []);
+
+    const handleEditorBeforeSave = React.useCallback((savedImageData: any) => {
+        setIsEditorSaving(true);
+        // Skip the default "Save As" modal and trigger save immediately
+        // (we overwrite the existing file path on the backend via customPath).
+        return false;
     }, []);
 
     const editorConfig = React.useMemo(() => ({
         annotationsCommon: { fill: '#ff0000' },
-        Text: { text: 'Buzz Haber' },
+        theme: {
+            typography: {
+                fontFamily: `${FIE_TEXT_FONTS.join(', ')}, sans-serif`
+            }
+        },
+        Text: {
+            text: 'Buzz Haber',
+            fontFamily: FIE_TEXT_DEFAULT_FONT,
+            fonts: FIE_TEXT_FONT_OPTIONS,
+            onFontChange: (fontFamily: string, reRenderCanvas: () => void) => {
+                if (typeof document === 'undefined' || !document.fonts?.load) {
+                    reRenderCanvas();
+                    return;
+                }
+                const match = FIE_TEXT_FONTS.find((font) => font.toLowerCase() === fontFamily) || fontFamily;
+                document.fonts.load(`16px "${match}"`).finally(reRenderCanvas);
+            }
+        },
         Rotate: { angle: 90, componentType: 'slider' },
-        tabsIds: [TABS.ADJUST, TABS.FILTERS, TABS.ANNOTATE, TABS.WATERMARK],
+        tabsIds: [TABS.ADJUST, TABS.FILTERS, TABS.FINETUNE, TABS.ANNOTATE, TABS.WATERMARK],
         defaultTabId: TABS.ANNOTATE,
+        closeAfterSave: true,
+        defaultSavedImageType: 'webp',
+        defaultSavedImageQuality: 1,
+        onBeforeSave: handleEditorBeforeSave,
         savingPixelRatio: 1,
         previewPixelRatio: 1,
         willReadFrequently: true,
@@ -213,7 +362,7 @@ const PostManagement: React.FC = () => {
         [TABS.ADJUST]: {
             hideResize: true,
         },
-    }), []);
+    }), [handleEditorBeforeSave]);
 
     useEffect(() => {
         if (selectedLanguage) {
@@ -314,7 +463,11 @@ const PostManagement: React.FC = () => {
         setUrlError(null);
         const isValid = await validateImageUrl(tempUrl);
         if (isValid) {
-            setFormData({ ...formData, thumbnail: tempUrl });
+            if (activeMediaTarget === 'thumbnail') {
+                setFormData({ ...formData, thumbnail: tempUrl });
+            } else if (activeMediaTarget) {
+                handleUpdateItem(activeMediaTarget, 'mediaUrl', tempUrl);
+            }
             setIsUrlMode(false);
             setTempUrl('');
         } else {
@@ -324,25 +477,87 @@ const PostManagement: React.FC = () => {
     };
 
     const handleAddItem = () => {
-        const nextOrder = formData.items.length > 0
-            ? Math.max(...formData.items.map(i => i.orderNumber || 0)) + 1
-            : 1;
         const newItem: PostItem = {
             id: Math.random().toString(36).substr(2, 9),
+            type: 'text',
             title: '',
             description: '',
             mediaUrl: '',
             createdAt: Date.now(),
-            orderNumber: nextOrder
+            orderNumber: 0 // Will be set by re-sequencing
         };
-        const newItems = [...formData.items, newItem];
+
+        let newItems = [...formData.items, newItem];
+
+        // Always re-sequence if activeSort is set, otherwise just give it a number
         if (activeSort) {
-            newItems.sort((a, b) => {
-                const numA = a.orderNumber || 0;
-                const numB = b.orderNumber || 0;
-                return activeSort === 'asc' ? numA - numB : numB - numA;
-            });
+            newItems = newItems.map((item, idx) => ({
+                ...item,
+                orderNumber: activeSort === 'asc' ? (idx + 1) : (newItems.length - idx)
+            }));
+        } else {
+            const nextOrder = formData.items.length > 0
+                ? Math.max(...formData.items.map(i => i.orderNumber || 0)) + 1
+                : 1;
+            newItems[newItems.length - 1].orderNumber = nextOrder;
         }
+
+        setFormData({ ...formData, items: newItems });
+    };
+
+    const handleAddImageItem = () => {
+        const newItem: PostItem = {
+            id: Math.random().toString(36).substr(2, 9),
+            type: 'image',
+            title: '',
+            description: '',
+            mediaUrl: '',
+            createdAt: Date.now(),
+            orderNumber: 0 // Will be set by re-sequencing
+        };
+
+        let newItems = [...formData.items, newItem];
+
+        if (activeSort) {
+            newItems = newItems.map((item, idx) => ({
+                ...item,
+                orderNumber: activeSort === 'asc' ? (idx + 1) : (newItems.length - idx)
+            }));
+        } else {
+            const nextOrder = formData.items.length > 0
+                ? Math.max(...formData.items.map(i => i.orderNumber || 0)) + 1
+                : 1;
+            newItems[newItems.length - 1].orderNumber = nextOrder;
+        }
+
+        setFormData({ ...formData, items: newItems });
+    };
+
+    const handleAddSliderItem = () => {
+        const newItem: PostItem = {
+            id: Math.random().toString(36).substr(2, 9),
+            type: 'slider',
+            title: '',
+            description: '',
+            mediaUrls: [],
+            createdAt: Date.now(),
+            orderNumber: 0
+        };
+
+        let newItems = [...formData.items, newItem];
+
+        if (activeSort) {
+            newItems = newItems.map((item, idx) => ({
+                ...item,
+                orderNumber: activeSort === 'asc' ? (idx + 1) : (newItems.length - idx)
+            }));
+        } else {
+            const nextOrder = formData.items.length > 0
+                ? Math.max(...formData.items.map(i => i.orderNumber || 0)) + 1
+                : 1;
+            newItems[newItems.length - 1].orderNumber = nextOrder;
+        }
+
         setFormData({ ...formData, items: newItems });
     };
 
@@ -354,29 +569,26 @@ const PostManagement: React.FC = () => {
     };
 
     const handleRemoveItem = (id: string) => {
-        const filtered = formData.items.filter(item => item.id !== id);
+        if (activeDetailTab === 'article' && formData.items.length <= 1) return;
+        let filtered = formData.items.filter(item => item.id !== id);
         if (activeSort) {
-            filtered.sort((a, b) => {
-                const numA = a.orderNumber || 0;
-                const numB = b.orderNumber || 0;
-                return activeSort === 'asc' ? numA - numB : numB - numA;
-            });
+            // Re-sequence remaining items
+            filtered = filtered.map((item, idx) => ({
+                ...item,
+                orderNumber: activeSort === 'asc' ? (idx + 1) : (filtered.length - idx)
+            }));
         }
         setFormData({ ...formData, items: filtered });
     };
 
     const handleSortItems = (order: 'asc' | 'desc') => {
-        const itemsWithNumbers = formData.items.map((item, idx) => ({
+        // Re-sequence based on current visual positions in the array
+        const resequenced = formData.items.map((item, idx) => ({
             ...item,
-            orderNumber: item.orderNumber || (idx + 1)
+            orderNumber: order === 'asc' ? (idx + 1) : (formData.items.length - idx)
         }));
-        const sorted = [...itemsWithNumbers].sort((a, b) => {
-            const numA = a.orderNumber || 0;
-            const numB = b.orderNumber || 0;
-            if (order === 'asc') return numA - numB;
-            return numB - numA;
-        });
-        setFormData({ ...formData, items: sorted });
+
+        setFormData({ ...formData, items: resequenced });
         setShowBlockNumbers(true);
         setActiveSort(order);
     };
@@ -387,16 +599,19 @@ const PostManagement: React.FC = () => {
         if (targetIndex < 0 || targetIndex >= newItems.length) return;
         const currentItem = { ...newItems[index] };
         const targetItem = { ...newItems[targetIndex] };
-        const tempOrder = currentItem.orderNumber;
-        currentItem.orderNumber = targetItem.orderNumber;
-        targetItem.orderNumber = tempOrder;
-        newItems[index] = currentItem;
-        newItems[targetIndex] = targetItem;
+
+        // Swap positions in the array
+        newItems[index] = targetItem;
+        newItems[targetIndex] = currentItem;
+
         if (activeSort) {
-            newItems.sort((a, b) => {
-                const numA = a.orderNumber || 0;
-                const numB = b.orderNumber || 0;
-                return activeSort === 'asc' ? numA - numB : numB - numA;
+            // Re-sequence based on new visual order
+            newItems.forEach((item, idx) => {
+                if (activeSort === 'asc') {
+                    item.orderNumber = idx + 1;
+                } else {
+                    item.orderNumber = newItems.length - idx;
+                }
             });
         }
         setFormData({ ...formData, items: newItems });
@@ -614,64 +829,115 @@ const PostManagement: React.FC = () => {
                         <div className="inline-flex bg-white border border-palette-tan/20 rounded-[3px] p-1.5 shadow-sm gap-1">
                             <button
                                 onClick={() => handleSortItems('asc')}
-                                className={`flex items-center gap-2 px-5 py-2.5 rounded-[3px] text-[12px] font-black transition-all active:scale-95 group ${activeSort === 'asc'
+                                className={`flex items-center justify-center gap-2 px-4 py-2 rounded-[3px] text-[12px] font-black transition-all active:scale-95 leading-none group ${activeSort === 'asc'
                                     ? 'bg-palette-maroon text-white shadow-md shadow-palette-maroon/20 scale-[1.02]'
                                     : 'text-palette-tan hover:text-palette-maroon hover:bg-palette-beige/30'
                                     }`}
                             >
-                                <SortAsc size={16} /> NUMERIC ASC
+                                <SortAsc size={16} />
+                                <span className="leading-none">Numeric Asc</span>
                             </button>
                             <button
                                 onClick={() => handleSortItems('desc')}
-                                className={`flex items-center gap-2 px-5 py-2.5 rounded-[3px] text-[12px] font-black transition-all active:scale-95 group ${activeSort === 'desc'
+                                className={`flex items-center justify-center gap-2 px-4 py-2 rounded-[3px] text-[12px] font-black transition-all active:scale-95 leading-none group ${activeSort === 'desc'
                                     ? 'bg-palette-maroon text-white shadow-md shadow-palette-maroon/20 scale-[1.02]'
                                     : 'text-palette-tan hover:text-palette-maroon hover:bg-palette-beige/30'
                                     }`}
                             >
-                                <SortDesc size={16} /> DESC LIST
+                                <SortDesc size={16} />
+                                <span className="leading-none">Numeric Desc</span>
                             </button>
                             <button
-                                onClick={() => setShowBlockNumbers(!showBlockNumbers)}
-                                className={`flex items-center gap-2 px-5 py-2.5 rounded-[3px] text-[12px] font-black transition-all active:scale-95 group ${!showBlockNumbers
+                                onClick={() => { setActiveSort(null); setShowBlockNumbers(false); }}
+                                className={`flex items-center justify-center gap-2 px-4 py-2 rounded-[3px] text-[12px] font-black transition-all active:scale-95 leading-none group ${activeSort === null
                                     ? 'bg-palette-maroon text-white shadow-md shadow-palette-maroon/20 scale-[1.02]'
                                     : 'text-palette-tan hover:text-palette-maroon hover:bg-palette-beige/30'
                                     }`}
                             >
-                                <Hash size={15} /> {!showBlockNumbers ? 'HİDE NUMBERS' : 'SHOW NUMBERS'}
+                                <Hash size={15} />
+                                <span className="leading-none">Hide Numbers</span>
                             </button>
                         </div>
                     </div>
 
                     <div className="space-y-6">
                         {formData.items.map((item, index) => (
-                            <PostTextItem
-                                key={item.id}
-                                item={item}
-                                index={index}
-                                totalItems={formData.items.length}
-                                showBlockNumbers={showBlockNumbers}
-                                onUpdate={handleUpdateItem}
-                                onRemove={handleRemoveItem}
-                                onMoveUp={(idx) => handleMoveItem(idx, 'up')}
-                                onMoveDown={(idx) => handleMoveItem(idx, 'down')}
-                            />
+                            item.type === 'slider' ? (
+                                <PostSliderImageItem
+                                    key={item.id}
+                                    item={item}
+                                    index={index}
+                                    totalItems={formData.items.length}
+                                    showBlockNumbers={showBlockNumbers}
+                                    onUpdate={handleUpdateItem}
+                                    onRemove={handleRemoveItem}
+                                    isDeletable={activeDetailTab !== 'article' || formData.items.length > 1}
+                                    onMoveUp={(idx) => handleMoveItem(idx, 'up')}
+                                    onMoveDown={(idx) => handleMoveItem(idx, 'down')}
+                                    onOpenFileManager={(id) => { setActiveMediaTarget(id); setShowFileManager(true); }}
+                                />
+                            ) : item.type === 'image' ? (
+                                <PostImageItem
+                                    key={item.id}
+                                    item={item}
+                                    index={index}
+                                    totalItems={formData.items.length}
+                                    showBlockNumbers={showBlockNumbers}
+                                    onUpdate={handleUpdateItem}
+                                    onRemove={handleRemoveItem}
+                                    isDeletable={activeDetailTab !== 'article' || formData.items.length > 1}
+                                    onMoveUp={(idx) => handleMoveItem(idx, 'up')}
+                                    onMoveDown={(idx) => handleMoveItem(idx, 'down')}
+                                    onOpenFileManager={(id) => { setActiveMediaTarget(id); setShowFileManager(true); }}
+                                    onOpenUrlMode={(id) => { setActiveMediaTarget(id); setTempUrl(''); setUrlError(null); setIsUrlMode(true); }}
+                                    onOpenImageEditor={(id) => {
+                                        setActiveMediaTarget(id);
+                                        editorSaveInFlightRef.current = false;
+                                        setIsEditorSaving(false);
+                                        setShowImageEditor(true);
+                                    }}
+                                />
+                            ) : (
+                                <PostTextItem
+                                    key={item.id}
+                                    item={item}
+                                    index={index}
+                                    totalItems={formData.items.length}
+                                    showBlockNumbers={showBlockNumbers}
+                                    onUpdate={handleUpdateItem}
+                                    onRemove={handleRemoveItem}
+                                    isDeletable={activeDetailTab !== 'article' || formData.items.length > 1}
+                                    onMoveUp={(idx) => handleMoveItem(idx, 'up')}
+                                    onMoveDown={(idx) => handleMoveItem(idx, 'down')}
+                                />
+                            )
                         ))}
 
-                        <div className="flex pt-4">
+                        <div className="flex pt-4 gap-3">
                             <button
                                 onClick={handleAddItem}
-                                className="flex items-center gap-2 px-4 py-2 bg-palette-maroon text-white rounded-[3px] text-[11px] font-black tracking-[0.2em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-palette-maroon/10"
+                                className="flex items-center justify-center gap-2 px-4 py-2 bg-palette-maroon text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-palette-maroon/10 leading-none"
                             >
-                                <Plus size={14} /> METİN EKLE
+                                <Type size={14} className="shrink-0" />
+                                <span className="leading-none mt-[1px]">Metin Ekle</span>
+                            </button>
+                            <button
+                                onClick={handleAddImageItem}
+                                className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-emerald-600/10 leading-none"
+                            >
+                                <LucideImage size={14} className="shrink-0" />
+                                <span className="leading-none mt-[1px]">Resim Ekle</span>
+                            </button>
+                            <button
+                                onClick={handleAddSliderItem}
+                                className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-indigo-600/10 leading-none"
+                            >
+                                <Images size={14} className="shrink-0" />
+                                <span className="leading-none mt-[1px]">Slider Image Ekle</span>
                             </button>
                         </div>
 
-                        {formData.items.length === 0 && (
-                            <div className="py-20 bg-white border-2 border-dashed border-palette-tan/20 rounded-[3px] flex flex-col items-center justify-center text-palette-tan/40">
-                                <Layout size={40} strokeWidth={1} className="mb-4 opacity-20" />
-                                <p className="text-[14px] font-black tracking-[0.3em] uppercase">Henüz İçerik Bloğu Eklenmedi</p>
-                            </div>
-                        )}
+
                     </div>
                 </div>
 
@@ -683,10 +949,20 @@ const PostManagement: React.FC = () => {
                             <div className="rounded-[3px] bg-palette-beige/5 border-2 border-dashed border-palette-tan/20 flex flex-col items-center justify-center overflow-hidden transition-all relative group w-full min-h-[160px]">
                                 {formData.thumbnail ? (
                                     <div className="relative w-full">
-                                        <img src={formData.thumbnail} className="w-full h-auto object-contain block" />
+                                        <img
+                                            src={formData.thumbnail}
+                                            onLoad={() => setIsThumbnailLoading(false)}
+                                            onError={() => setIsThumbnailLoading(false)}
+                                            className="w-full h-auto object-contain block"
+                                        />
                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-2">
                                             <button
-                                                onClick={() => setShowImageEditor(true)}
+                                                onClick={() => {
+                                                    setActiveMediaTarget('thumbnail');
+                                                    editorSaveInFlightRef.current = false;
+                                                    setIsEditorSaving(false);
+                                                    setShowImageEditor(true);
+                                                }}
                                                 className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-emerald-600 transition-all"
                                                 title="Düzenle"
                                             >
@@ -700,15 +976,20 @@ const PostManagement: React.FC = () => {
                                                 <Trash2 size={20} />
                                             </button>
                                         </div>
+                                        {isThumbnailLoading && (
+                                            <div className="absolute inset-0 flex items-center justify-center bg-white/60 pointer-events-none">
+                                                <Loader2 size={22} className="animate-spin text-palette-maroon" />
+                                            </div>
+                                        )}
                                     </div>
                                 ) : (
                                     <div className="flex flex-col items-center justify-center py-8">
-                                        <div onClick={() => setShowFileManager(true)} className="flex flex-col items-center cursor-pointer group/pick mb-2">
+                                        <div onClick={() => { setActiveMediaTarget('thumbnail'); setShowFileManager(true); }} className="flex flex-col items-center cursor-pointer group/pick mb-2">
                                             <Plus size={40} className="text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-2" />
                                             <span className="text-[13px] font-bold text-palette-tan/50 px-4 text-center">Görsel Seç</span>
                                         </div>
                                         <button
-                                            onClick={() => { setIsUrlMode(true); setTempUrl(''); setUrlError(null); }}
+                                            onClick={() => { setActiveMediaTarget('thumbnail'); setIsUrlMode(true); setTempUrl(''); setUrlError(null); }}
                                             className="mt-2 text-[10px] font-black text-palette-tan/60 hover:text-palette-maroon border border-palette-tan/20 px-3 py-1.5 rounded-[3px] bg-white shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 uppercase tracking-wider"
                                         >
                                             <Globe size={11} /> URL İLE EKLE
@@ -842,7 +1123,18 @@ const PostManagement: React.FC = () => {
                 <MediaManagerModal
                     onClose={() => setShowFileManager(false)}
                     onSelect={(src) => {
-                        setFormData({ ...formData, thumbnail: src });
+                        if (activeMediaTarget === 'thumbnail') {
+                            setFormData({ ...formData, thumbnail: src });
+                        } else if (activeMediaTarget) {
+                            // Find target item to check type
+                            const targetItem = formData.items.find(i => i.id === activeMediaTarget);
+                            if (targetItem?.type === 'slider') {
+                                const currentUrls = targetItem.mediaUrls || [];
+                                handleUpdateItem(activeMediaTarget, 'mediaUrls', [...currentUrls, src] as any);
+                            } else {
+                                handleUpdateItem(activeMediaTarget, 'mediaUrl', src);
+                            }
+                        }
                         setShowFileManager(false);
                         setUrlError(null);
                     }}
@@ -896,21 +1188,35 @@ const PostManagement: React.FC = () => {
                 </div>
             )}
 
-            {showImageEditor && formData.thumbnail && (
+            {showImageEditor && (
                 <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 animate-in fade-in duration-500">
-                    <div className="absolute inset-0 bg-palette-maroon/80 backdrop-blur-sm" onClick={() => setShowImageEditor(false)} />
+                    <div
+                        className="absolute inset-0 bg-palette-maroon/80 backdrop-blur-sm"
+                        onClick={() => {
+                            if (isEditorSaving) return;
+                            setShowImageEditor(false);
+                        }}
+                    />
 
                     <div className="bg-white w-full max-w-7xl h-[85vh] rounded-[3px] overflow-hidden shadow-2xl relative flex flex-col border border-palette-tan/20 animate-in zoom-in-95 duration-300">
+                        {isEditorSaving && (
+                            <div className="absolute inset-0 z-[99999] flex items-center justify-center bg-white/60">
+                                <div className="flex items-center gap-2 px-4 py-2 rounded-[3px] bg-white shadow-md border border-palette-tan/20">
+                                    <Loader2 size={18} className="animate-spin text-palette-maroon" />
+                                    <span className="text-[11px] font-black tracking-widest text-palette-maroon uppercase">Kaydediliyor...</span>
+                                </div>
+                            </div>
+                        )}
                         {/* 
                             StyleSheetManager reintroduced with aggressive filtering to fix "Unknown prop" errors.
                             The filter ensures only valid HTML attributes are passed to the DOM.
                         */}
                         <StyleSheetManager shouldForwardProp={(prop) => isPropValid(prop) && !['showTabsDrawer', 'isPhoneScreen', 'noMargin', 'active', 'showBackButton', 'hasChildren', 'fullWidth', 'isValueExists', 'hideEllipsis', 'watermarkTool', 'maxWidth', 'icon', 'isWarning', 'isError', 'primary', 'variant', 'iconShadow', 'alignment', 'align', 'warning'].includes(prop)}>
                             <FilerobotEditor
-                                source={formData.thumbnail}
+                                {...editorConfig}
+                                source={activeMediaTarget === 'thumbnail' ? formData.thumbnail : formData.items.find(i => i.id === activeMediaTarget)?.mediaUrl || ''}
                                 onSave={handleEditorSave}
                                 onClose={handleEditorClose}
-                                config={editorConfig}
                             />
                         </StyleSheetManager>
                     </div>
@@ -1182,6 +1488,12 @@ const MediaManagerModal: React.FC<{
                         </button>
                     </div>
                 </div>
+            </div>
+            {/* HIDDEN FONT LOADER - Ensures browser loads fonts before Filerobot needs them */}
+            <div className="fie-font-preload" style={{ visibility: 'hidden', position: 'absolute', top: -1000, height: 0, overflow: 'hidden' }}>
+                {FIE_TEXT_FONTS.map((font) => (
+                    <span key={font} style={{ fontFamily: font }}> {font} </span>
+                ))}
             </div>
         </div>
     );

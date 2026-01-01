@@ -4,9 +4,11 @@ import { ChevronDown, Trash2, FileText, Sparkles, Plus } from 'lucide-react';
 
 export interface PostItem {
     id: string;
+    type?: 'text' | 'image' | 'slider';
     title: string;
     description: string;
     mediaUrl?: string;
+    mediaUrls?: string[]; // Multiple images for slider
     source?: string;
     createdAt?: number;
     orderNumber?: number;
@@ -27,7 +29,7 @@ export const QUILL_MODULES = {
 export const QUILL_FORMATS = [
     'header',
     'bold', 'italic', 'underline', 'strike',
-    'list', 'bullet',
+    'list',
     'color', 'background',
     'link', 'image', 'video',
     'blockquote', 'code-block'
@@ -40,6 +42,7 @@ interface PostTextItemProps {
     showBlockNumbers: boolean;
     onUpdate: (id: string, field: keyof PostItem, value: any) => void;
     onRemove: (id: string) => void;
+    isDeletable?: boolean;
     onMoveUp?: (index: number) => void;
     onMoveDown?: (index: number) => void;
 }
@@ -51,43 +54,52 @@ const PostTextItem: React.FC<PostTextItemProps> = ({
     showBlockNumbers,
     onUpdate,
     onRemove,
+    isDeletable = true,
     onMoveUp,
     onMoveDown
 }) => {
     const [showSource, setShowSource] = useState(false);
     return (
         <div className="group bg-white rounded-[3px] border border-palette-tan/20 shadow-md flex overflow-hidden animate-in slide-in-from-left duration-300 admin-font">
-            {/* INTEGRATED SIDEBAR ACTIONS */}
-            <div className="w-16 shrink-0 bg-palette-beige/10 border-r border-palette-tan/15 flex flex-col items-center py-4 gap-6">
-                {totalItems > 1 && (
-                    <div className="flex flex-col gap-1.5">
-                        {index > 0 && (
-                            <button
-                                onClick={() => onMoveUp?.(index)}
-                                className="p-2.5 bg-white border border-palette-tan/20 rounded-[3px] text-palette-tan hover:text-palette-maroon hover:shadow-sm transition-all active:scale-90"
-                            >
-                                <ChevronDown size={18} className="rotate-180" />
-                            </button>
-                        )}
-                        {index < totalItems - 1 && (
-                            <button
-                                onClick={() => onMoveDown?.(index)}
-                                className="p-2.5 bg-white border border-palette-tan/20 rounded-[3px] text-palette-tan hover:text-palette-maroon hover:shadow-sm transition-all active:scale-90"
-                            >
-                                <ChevronDown size={18} />
-                            </button>
-                        )}
-                    </div>
-                )}
+            {/* MINIMALIST SIDEBAR ACTIONS */}
+            <div className="w-12 shrink-0 bg-palette-beige/5 border-r border-palette-tan/10 flex flex-col items-center py-6 justify-between transition-colors group-hover:bg-palette-beige/10">
+                <div className="flex flex-col gap-2">
+                    {totalItems > 1 && (
+                        <>
+                            {index > 0 ? (
+                                <button
+                                    onClick={() => onMoveUp?.(index)}
+                                    className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
+                                    title="Yukarı Taşı"
+                                >
+                                    <ChevronDown size={18} className="rotate-180" />
+                                </button>
+                            ) : <div className="w-8 h-8" />}
 
-                <div className="mt-auto flex flex-col items-center gap-4">
-                    <button
-                        onClick={() => onRemove(item.id)}
-                        className="p-3 bg-white border border-palette-tan/20 rounded-[3px] text-palette-tan hover:text-white hover:bg-palette-red hover:border-palette-red transition-all shadow-sm active:scale-95"
-                    >
-                        <Trash2 size={18} />
-                    </button>
+                            {index < totalItems - 1 ? (
+                                <button
+                                    onClick={() => onMoveDown?.(index)}
+                                    className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
+                                    title="Aşağı Taşı"
+                                >
+                                    <ChevronDown size={18} />
+                                </button>
+                            ) : <div className="w-8 h-8" />}
+                        </>
+                    )}
                 </div>
+
+                <button
+                    onClick={() => isDeletable && onRemove(item.id)}
+                    disabled={!isDeletable}
+                    title={isDeletable ? "Bloğu Sil" : "Bu blok silinemez"}
+                    className={`w-8 h-8 flex items-center justify-center rounded-[3px] transition-all ${isDeletable
+                        ? "text-palette-tan/30 hover:text-white hover:bg-palette-red hover:shadow-md active:scale-90"
+                        : "text-palette-tan/10 cursor-not-allowed"
+                        }`}
+                >
+                    <Trash2 size={16} />
+                </button>
             </div>
 
             {/* MAIN CONTENT AREA */}
@@ -132,15 +144,20 @@ const PostTextItem: React.FC<PostTextItemProps> = ({
                             </div>
                         </div>
                         <div className="quill-modern-wrapper border border-palette-tan/20 rounded-[3px] overflow-hidden focus-within:border-palette-red/40 transition-all shadow-sm bg-white">
-                            <ReactQuill
-                                theme="snow"
-                                value={item.description}
-                                onChange={(content) => onUpdate(item.id, 'description', content)}
-                                modules={QUILL_MODULES}
-                                formats={QUILL_FORMATS}
-                                placeholder="Haberinizin Bu Bölümündeki Hikayeyi Tüm Detaylarıyla Buraya Aktarın..."
-                                className="modern-quill-editor"
-                            />
+                            {(() => {
+                                const Quill: any = ReactQuill;
+                                return (
+                                    <Quill
+                                        theme="snow"
+                                        value={item.description}
+                                        onChange={(content: string) => onUpdate(item.id, 'description', content)}
+                                        modules={QUILL_MODULES}
+                                        formats={QUILL_FORMATS}
+                                        placeholder="Haberinizin Bu Bölümündeki Hikayeyi Tüm Detaylarıyla Buraya Aktarın..."
+                                        className="modern-quill-editor"
+                                    />
+                                );
+                            })()}
                         </div>
                     </div>
 

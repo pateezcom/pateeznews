@@ -34,12 +34,19 @@ export const storageService = {
                 formData.append('customPath', customPath);
             }
 
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 120_000);
+
             const response = await fetch('/api/storage/upload', {
                 method: 'POST',
-                body: formData
-            });
+                body: formData,
+                signal: controller.signal
+            }).finally(() => clearTimeout(timeoutId));
 
-            if (!response.ok) throw new Error('Upload failed');
+            if (!response.ok) {
+                const details = await response.text().catch(() => '');
+                throw new Error(`Upload failed (${response.status})${details ? `: ${details}` : ''}`);
+            }
             const result = await response.json();
 
             return {
