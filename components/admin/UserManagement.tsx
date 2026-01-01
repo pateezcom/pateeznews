@@ -248,7 +248,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
       {errorMsg && (
         <div className="mb-6 p-4 bg-palette-red/5 border border-palette-red/30 rounded-[3px] flex items-center gap-4 text-palette-red">
           <AlertTriangle size={20} />
-          <div className="text-sm font-bold tracking-wider">Hata: {errorMsg}</div>
+          <div className="text-sm font-bold tracking-wider">{t('common.error')}: {errorMsg}</div>
         </div>
       )}
 
@@ -270,7 +270,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
                       <img src={user.avatar_url || `https://picsum.photos/seed/${user.id}/100`} className="w-full h-full object-cover" />
                     </div>
                     <div>
-                      <h4 className="text-base font-black text-palette-maroon leading-none mb-1">{user.full_name || 'İsimsiz'}</h4>
+                      <h4 className="text-base font-black text-palette-maroon leading-none mb-1">{user.full_name || t('users.unnamed')}</h4>
                       <p className="text-[12px] text-palette-tan/50 font-bold tracking-widest">@{user.username || 'username'}</p>
                     </div>
                   </div>
@@ -327,8 +327,8 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
         {filteredUsers.length === 0 && (
           <div className="p-20 text-center text-palette-tan/30">
             <Users2 size={40} className="mx-auto mb-4 opacity-20" />
-            <p className="text-[13px] font-black tracking-widest">Hiç kullanıcı bulunamadı</p>
-            <p className="text-[11px] mt-2 font-medium">Lütfen SQL komutlarını çalıştırdığınızdan emin olun.</p>
+            <p className="text-[13px] font-black tracking-widest">{t('users.empty_state')}</p>
+            <p className="text-[11px] mt-2 font-medium">{t('users.sql_notice')}</p>
           </div>
         )}
       </div>
@@ -350,14 +350,14 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
             <form onSubmit={handleAddUser} className="p-8 space-y-5">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[13px] font-black text-palette-tan/50 ml-1">Ad Soyad</label>
+                  <label className="text-[13px] font-black text-palette-tan/50 ml-1">{t('users.form.full_name')}</label>
                   <div className="relative group">
                     <UserIcon className={iconClasses} size={14} />
                     <input type="text" required value={newUser.full_name} onChange={e => setNewUser({ ...newUser, full_name: e.target.value })} className={inputClasses} />
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[13px] font-black text-palette-tan/50 ml-1">Kullanıcı Adı</label>
+                  <label className="text-[13px] font-black text-palette-tan/50 ml-1">{t('users.form.username')}</label>
                   <div className="relative group">
                     <span className={`${iconClasses} font-black text-sm`}>@</span>
                     <input type="text" required value={newUser.username} onChange={e => setNewUser({ ...newUser, username: e.target.value.toLowerCase().replace(' ', '_') })} className={inputClasses} />
@@ -366,7 +366,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[13px] font-black text-palette-tan/50 ml-1">E-Posta Adresi</label>
+                <label className="text-[13px] font-black text-palette-tan/50 ml-1">{t('users.form.email')}</label>
                 <div className="relative group">
                   <Mail className={iconClasses} size={14} />
                   <input type="email" required value={newUser.email} onChange={e => setNewUser({ ...newUser, email: e.target.value })} className={inputClasses} />
@@ -374,7 +374,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[13px] font-black text-palette-tan/50 ml-1">Geçici Şifre</label>
+                <label className="text-[13px] font-black text-palette-tan/50 ml-1">{t('users.form.password')}</label>
                 <div className="relative group">
                   <Lock className={iconClasses} size={14} />
                   <input type="password" required value={newUser.password} onChange={e => setNewUser({ ...newUser, password: e.target.value })} className={inputClasses} minLength={6} />
@@ -382,7 +382,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[13px] font-black text-palette-tan/50 ml-1">Sistem Rolü</label>
+                <label className="text-[13px] font-black text-palette-tan/50 ml-1">{t('users.form.role')}</label>
                 <div className="relative group">
                   <select value={newUser.role} onChange={e => setNewUser({ ...newUser, role: e.target.value })} className={`${inputClasses} appearance-none px-4 pl-4`}>
                     {roles.map(r => <option key={r.id} value={r.name}>{r.label}</option>)}
@@ -413,7 +413,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
                   <Fingerprint size={18} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-black text-palette-maroon leading-none">Yetki Güncelle</h3>
+                  <h3 className="text-xl font-black text-palette-maroon leading-none">{t('users.role_modal.title')}</h3>
                 </div>
               </div>
               <button onClick={() => setShowRoleModal(false)} className="p-1 text-palette-tan/40 hover:text-palette-red transition-colors"><X size={20} /></button>
@@ -425,13 +425,13 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
                   <img src={selectedUser.avatar_url || `https://picsum.photos/seed/${selectedUser.id}/100`} className="w-full h-full object-cover" />
                 </div>
                 <div>
-                  <h4 className="text-base font-black text-palette-maroon leading-tight">{selectedUser.full_name || 'İsimsiz'}</h4>
+                  <h4 className="text-base font-black text-palette-maroon leading-tight">{selectedUser.full_name || t('users.unnamed')}</h4>
                   <p className="text-[12px] font-bold text-palette-tan/60 tracking-widest">@{selectedUser.username}</p>
                 </div>
               </div>
 
               <div className="space-y-3">
-                <label className="text-[11px] font-black text-palette-tan/50 ml-1">Rol Seçimi</label>
+                <label className="text-[11px] font-black text-palette-tan/50 ml-1">{t('users.role_modal.select')}</label>
                 <div className="grid grid-cols-1 gap-2">
                   {roles.map((role) => (
                     <button
@@ -455,7 +455,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
 
             <div className="px-8 py-6 border-t border-palette-tan/15 bg-palette-beige/10 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                {success && <div className="flex items-center gap-1 text-emerald-600 text-[12px] font-black tracking-wider animate-in fade-in zoom-in"><CheckCircle2 size={12} /> Kaydedildi</div>}
+                {success && <div className="flex items-center gap-1 text-emerald-600 text-[12px] font-black tracking-wider animate-in fade-in zoom-in"><CheckCircle2 size={12} /> {t('common.updated')}</div>}
               </div>
               <button
                 onClick={handleUpdateRole}
@@ -463,7 +463,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
                 className="flex items-center gap-2 px-8 py-3 bg-palette-maroon text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-black transition-all shadow-xl active:scale-95 disabled:opacity-40"
               >
                 {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-                <span>Kullanıcıyı Kaydet</span>
+                <span>{t('users.role_modal.submit')}</span>
               </button>
             </div>
           </div>

@@ -159,7 +159,7 @@ const RoleSettings: React.FC = () => {
     return (
       <div className="flex flex-col items-center justify-center h-[500px] gap-6">
         <div className="w-12 h-12 border-4 border-palette-tan/15 border-t-palette-red rounded-[3px] animate-spin"></div>
-        <p className="text-[13px] font-black text-palette-tan/40 tracking-widest">Sistem Hazırlanıyor</p>
+        <p className="text-[13px] font-black text-palette-tan/40 tracking-widest">{t('users.status.syncing')}</p>
       </div>
     );
   }
@@ -169,8 +169,8 @@ const RoleSettings: React.FC = () => {
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 px-2">
         <div>
-          <h2 className="text-[32px] font-black text-palette-maroon tracking-tighter leading-none mb-2">Rol & Yetki Havuzu</h2>
-          <p className="text-[13px] font-bold text-palette-tan/50 tracking-wider">Sistem Erişim Düzeylerini Yönetin.</p>
+          <h2 className="text-[32px] font-black text-palette-maroon tracking-tighter leading-none mb-2">{t('roles.page_title')}</h2>
+          <p className="text-[13px] font-bold text-palette-tan/50 tracking-wider">{t('roles.page_desc')}</p>
         </div>
 
         <button
@@ -178,7 +178,7 @@ const RoleSettings: React.FC = () => {
           className="h-10 px-8 bg-palette-red text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-primary-600 transition-all shadow-lg active:scale-95 flex items-center gap-2"
         >
           <Plus size={16} strokeWidth={3} />
-          <span>Yeni Rol Tanımla</span>
+          <span>{t('roles.add_new')}</span>
         </button>
       </div>
 
@@ -200,7 +200,7 @@ const RoleSettings: React.FC = () => {
                     {memberCounts[role.name] || 0}
                   </span>
                 </div>
-                <span className="text-[12px] font-bold text-palette-tan/30 mt-1">Aktif Üye</span>
+                <span className="text-[12px] font-bold text-palette-tan/30 mt-1">{t('roles.active_members')}</span>
               </div>
             </div>
 
@@ -210,13 +210,13 @@ const RoleSettings: React.FC = () => {
             </div>
 
             <p className="text-sm text-palette-tan/50 font-medium leading-relaxed line-clamp-2 mb-6 h-8">
-              {role.description || 'Bu rol için bir açıklama tanımlanmamış.'}
+              {role.description || t('roles.no_desc')}
             </p>
 
             <div className="space-y-2 mb-8 bg-palette-beige/20 p-4 rounded-[3px] border border-palette-tan/20">
               <div className="flex items-center gap-1.5 mb-2">
                 <ListChecks size={12} className="text-palette-red" />
-                <span className="text-[13px] font-black text-palette-tan/60 tracking-widest">Yetki Özeti</span>
+                <span className="text-[13px] font-black text-palette-tan/60 tracking-widest">{t('roles.perm_summary')}</span>
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {(rolePermissionsSummary[role.id] || []).length > 0 ? (
@@ -226,23 +226,23 @@ const RoleSettings: React.FC = () => {
                     </span>
                   ))
                 ) : (
-                  <span className="text-[12px] font-bold text-palette-tan/30 italic">Henüz yetki atanmamış</span>
+                  <span className="text-[12px] font-bold text-palette-tan/30 italic">{t('roles.no_perms')}</span>
                 )}
                 {(rolePermissionsSummary[role.id] || []).length > 3 && (
-                  <span className="text-[12px] font-black text-palette-red">+{(rolePermissionsSummary[role.id].length - 3)} DAHA</span>
+                  <span className="text-[12px] font-black text-palette-red">+{(rolePermissionsSummary[role.id].length - 3)} {t('roles.more')}</span>
                 )}
               </div>
             </div>
 
             <div className="flex items-center justify-between pt-5 border-t border-palette-tan/20">
               <div className="flex items-center gap-2 group-hover:translate-x-1 transition-transform">
-                <span className="text-[13px] font-black text-palette-tan/30 tracking-wider">Yönet</span>
+                <span className="text-[13px] font-black text-palette-tan/30 tracking-wider">{t('roles.manage')}</span>
                 <ArrowRight size={14} className="text-palette-tan/20" />
               </div>
               {role.name === 'admin' && (
                 <div className="flex items-center gap-1.5 px-2.5 py-1 bg-palette-maroon/5 text-palette-maroon rounded-[3px] py-1 bg-palette-maroon/5 text-[13px] font-bold">
                   <Lock size={12} />
-                  Sistem Kilitli
+                  {t('roles.locked')}
                 </div>
               )}
             </div>
@@ -261,8 +261,8 @@ const RoleSettings: React.FC = () => {
                   <ShieldCheck size={24} />
                 </div>
                 <div>
-                  <h3 className="text-[22px] font-black text-palette-maroon leading-none mb-1">{selectedRole.label} Yetkileri</h3>
-                  <p className="text-[13px] font-bold text-palette-tan/40 tracking-widest">Yetki Ve Erişim Sınırlarını Belirleyin</p>
+                  <h3 className="text-[22px] font-black text-palette-maroon leading-none mb-1">{selectedRole.label} {t('roles.perms_for')}</h3>
+                  <p className="text-[13px] font-bold text-palette-tan/40 tracking-widest">{t('roles.perms_desc')}</p>
                 </div>
               </div>
               <button onClick={() => setShowPermModal(false)} className="w-10 h-10 flex items-center justify-center bg-palette-beige/50 rounded-[3px] hover:bg-palette-red hover:text-white transition-all"><X size={20} /></button>
@@ -273,8 +273,8 @@ const RoleSettings: React.FC = () => {
                 <div className="bg-palette-red/5 border border-palette-red/10 p-5 rounded-[3px] flex items-start gap-4">
                   <ShieldAlert className="text-palette-red" size={20} />
                   <div>
-                    <h4 className="text-[14px] font-black text-palette-maroon mb-1 tracking-wider">Kritik Uyarı</h4>
-                    <p className="text-palette-red/80 text-[13px] font-bold leading-relaxed">Yönetici (admin) rolü tüm yetkilere tam erişime sahiptir ve kısıtlanamaz.</p>
+                    <h4 className="text-[14px] font-black text-palette-maroon mb-1 tracking-wider">{t('common.error')}</h4>
+                    <p className="text-palette-red/80 text-[13px] font-bold leading-relaxed">{t('roles.admin_notice')}</p>
                   </div>
                 </div>
               )}
@@ -284,7 +284,7 @@ const RoleSettings: React.FC = () => {
                   <div key={key} className="space-y-4">
                     <div className="flex items-center gap-3 px-2">
                       <div className="p-1.5 bg-palette-beige rounded-[3px] text-palette-tan">{getGroupIcon(key)}</div>
-                      <h4 className="text-[13px] font-black text-palette-maroon tracking-wider">{key === 'sidebar' ? 'Menü Erişimi' : key === 'content' ? 'İçerik Yönetimi' : 'Sistem Araçları'}</h4>
+                      <h4 className="text-[13px] font-black text-palette-maroon tracking-wider">{key === 'sidebar' ? t('roles.group.sidebar') : key === 'content' ? t('roles.group.content') : t('roles.group.system')}</h4>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {groupPerms.map((perm) => {
@@ -319,17 +319,17 @@ const RoleSettings: React.FC = () => {
 
             <div className="px-10 py-7 border-t border-palette-tan/20 bg-palette-beige/10 flex items-center justify-between">
               <div className="text-[12px] font-bold text-palette-tan/40 tracking-widest">
-                {rolePermissions.length} Yetki Aktif
+                {rolePermissions.length} {t('roles.perms_active')}
               </div>
               <div className="flex items-center gap-3">
-                {success && <div className="flex items-center gap-1 text-emerald-600 text-[12px] font-black tracking-wider animate-in fade-in zoom-in"><CheckCircle2 size={14} /> Güncellendi</div>}
+                {success && <div className="flex items-center gap-1 text-emerald-600 text-[12px] font-black tracking-wider animate-in fade-in zoom-in"><CheckCircle2 size={14} /> {t('common.updated')}</div>}
                 <button
                   onClick={handleSavePermissions}
                   disabled={saving || selectedRole.name === 'admin'}
                   className="flex items-center gap-2 px-8 py-3 bg-palette-tan text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-maroon transition-all shadow-xl shadow-palette-tan/20 active:scale-95 disabled:opacity-40"
                 >
                   {saving ? <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-[3px] animate-spin" /> : <Save size={16} />}
-                  <span>{saving ? 'Kaydediliyor' : 'Değişiklikleri Uygula'}</span>
+                  <span>{saving ? t('common.processing') : t('roles.apply_changes')}</span>
                 </button>
               </div>
             </div>
@@ -354,7 +354,7 @@ const RoleSettings: React.FC = () => {
 
             <div className="p-8 space-y-6">
               <div className="space-y-1.5 group">
-                <label className="text-[13px] font-black text-palette-tan/50 ml-1">Rol Görünen Adı</label>
+                <label className="text-[13px] font-black text-palette-tan/50 ml-1">{t('roles.form.label')}</label>
                 <input
                   type="text"
                   value={roleForm.label}
@@ -364,7 +364,7 @@ const RoleSettings: React.FC = () => {
                 />
               </div>
               <div className="space-y-1.5 group">
-                <label className="text-[13px] font-black text-palette-tan/50 ml-1">Sistem Anahtarı (ID)</label>
+                <label className="text-[13px] font-black text-palette-tan/50 ml-1">{t('roles.form.name')}</label>
                 <input
                   type="text"
                   value={roleForm.name}
@@ -374,11 +374,11 @@ const RoleSettings: React.FC = () => {
                 />
               </div>
               <div className="space-y-1.5 group">
-                <label className="text-[13px] font-black text-palette-tan/50 ml-1">Açıklama</label>
+                <label className="text-[13px] font-black text-palette-tan/50 ml-1">{t('roles.form.desc')}</label>
                 <textarea
                   value={roleForm.description}
                   onChange={(e) => setRoleForm({ ...roleForm, description: e.target.value })}
-                  placeholder="Bu rolün sorumlulukları nelerdir?"
+                  placeholder={t('roles.form.desc_placeholder')}
                   rows={4}
                   className={`${inputClasses} h-auto py-3 resize-none leading-relaxed font-medium`}
                 />
@@ -386,14 +386,14 @@ const RoleSettings: React.FC = () => {
             </div>
 
             <div className="px-8 py-7 border-t border-palette-tan/20 bg-palette-beige/10 flex items-center justify-end gap-3">
-              <button onClick={() => setShowRoleFormModal(false)} className="px-5 py-2.5 font-black text-[13px] text-palette-tan/40 hover:text-palette-maroon tracking-widest">İptal Et</button>
+              <button onClick={() => setShowRoleFormModal(false)} className="px-5 py-2.5 font-black text-[13px] text-palette-tan/40 hover:text-palette-maroon tracking-widest">{t('common.cancel')}</button>
               <button
                 onClick={handleAddRole}
                 disabled={saving || !roleForm.name || !roleForm.label}
                 className="flex items-center gap-2 px-8 py-3 bg-palette-tan text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-maroon shadow-xl active:scale-95 disabled:opacity-40"
               >
                 {saving ? <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-[3px] animate-spin" /> : <CheckCircle2 size={16} />}
-                <span>{saving ? 'İşleniyor' : 'Rolü Oluştur'}</span>
+                <span>{saving ? t('common.processing') : t('roles.form.submit')}</span>
               </button>
             </div>
           </div>
@@ -413,7 +413,7 @@ const RoleSettings: React.FC = () => {
               onClick={() => setStatusModal({ ...statusModal, show: false })}
               className="w-full py-4 bg-palette-tan text-white rounded-[3px] font-black text-[14px] tracking-widest hover:bg-palette-maroon transition-all shadow-lg active:scale-95"
             >
-              Tamam
+              {t('common.ok')}
             </button>
           </div>
         </div>

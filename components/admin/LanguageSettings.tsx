@@ -420,7 +420,7 @@ const LanguageSettings: React.FC = () => {
                       );
                     })) : (
                     <tr>
-                      <td colSpan={5} className="px-8 py-10 text-center text-palette-tan/40 text-[14px] font-bold">Sonuç Bulunamadı.</td>
+                      <td colSpan={5} className="px-8 py-10 text-center text-palette-tan/40 text-[14px] font-bold">{t('stories.empty_state')}</td>
                     </tr>
                   )}
                 </tbody>
@@ -497,10 +497,10 @@ const LanguageSettings: React.FC = () => {
               </div>
             </div>
             <div className="px-6 py-5 border-t border-palette-tan/15 bg-palette-beige/30 flex items-center justify-end gap-3">
-              <button onClick={() => setShowModal(false)} className="px-5 py-2.5 rounded-[3px] font-bold text-[13px] text-palette-tan/50 hover:text-palette-maroon transition-colors tracking-wider">İptal</button>
+              <button onClick={() => setShowModal(false)} className="px-5 py-2.5 rounded-[3px] font-bold text-[13px] text-palette-tan/50 hover:text-palette-maroon transition-colors tracking-wider">{t('common.cancel')}</button>
               <button onClick={handleSave} disabled={!!processing} className="flex items-center gap-2 px-8 py-3 bg-palette-tan text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-maroon shadow-xl shadow-palette-tan/20 active:translate-y-0.5 transition-all">
                 {processing ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} strokeWidth={3} />}
-                <span>{editingLang ? 'Kaydet' : t('lang.form.add_btn')}</span>
+                <span>{editingLang ? t('common.ok') : t('lang.form.add_btn')}</span>
               </button>
             </div>
           </div>
@@ -523,16 +523,16 @@ const LanguageSettings: React.FC = () => {
               <label className="flex flex-col items-center justify-center w-full h-40 border border-palette-tan/20 border-dashed rounded-[3px] cursor-pointer bg-palette-beige/20 hover:bg-white hover:border-palette-red transition-all group">
                 <div className="flex flex-col items-center justify-center text-center px-4">
                   {importing ? <Loader2 size={32} className="text-palette-red animate-spin mb-3" /> : <div className="w-12 h-12 bg-white shadow-md border border-palette-tan/15 rounded-[3px] flex items-center justify-center mb-3 group-hover:scale-110 group-hover:border-palette-red/30"><FileJson size={24} className="text-palette-tan/40 group-hover:text-palette-red transition-colors" /></div>}
-                  <p className="text-base font-bold text-palette-maroon mb-1">{importing ? 'İşleniyor...' : t('lang.import.drag')}</p>
+                  <p className="text-base font-bold text-palette-maroon mb-1">{importing ? t('common.processing') : t('lang.import.drag')}</p>
                   <p className="text-[13px] text-palette-tan/40 font-medium">{t('lang.import.click')}</p>
                 </div>
                 <input type="file" className="hidden" accept=".json" ref={fileInputRef} onChange={handleFileChange} />
               </label>
             </div>
             <div className="px-6 py-5 border-t border-palette-tan/15 bg-palette-beige/30 flex items-center justify-end gap-3">
-              <button onClick={() => setShowImportModal(false)} className="px-5 py-2.5 rounded-[3px] font-bold text-[13px] text-palette-tan/50 hover:text-palette-maroon transition-colors tracking-wider">İptal</button>
+              <button onClick={() => setShowImportModal(false)} className="px-5 py-2.5 rounded-[3px] font-bold text-[13px] text-palette-tan/50 hover:text-palette-maroon transition-colors tracking-wider">{t('common.cancel')}</button>
               <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 px-8 py-3 bg-palette-tan text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-maroon shadow-xl active:scale-95 transition-all">
-                <CheckCircle2 size={14} strokeWidth={3} /><span>Dosya Yükle</span>
+                <CheckCircle2 size={14} strokeWidth={3} /><span>{t('lang.import.btn')}</span>
               </button>
             </div>
           </div>

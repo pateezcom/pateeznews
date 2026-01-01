@@ -64,38 +64,80 @@ const FIE_TEXT_FONT_OPTIONS = FIE_TEXT_FONTS.map((font) => ({
 const FIE_TEXT_DEFAULT_FONT = 'arial';
 
 const FIE_EMOJI_PACK = [
-    '🚨', // breaking
-    '⚡', // fast
-    '🔥', // hot
-    '📢', // announcement
-    '📣', // megaphone
-    '📰', // newspaper
-    '🎙️', // mic
-    '📍', // location
-    '📌', // pin
-    '🛑', // stop
-    '✅', // check
-    '❌', // cross
-    '❗', // exclamation
-    '❓', // question
-    '💥', // boom
-    '👀', // eyes
-    '💬', // chat
-    '🗣️', // speaking
-    '⏰', // alarm
-    '🕒', // time
-    '📸', // camera
-    '🎥', // video
-    '💰', // money
-    '📈', // up
-    '📉', // down
-    '🏆', // trophy
-    '🇹🇷', // tr flag
+    '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣',
+    '😊', '😇', '🙂', '🙃', '😉', '😌',
+    '😍', '🥰', '😘', '😗', '😙', '😚',
+    '😋', '😛', '😜', '🤪', '😝',
+    '🤨', '🧐', '🤓', '😎', '🥸',
+    '🤩', '🥳',
+    '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️',
+    '😣', '😖', '😫', '😩', '🥺',
+    '😢', '😭',
+    '😤', '😠', '😡', '🤬',
+    '🤯', '😳',
+    '🥵', '🥶',
+    '😱', '😨', '😰', '😥', '😓',
+    '🤗', '🤔', '🤭', '🤫', '🤥',
+    '😶', '😐', '😑', '😬', '🙄',
+    '😯', '😦', '😧', '😮', '😲',
+    '🥱', '😴', '🤤', '😪',
+    '😵', '😵‍💫', '🤐', '🥴',
+    '🤢', '🤮', '🤧',
+    '😷', '🤒', '🤕',
+    '🤑', '🤠',
+    '😈', '👿', '👹', '👺', '🤡', '💩', '👻', '👽', '👾', '🤖',
+    '🎃',
+
+    '👍', '👎', '👊', '✊', '🤛', '🤜',
+    '🤞', '✌️', '🤟', '🤘', '👌', '🤌', '🤏',
+    '👋', '🤚', '✋', '🖐️', '🖖',
+    '✍️', '🙏', '🤝',
+    '💪', '🦾', '🦵', '🦿',
+    '👂', '🦻', '👃', '🧠', '🫀', '🫁', '🦷', '🦴',
+    '👀', '👁️', '👅', '👄', '🫦',
+
+    '❤️', '🧡', '💛', '💚', '💙', '💜', '🤎', '🖤', '🤍',
+    '💔', '❤️‍🔥', '❤️‍🩹',
+    '💖', '💗', '💓', '💞', '💕', '💘', '💝', '💟',
+
+    '🚨', '⚡', '🔥', '💥', '💫', '⭐', '🌟', '✨',
+    '✅', '☑️', '✔️', '✖️', '❌', '❎',
+    '❗', '❕', '❓', '❔', '‼️', '⁉️',
+    '🛑',
+    '🔴', '🟠', '🟡', '🟢', '🔵', '🟣', '⚫', '⚪',
+    '🔶', '🔷', '🔸', '🔹', '🔺', '🔻',
+    '➕', '➖', '➗',
+    '⬆️', '⬇️', '⬅️', '➡️', '↗️', '↘️', '↙️', '↖️', '⤴️', '⤵️',
+    '🔄', '🔃', '🔁', '🔀',
+
+    '☀️', '🌤️', '⛅', '🌥️', '🌦️', '🌧️', '⛈️', '🌩️', '❄️', '🌪️',
+    '💧', '🌊', '🌈',
+
+    '📢', '📣', '📰', '🗞️',
+    '🎙️', '🎤', '🎧',
+    '📸', '🎥', '📽️',
+    '🔔', '🔕',
+    '💡', '🔦', '🔍', '🔎',
+    '🔒', '🔓', '🗝️',
+    '📌', '📍', '🧭',
+    '🧨', '🎯',
+    '🎉', '🎊', '🎈', '🎁',
+    '🏆', '🥇', '🥈', '🥉',
+
+    '💰', '💵', '💶', '💷', '💴', '🪙', '💳',
+    '📈', '📉',
+
+    '☕', '🍿', '🍔', '🍟', '🍕', '🌭',
+    '🍺', '🍷',
+
+    '🇹🇷',
 ] as const;
+
+const FIE_EMOJI_LIST = Array.from(new Set(FIE_EMOJI_PACK));
 
 const FIE_EMOJI_STICKER_CACHE = new Map<string, string>();
 
-const createEmojiStickerDataUrl = (emoji: string, sizePx = 160) => {
+const createEmojiStickerDataUrl = (emoji: string, sizePx = 128) => {
     if (typeof document === 'undefined') return '';
 
     const dpr = typeof window !== 'undefined' && typeof window.devicePixelRatio === 'number'
@@ -430,9 +472,9 @@ const PostManagement: React.FC = () => {
     const emojiStickerGallery = React.useMemo(() => {
         if (!showImageEditor) return [];
 
-        return FIE_EMOJI_PACK
+        return FIE_EMOJI_LIST
             .map((emoji) => {
-                const url = createEmojiStickerDataUrl(emoji, 160);
+                const url = createEmojiStickerDataUrl(emoji, 128);
                 if (!url) return null;
                 return { originalUrl: url, previewUrl: url };
             })
@@ -466,6 +508,7 @@ const PostManagement: React.FC = () => {
         Rotate: { angle: 90, componentType: 'slider' },
         tabsIds: [TABS.ADJUST, TABS.FILTERS, TABS.FINETUNE, TABS.ANNOTATE, TABS.WATERMARK],
         defaultTabId: TABS.ANNOTATE,
+        defaultToolId: TOOLS.IMAGE,
         closeAfterSave: true,
         defaultSavedImageType: 'webp',
         defaultSavedImageQuality: 1,
@@ -473,8 +516,12 @@ const PostManagement: React.FC = () => {
         savingPixelRatio: 1,
         previewPixelRatio: 1,
         willReadFrequently: true,
-        toolsByTab: {
+        tabsToolsIds: {
             [TABS.ADJUST]: [TOOLS.CROP, TOOLS.ROTATE, TOOLS.FLIP_X, TOOLS.FLIP_Y],
+            [TABS.FINETUNE]: [TOOLS.BRIGHTNESS, TOOLS.CONTRAST, TOOLS.HSV, TOOLS.BLUR, TOOLS.WARMTH],
+            [TABS.FILTERS]: [TOOLS.FILTERS],
+            [TABS.WATERMARK]: [TOOLS.WATERMARK],
+            [TABS.ANNOTATE]: [TOOLS.IMAGE, TOOLS.TEXT, TOOLS.RECT, TOOLS.ELLIPSE, TOOLS.POLYGON, TOOLS.PEN, TOOLS.LINE, TOOLS.ARROW],
         },
         [TABS.ADJUST]: {
             hideResize: true,
@@ -574,7 +621,7 @@ const PostManagement: React.FC = () => {
     const handleUrlSubmit = async () => {
         const trimmedUrl = tempUrl.trim();
         if (!trimmedUrl) {
-            setUrlError('Lütfen bir URL girin');
+            setUrlError(t('common.error'));
             return;
         }
         setValidatingUrl(true);
@@ -598,7 +645,7 @@ const PostManagement: React.FC = () => {
                 setIsUrlMode(false);
                 setTempUrl('');
             } else {
-                setUrlError('Geçersiz görsel URL adresi');
+                setUrlError(t('admin.generic_error').replace('{error}', 'Invalid URL'));
             }
         }
         setValidatingUrl(false);
@@ -858,9 +905,9 @@ const PostManagement: React.FC = () => {
                 <div className="flex items-center gap-4">
                     <div>
                         <h2 className="text-xl font-bold text-palette-maroon">
-                            {formData.id ? 'Haberi Düzenle' : 'Yeni Haber'}
+                            {formData.id ? t('admin.post.edit_title') : t('admin.post.new_title')}
                         </h2>
-                        <p className="text-[13px] font-bold text-palette-tan/50 tracking-wider">İçerik ve SEO Entegre Panel</p>
+                        <p className="text-[13px] font-bold text-palette-tan/50 tracking-wider">{t('admin.post.panel_desc')}</p>
                     </div>
                 </div>
             </div>
@@ -921,28 +968,28 @@ const PostManagement: React.FC = () => {
                         <div className="p-8 space-y-6">
                             <div className="flex items-center gap-3 border-b border-palette-tan/15 pb-4">
                                 <FileText size={18} className="text-palette-red" />
-                                <h3 className="text-base font-bold text-palette-maroon uppercase tracking-widest">İçerik Bilgileri</h3>
+                                <h3 className="text-base font-bold text-palette-maroon uppercase tracking-widest">{t('admin.post.content_info')}</h3>
                             </div>
 
                             <div className="grid grid-cols-1 gap-5">
                                 <div className="space-y-1.5">
-                                    <label className="text-[13px] font-bold text-palette-tan ml-1">Haber Başlığı</label>
+                                    <label className="text-[13px] font-bold text-palette-tan ml-1">{t('admin.post.post_title')}</label>
                                     <input
                                         type="text"
                                         value={formData.title}
                                         onChange={(e) => handleTitleChange(e.target.value)}
-                                        placeholder="Başlık girin..."
+                                        placeholder={t('nav_settings.form.label') + "..."}
                                         className="w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] p-3.5 text-[18px] font-bold text-palette-maroon focus:border-palette-red outline-none transition-all"
                                     />
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-[13px] font-bold text-palette-tan ml-1">Kısa Özet (Spot)</label>
+                                    <label className="text-[13px] font-bold text-palette-tan ml-1">{t('admin.post.summary')}</label>
                                     <textarea
                                         rows={2}
                                         value={formData.summary}
                                         onChange={(e) => handleSummaryChange(e.target.value)}
-                                        placeholder="Haber özeti..."
+                                        placeholder={t('admin.post.summary_placeholder')}
                                         className="w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] p-3.5 text-base font-medium text-palette-maroon focus:border-palette-red outline-none transition-all resize-none"
                                     />
                                 </div>
@@ -953,14 +1000,14 @@ const PostManagement: React.FC = () => {
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <Settings2 size={18} className="text-palette-tan" />
-                                        <h3 className="text-[13px] font-bold text-palette-tan uppercase tracking-tighter">SEO & AI (Otomatik Yapılandırma)</h3>
+                                        <h3 className="text-[13px] font-bold text-palette-tan uppercase tracking-tighter">{t('admin.post.seo_ai')}</h3>
                                     </div>
                                     <span className="text-[11px] font-black text-green-600 bg-green-50 px-2 py-1 rounded-[3px] border border-green-100 italic">Google AI Ready</span>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-[12px] font-bold text-palette-tan/60">SEO Başlık</label>
+                                        <label className="text-[12px] font-bold text-palette-tan/60">{t('posts.form.meta_title')}</label>
                                         <input
                                             type="text"
                                             value={formData.seoTitle}
@@ -969,7 +1016,7 @@ const PostManagement: React.FC = () => {
                                         />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-[12px] font-bold text-palette-tan/60">URL (Slug)</label>
+                                        <label className="text-[12px] font-bold text-palette-tan/60">{t('posts.form.slug')}</label>
                                         <input
                                             type="text"
                                             value={formData.slug}
@@ -979,7 +1026,7 @@ const PostManagement: React.FC = () => {
                                     </div>
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-[12px] font-bold text-palette-tan/60">Meta Açıklama</label>
+                                    <label className="text-[12px] font-bold text-palette-tan/60">{t('posts.form.meta_desc')}</label>
                                     <input
                                         type="text"
                                         value={formData.seoDescription}
@@ -988,7 +1035,7 @@ const PostManagement: React.FC = () => {
                                     />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-[12px] font-bold text-palette-tan/60">Meta Etiketleri (Keywords)</label>
+                                    <label className="text-[12px] font-bold text-palette-tan/60">{t('posts.form.keywords')}</label>
                                     <div className="flex flex-wrap gap-2 p-2 bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] min-h-[38px] transition-all focus-within:border-palette-red/40">
                                         {formData.keywords.split(',').filter(t => t.trim() !== '').map((tag, idx) => (
                                             <span key={idx} className="flex items-center gap-1.5 px-2 py-0.5 bg-palette-maroon text-white text-[11px] font-bold rounded-[3px] animate-in zoom-in duration-200">
@@ -1026,7 +1073,7 @@ const PostManagement: React.FC = () => {
                                                     setFormData({ ...formData, keywords: currentTags.join(',') });
                                                 }
                                             }}
-                                            placeholder={formData.keywords ? "" : "Enter ile ekle..."}
+                                            placeholder={formData.keywords ? "" : t('admin.post.enter_to_add')}
                                             className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-palette-tan min-w-[120px]"
                                         />
                                     </div>
@@ -1046,7 +1093,7 @@ const PostManagement: React.FC = () => {
                                     }`}
                             >
                                 <SortAsc size={16} />
-                                <span className="leading-none">Numeric Asc</span>
+                                <span className="leading-none">{t('admin.post.sort.asc')}</span>
                             </button>
                             <button
                                 onClick={() => handleSortItems('desc')}
@@ -1056,7 +1103,7 @@ const PostManagement: React.FC = () => {
                                     }`}
                             >
                                 <SortDesc size={16} />
-                                <span className="leading-none">Numeric Desc</span>
+                                <span className="leading-none">{t('admin.post.sort.desc')}</span>
                             </button>
                             <button
                                 onClick={() => { setActiveSort(null); setShowBlockNumbers(false); }}
@@ -1066,7 +1113,7 @@ const PostManagement: React.FC = () => {
                                     }`}
                             >
                                 <Hash size={15} />
-                                <span className="leading-none">Hide Numbers</span>
+                                <span className="leading-none">{t('admin.post.sort.hide')}</span>
                             </button>
                         </div>
                     </div>
@@ -1199,42 +1246,42 @@ const PostManagement: React.FC = () => {
                                 className="flex items-center justify-center gap-2 px-4 py-2 bg-palette-maroon text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-palette-maroon/10 leading-none"
                             >
                                 <Type size={14} className="shrink-0" />
-                                <span className="leading-none mt-[1px]">Metin Ekle</span>
+                                <span className="leading-none mt-[1px]">{t('admin.post.add.text')}</span>
                             </button>
                             <button
                                 onClick={handleAddImageItem}
                                 className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-emerald-600/10 leading-none"
                             >
                                 <LucideImage size={14} className="shrink-0" />
-                                <span className="leading-none mt-[1px]">Resim Ekle</span>
+                                <span className="leading-none mt-[1px]">{t('admin.post.add.image')}</span>
                             </button>
                             <button
                                 onClick={handleAddSliderItem}
                                 className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-indigo-600/10 leading-none"
                             >
                                 <Images size={14} className="shrink-0" />
-                                <span className="leading-none mt-[1px]">Slider Image Ekle</span>
+                                <span className="leading-none mt-[1px]">{t('admin.post.add.slider')}</span>
                             </button>
                             <button
                                 onClick={handleAddVideoItem}
                                 className="flex items-center justify-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-rose-600/10 leading-none"
                             >
                                 <Video size={14} className="shrink-0" />
-                                <span className="leading-none mt-[1px]">Video Ekle</span>
+                                <span className="leading-none mt-[1px]">{t('admin.post.add.video')}</span>
                             </button>
                             <button
                                 onClick={handleAddAudioItem}
                                 className="flex items-center justify-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-amber-600/10 leading-none"
                             >
                                 <Mic size={14} className="shrink-0" />
-                                <span className="leading-none mt-[1px]">Ses Ekle</span>
+                                <span className="leading-none mt-[1px]">{t('admin.post.add.audio')}</span>
                             </button>
                             <button
                                 onClick={handleAddFileItem}
                                 className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-slate-600/10 leading-none"
                             >
                                 <Paperclip size={14} className="shrink-0" />
-                                <span className="leading-none mt-[1px]">Dosya Ekle</span>
+                                <span className="leading-none mt-[1px]">{t('admin.post.add.file')}</span>
                             </button>
                         </div>
 
@@ -1246,7 +1293,7 @@ const PostManagement: React.FC = () => {
                 <div className="w-96 shrink-0 space-y-6">
                     <div className="bg-white p-6 rounded-[3px] border border-palette-tan/20 shadow-sm space-y-5">
                         <div className="space-y-4">
-                            <h4 className="text-[13px] font-bold text-palette-tan ml-1 border-b border-palette-tan/15 pb-2 uppercase tracking-widest">Haber Kapağı</h4>
+                            <h4 className="text-[13px] font-bold text-palette-tan ml-1 border-b border-palette-tan/15 pb-2 uppercase tracking-widest">{t('admin.post.cover')}</h4>
                             <div className="rounded-[3px] bg-palette-beige/5 border-2 border-dashed border-palette-tan/20 flex flex-col items-center justify-center overflow-hidden transition-all relative group w-full min-h-[160px]">
                                 {formData.thumbnail ? (
                                     <div className="relative w-full">
@@ -1267,7 +1314,7 @@ const PostManagement: React.FC = () => {
                                                     setShowImageEditor(true);
                                                 }}
                                                 className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-emerald-600 transition-all"
-                                                title="Düzenle"
+                                                title={t('common.edit')}
                                             >
                                                 <Edit3 size={20} />
                                             </button>
@@ -1289,13 +1336,13 @@ const PostManagement: React.FC = () => {
                                     <div className="flex flex-col items-center justify-center py-8">
                                         <div onClick={() => { setActiveMediaTarget('thumbnail'); setActiveMediaType('image'); fetchMedia('image'); setShowFileManager(true); }} className="flex flex-col items-center cursor-pointer group/pick mb-2">
                                             <Plus size={40} className="text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-2" />
-                                            <span className="text-[13px] font-bold text-palette-tan/50 px-4 text-center">Görsel Seç</span>
+                                            <span className="text-[13px] font-bold text-palette-tan/50 px-4 text-center">{t('admin.post.pick_image_alt')}</span>
                                         </div>
                                         <button
                                             onClick={() => { setActiveMediaTarget('thumbnail'); setActiveMediaType('image'); setIsUrlMode(true); setTempUrl(''); setUrlError(null); }}
                                             className="mt-2 text-[10px] font-black text-palette-tan/60 hover:text-palette-maroon border border-palette-tan/20 px-3 py-1.5 rounded-[3px] bg-white shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 uppercase tracking-wider"
                                         >
-                                            <Globe size={11} /> URL İLE EKLE
+                                            <Globe size={11} /> {t('admin.post.add_with_url')}
                                         </button>
                                     </div>
                                 )}
@@ -1305,7 +1352,7 @@ const PostManagement: React.FC = () => {
 
                     <div className="bg-white p-6 rounded-[3px] border border-palette-tan/20 shadow-sm space-y-5">
                         <h4 className="text-[13px] font-bold text-palette-tan ml-1 border-b border-palette-tan/15 pb-2 uppercase tracking-widest flex items-center justify-between">
-                            Kategori Ayarları
+                            {t('admin.post.cat_settings')}
                             <Settings2 size={14} className="text-palette-tan/30" />
                         </h4>
 
@@ -1313,7 +1360,7 @@ const PostManagement: React.FC = () => {
                             {/* DİL SEÇİMİ */}
                             <div className="space-y-1.5">
                                 <label className="text-[11px] font-black text-palette-tan/60 ml-1 flex items-center gap-1.5">
-                                    <Languages size={12} /> HABER DİLİ
+                                    <Languages size={12} /> {t('admin.post.post_lang')}
                                 </label>
                                 <div className="relative group">
                                     <select
@@ -1332,7 +1379,7 @@ const PostManagement: React.FC = () => {
                             {/* ANA KATEGORİ SEÇİMİ */}
                             <div className="space-y-1.5">
                                 <label className="text-[11px] font-black text-palette-tan/60 ml-1 flex items-center gap-1.5">
-                                    <Layout size={12} /> ANA KATEGORİ
+                                    <Layout size={12} /> {t('admin.post.main_cat')}
                                 </label>
                                 <div className="relative group">
                                     <select
@@ -1340,7 +1387,7 @@ const PostManagement: React.FC = () => {
                                         onChange={(e) => handleParentCategoryChange(e.target.value)}
                                         className="w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] p-3 text-sm font-bold text-palette-maroon outline-none appearance-none cursor-pointer focus:border-palette-red transition-all"
                                     >
-                                        <option value="">Kategori Seçin</option>
+                                        <option value="">{t('admin.post.select_cat')}</option>
                                         {categories.filter(c => !c.parent_id).map(cat => (
                                             <option key={cat.id} value={cat.id}>{cat.label}</option>
                                         ))}
@@ -1352,7 +1399,7 @@ const PostManagement: React.FC = () => {
                             {/* ALT KATEGORİ SEÇİMİ */}
                             <div className="space-y-1.5">
                                 <label className="text-[11px] font-black text-palette-tan/60 ml-1 flex items-center gap-1.5">
-                                    <List size={12} /> ALT KATEGORİ
+                                    <List size={12} /> {t('admin.post.sub_cat')}
                                 </label>
                                 <div className="relative group">
                                     <select
@@ -1361,7 +1408,7 @@ const PostManagement: React.FC = () => {
                                         disabled={!selectedParentId}
                                         className={`w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] p-3 text-sm font-bold text-palette-maroon outline-none appearance-none cursor-pointer focus:border-palette-red transition-all ${!selectedParentId ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     >
-                                        <option value="">Alt Kategori Seçin</option>
+                                        <option value="">{t('admin.post.select_sub_cat')}</option>
                                         {categories.filter(c => c.parent_id === selectedParentId).map(cat => (
                                             <option key={cat.id} value={cat.id}>{cat.label}</option>
                                         ))}
@@ -1373,15 +1420,15 @@ const PostManagement: React.FC = () => {
 
                         <div className="pt-2">
                             <div className="px-3 py-2 bg-palette-red/5 border border-palette-red/10 rounded-[3px]">
-                                <p className="text-[10px] font-black text-palette-red uppercase tracking-wider">Seçili Kategori:</p>
-                                <p className="text-[12px] font-bold text-palette-maroon">{formData.category || 'Henüz seçilmedi'}</p>
+                                <p className="text-[10px] font-black text-palette-red uppercase tracking-wider">{t('admin.post.selected_cat')}</p>
+                                <p className="text-[12px] font-bold text-palette-maroon">{formData.category || t('common.not_specified')}</p>
                             </div>
                         </div>
                     </div>
 
                     <div className="bg-white p-6 rounded-[3px] border border-palette-tan/20 shadow-sm space-y-5">
                         <div className="space-y-4">
-                            <h4 className="text-[13px] font-bold text-palette-tan ml-1 border-b border-palette-tan/15 pb-2 uppercase tracking-widest">Yayınlama</h4>
+                            <h4 className="text-[13px] font-bold text-palette-tan ml-1 border-b border-palette-tan/15 pb-2 uppercase tracking-widest">{t('admin.post.publishing')}</h4>
 
                             <div className="flex items-center justify-between p-4 bg-palette-beige/10 rounded-[3px] border border-palette-tan/20">
                                 <div className="flex items-center gap-2">
@@ -1394,7 +1441,7 @@ const PostManagement: React.FC = () => {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-[11px] font-black text-palette-tan/60 ml-1">İLERİ TARİHLİ YAYIN</label>
+                                <label className="text-[11px] font-black text-palette-tan/60 ml-1 uppercase">{t('admin.post.publish_future')}</label>
                                 <input
                                     type="datetime-local"
                                     value={formData.publishAt}
@@ -1406,14 +1453,14 @@ const PostManagement: React.FC = () => {
                             <div className="pt-4 space-y-2">
                                 <div className="grid grid-cols-2 gap-2">
                                     <button className="flex items-center justify-center gap-2 py-2.5 bg-palette-red text-white rounded-[3px] font-black text-[11px] tracking-widest hover:opacity-90 transition-all shadow-lg shadow-palette-red/10">
-                                        YAYINLA
+                                        {t('admin.post.publish_btn')}
                                     </button>
                                     <button className="flex items-center justify-center gap-2 py-2.5 bg-palette-maroon text-white rounded-[3px] font-black text-[11px] tracking-widest hover:opacity-90 transition-all shadow-lg shadow-palette-maroon/10">
-                                        TASLAK
+                                        {t('admin.post.draft_btn')}
                                     </button>
                                 </div>
                                 <button className="w-full flex items-center justify-center gap-2 py-2.5 bg-palette-tan text-white rounded-[3px] font-black text-[11px] tracking-widest hover:opacity-90 transition-all shadow-lg shadow-palette-tan/10">
-                                    İLERİ TARİHLİ KAYDET
+                                    {t('admin.post.schedule_btn')}
                                 </button>
                             </div>
                         </div>
@@ -1458,14 +1505,14 @@ const PostManagement: React.FC = () => {
                                     <Globe size={24} className="text-palette-maroon" />
                                 </div>
                                 <h3 className="text-lg font-black text-palette-maroon tracking-tight uppercase">
-                                    {activeMediaType === 'video' ? 'Video / Youtube URL' : activeMediaType === 'audio' ? 'Ses / YT Music URL' : 'Görsel URL Adresi'}
+                                    {activeMediaType === 'video' ? t('admin.post.url_title_video') : activeMediaType === 'audio' ? t('admin.post.url_title_audio') : t('admin.post.url_title_image')}
                                 </h3>
                                 <p className="text-[11px] font-bold text-palette-tan/50 leading-relaxed max-w-[250px] mx-auto">
                                     {activeMediaType === 'video'
-                                        ? 'Youtube (Shorts dahil) veya doğrudan video bağlantısını aşağıya yapıştırın.'
+                                        ? t('admin.post.url_desc_video')
                                         : activeMediaType === 'audio'
-                                            ? 'Youtube Music veya doğrudan ses bağlantısını (MP3 vb.) aşağıya yapıştırın.'
-                                            : 'Eklemek istediğiniz görselin doğrudan bağlantısını aşağıya yapıştırın.'
+                                            ? t('admin.post.url_desc_audio')
+                                            : t('admin.post.url_desc_image')
                                     }
                                 </p>
                             </div>
@@ -1476,7 +1523,7 @@ const PostManagement: React.FC = () => {
                                     type="url"
                                     value={tempUrl}
                                     onChange={(e) => setTempUrl(e.target.value)}
-                                    placeholder={activeMediaType === 'video' ? "https://youtube.com/watch?v=..." : activeMediaType === 'audio' ? "https://music.youtube.com/..." : "https://örnek.com/gorsel.jpg"}
+                                    placeholder={activeMediaType === 'video' ? "https://youtube.com/watch?v=..." : activeMediaType === 'audio' ? "https://music.youtube.com/..." : "https://example.com/image.jpg"}
                                     className="w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] px-3 py-2.5 text-sm font-bold text-palette-maroon outline-none focus:border-palette-maroon transition-all placeholder:text-palette-tan/20"
                                     onKeyDown={(e) => e.key === 'Enter' && handleUrlSubmit()}
                                 />
@@ -1489,10 +1536,10 @@ const PostManagement: React.FC = () => {
                                     disabled={validatingUrl}
                                     className="flex-1 py-2.5 bg-palette-maroon text-white font-black text-[11px] tracking-widest rounded-[3px] hover:bg-palette-red transition-all shadow-md active:scale-95"
                                 >
-                                    {validatingUrl ? 'DOGRULANIYOR...' : (activeMediaType === 'video' ? 'VİDEOYU GETİR' : activeMediaType === 'audio' ? 'SESİ GETİR' : 'GÖRSELİ GETİR')}
+                                    {validatingUrl ? t('admin.post.processing') + '...' : (activeMediaType === 'video' ? t('admin.post.get_video') : activeMediaType === 'audio' ? t('admin.post.get_audio') : t('admin.post.get_image'))}
                                 </button>
                                 <button onClick={() => setIsUrlMode(false)} className="px-5 py-2.5 bg-palette-beige/20 text-palette-tan font-black text-[11px] tracking-widest rounded-[3px] hover:bg-palette-beige/40 transition-all">
-                                    İPTAL
+                                    {t('common.cancel')}
                                 </button>
                             </div>
                         </div>
@@ -1515,7 +1562,7 @@ const PostManagement: React.FC = () => {
                             <div className="absolute inset-0 z-[99999] flex items-center justify-center bg-white/60">
                                 <div className="flex items-center gap-2 px-4 py-2 rounded-[3px] bg-white shadow-md border border-palette-tan/20">
                                     <Loader2 size={18} className="animate-spin text-palette-maroon" />
-                                    <span className="text-[11px] font-black tracking-widest text-palette-maroon uppercase">Kaydediliyor...</span>
+                                    <span className="text-[11px] font-black tracking-widest text-palette-maroon uppercase">{t('common.processing')}</span>
                                 </div>
                             </div>
                         )}
@@ -1546,6 +1593,7 @@ const MediaManagerModal: React.FC<{
     setLocalFiles: React.Dispatch<React.SetStateAction<any[]>>;
     type?: 'image' | 'video' | 'audio' | 'file';
 }> = ({ onClose, onSelect, localFiles, setLocalFiles, type = 'image' }) => {
+    const { t } = useLanguage();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [uploading, setUploading] = useState(false);
@@ -1630,13 +1678,13 @@ const MediaManagerModal: React.FC<{
                     <div className="flex items-center gap-8 flex-1">
                         <div className="flex items-center gap-3">
                             <div className="w-1.5 h-6 bg-palette-red rounded-full" />
-                            <h3 className="text-xl font-black text-palette-maroon tracking-tight uppercase">Media Library</h3>
+                            <h3 className="text-xl font-black text-palette-maroon tracking-tight uppercase">{t('admin.post.media_library')}</h3>
                         </div>
                         <div className="relative flex-1 max-w-lg group">
                             <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-palette-tan/30 group-focus-within:text-palette-maroon transition-colors" />
                             <input
                                 type="text"
-                                placeholder="Search storage..."
+                                placeholder={t('admin.post.search_storage')}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="w-full h-11 bg-palette-beige/5 border border-palette-tan/15 rounded-[3px] pl-11 pr-4 text-[13px] font-bold text-palette-maroon outline-none focus:border-palette-maroon focus:bg-white focus:ring-4 focus:ring-palette-maroon/5 transition-all text-sm"
@@ -1694,12 +1742,12 @@ const MediaManagerModal: React.FC<{
                             </div>
 
                             <p className="text-[13px] font-bold text-palette-tan/60 mb-8 px-6 leading-relaxed">
-                                {isDragActive ? 'Drop to upload' : 'Drag and drop files here or'}
+                                {isDragActive ? t('admin.post.drop_to_upload') : t('admin.post.drag_drop_files')}
                             </p>
 
                             <button className="flex items-center justify-center gap-2 w-full h-10 bg-white border border-palette-tan/20 text-palette-maroon text-[11px] font-black tracking-widest rounded-[3px] hover:bg-palette-maroon hover:text-white hover:border-palette-maroon transition-all shadow-sm active:scale-95">
                                 <Plus size={14} />
-                                BROWSE FILES
+                                {t('admin.post.browse_files')}
                             </button>
 
                             {/* UPLOADING PREVIEW (Inside Dropzone) */}
@@ -1731,7 +1779,7 @@ const MediaManagerModal: React.FC<{
                                                     <span className="text-[8px] font-black text-palette-maroon">{uploadProgress}%</span>
                                                 </div>
                                             </div>
-                                            <span className="mt-3 text-[9px] font-black text-palette-maroon tracking-[0.2em] uppercase">Processing</span>
+                                            <span className="mt-3 text-[9px] font-black text-palette-maroon tracking-[0.2em] uppercase">{t('admin.post.processing')}</span>
                                         </div>
                                     </div>
                                     <div className="mt-4 w-full px-4">
@@ -1756,7 +1804,7 @@ const MediaManagerModal: React.FC<{
                             <div className="h-full flex flex-col items-center justify-center text-palette-tan/10">
                                 {type === 'video' ? <Film size={80} strokeWidth={0.5} className="mb-6" /> : type === 'audio' ? <Mic size={80} strokeWidth={0.5} className="mb-6" /> : type === 'file' ? <FileText size={80} strokeWidth={0.5} className="mb-6" /> : <ImageIcon size={80} strokeWidth={0.5} className="mb-6" />}
                                 <p className="text-[12px] font-black tracking-[0.3em] uppercase opacity-50">
-                                    Empty {type === 'video' ? 'Video' : type === 'audio' ? 'Audio' : type === 'file' ? 'File' : 'Image'} Vault
+                                    {t(`admin.post.empty_vault_${type}`)}
                                 </p>
                             </div>
                         ) : (
@@ -1831,7 +1879,7 @@ const MediaManagerModal: React.FC<{
                                             {file.value || file.name || 'document.bin'}
                                         </p>
                                         <div className="flex items-center justify-between px-1 mt-0.5">
-                                            <span className="text-[8px] font-bold text-palette-tan/30 uppercase tracking-widest">Digital Asset</span>
+                                            <span className="text-[8px] font-bold text-palette-tan/30 uppercase tracking-widest">{t('admin.post.asset_label')}</span>
                                         </div>
                                     </div>
                                 ))}
@@ -1848,7 +1896,7 @@ const MediaManagerModal: React.FC<{
                         className="flex items-center justify-center gap-2 h-9 px-5 bg-palette-red text-white rounded-[3px] text-[11px] font-black tracking-widest hover:bg-red-700 transition-all shadow-xl shadow-palette-red/10 disabled:opacity-20 disabled:shadow-none active:scale-95"
                     >
                         <Trash2 size={16} />
-                        <span>DELETE PERMANENTLY</span>
+                        {t('admin.post.delete_permanently')}
                     </button>
 
                     <div className="flex items-center gap-4">
@@ -1858,13 +1906,13 @@ const MediaManagerModal: React.FC<{
                             className="flex items-center justify-center gap-2 h-10 px-8 bg-emerald-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.2em] shadow-2xl shadow-emerald-600/20 hover:bg-emerald-700 transition-all disabled:opacity-20 disabled:shadow-none active:scale-95"
                         >
                             <CheckCircle2 size={18} />
-                            <span>USE THIS {type === 'video' ? 'VIDEO' : type === 'audio' ? 'AUDIO' : type === 'file' ? 'FILE' : 'IMAGE'}</span>
+                            <span>{t('admin.post.use_this').replace('{type}', type.toUpperCase())}</span>
                         </button>
                         <button
                             onClick={onClose}
                             className="flex items-center justify-center h-10 px-6 text-[11px] font-black text-palette-tan/50 hover:text-palette-maroon border border-palette-tan/15 rounded-[3px] hover:bg-white transition-all bg-white shadow-sm active:scale-95 uppercase tracking-widest"
                         >
-                            CLOSE
+                            {t('common.close')}
                         </button>
                     </div>
                 </div>

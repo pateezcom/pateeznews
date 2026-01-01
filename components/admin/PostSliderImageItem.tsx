@@ -16,6 +16,7 @@ import ReactQuill from 'react-quill-new';
 import { useDropzone } from 'react-dropzone';
 import { PostItem, QUILL_MODULES, QUILL_FORMATS } from './PostTextItem';
 import { storageService } from '../../services/storageService';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface PostSliderImageItemProps {
     item: PostItem;
@@ -42,6 +43,7 @@ const PostSliderImageItem: React.FC<PostSliderImageItemProps> = ({
     onMoveDown,
     onOpenFileManager
 }) => {
+    const { t } = useLanguage();
     const [showDescription, setShowDescription] = useState(false);
     const [uploading, setUploading] = useState(false);
 
@@ -84,7 +86,7 @@ const PostSliderImageItem: React.FC<PostSliderImageItemProps> = ({
                                 <button
                                     onClick={() => onMoveUp?.(index)}
                                     className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
-                                    title="Yukarı Taşı"
+                                    title={t('common.move_up')}
                                 >
                                     <ChevronDown size={18} className="rotate-180" />
                                 </button>
@@ -94,7 +96,7 @@ const PostSliderImageItem: React.FC<PostSliderImageItemProps> = ({
                                 <button
                                     onClick={() => onMoveDown?.(index)}
                                     className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
-                                    title="Aşağı Taşı"
+                                    title={t('common.move_down')}
                                 >
                                     <ChevronDown size={18} />
                                 </button>
@@ -123,13 +125,13 @@ const PostSliderImageItem: React.FC<PostSliderImageItemProps> = ({
                         <div className="p-2 bg-palette-beige/20 rounded-[3px] text-palette-maroon">
                             <Images size={18} />
                         </div>
-                        <h3 className="text-base font-bold text-palette-maroon">Slider Görsel Bloğu</h3>
+                        <h3 className="text-base font-bold text-palette-maroon">{t('admin.post.slider_block')}</h3>
                     </div>
                 </div>
 
                 {/* 1. TOP ROW: TITLE & BLOCK NUMBER */}
                 <div className="space-y-1.5 w-full">
-                    <label className="text-[13px] font-black text-palette-tan ml-1">Başlık</label>
+                    <label className="text-[13px] font-black text-palette-tan ml-1">{t('admin.post.title')}</label>
                     <div className="flex items-center gap-3">
                         {showBlockNumbers && (
                             <div className="w-9 h-9 shrink-0 rounded-[3px] bg-palette-tan text-white flex items-center justify-center text-base font-black shadow-md shadow-palette-tan/10">
@@ -140,15 +142,15 @@ const PostSliderImageItem: React.FC<PostSliderImageItemProps> = ({
                             type="text"
                             value={item.title}
                             onChange={(e) => onUpdate(item.id, 'title', e.target.value)}
-                            className="w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] px-4 py-2 text-base font-bold text-palette-maroon outline-none focus:border-palette-red transition-all placeholder:text-palette-tan/20"
-                            placeholder="Slider Başlığı (Opsiyonel)"
+                            className="w-full h-9 bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] px-4 text-base font-bold text-palette-maroon outline-none focus:border-palette-red transition-all placeholder:text-palette-tan/20"
+                            placeholder={t('admin.post.slider_title_placeholder')}
                         />
                     </div>
                 </div>
 
                 {/* 2. LARGE DROPZONE AREA WITH INTEGRATED PREVIEWS */}
                 <div className="space-y-2">
-                    <label className="text-[13px] font-black text-palette-tan ml-1 uppercase tracking-wider">Slider Görselleri</label>
+                    <label className="text-[13px] font-black text-palette-tan ml-1 uppercase tracking-wider">{t('admin.post.slider_images')}</label>
                     <div
                         {...getRootProps()}
                         onClick={() => onOpenFileManager(item.id)}
@@ -168,8 +170,8 @@ const PostSliderImageItem: React.FC<PostSliderImageItemProps> = ({
                                 <Upload size={32} />
                             </div>
                             <div className="text-center">
-                                <p className="text-base font-black text-palette-maroon uppercase tracking-widest">Görsel Seç / Sürükle</p>
-                                <p className="text-[12px] font-bold text-palette-tan/60 mt-1">Medya Yöneticisi için Tıklayın veya Dosyaları Sürükleyin</p>
+                                <p className="text-base font-black text-palette-maroon uppercase tracking-widest">{t('admin.post.slider_pick')}</p>
+                                <p className="text-[12px] font-bold text-palette-tan/60 mt-1">{t('admin.post.slider_help')}</p>
                             </div>
                         </div>
 
@@ -177,7 +179,7 @@ const PostSliderImageItem: React.FC<PostSliderImageItemProps> = ({
                         {uploading && (
                             <div className="absolute inset-0 z-20 bg-white/60 backdrop-blur-[2px] flex flex-col items-center justify-center gap-2">
                                 <Loader2 className="animate-spin text-palette-maroon" size={40} />
-                                <span className="text-[13px] font-bold text-palette-maroon">Görseller Yükleniyor...</span>
+                                <span className="text-[13px] font-bold text-palette-maroon">{t('admin.post.uploading_images')}</span>
                             </div>
                         )}
 
@@ -194,7 +196,7 @@ const PostSliderImageItem: React.FC<PostSliderImageItemProps> = ({
                                                     <button
                                                         onClick={(e) => { e.stopPropagation(); removeImage(i); }}
                                                         className="p-2 bg-palette-red text-white rounded-[3px] hover:scale-110 transition-all shadow-lg"
-                                                        title="Sil"
+                                                        title={t('common.delete')}
                                                     >
                                                         <X size={16} />
                                                     </button>
@@ -223,7 +225,7 @@ const PostSliderImageItem: React.FC<PostSliderImageItemProps> = ({
                             className="text-[11px] font-black text-palette-tan/50 hover:text-palette-maroon transition-colors flex items-center gap-1 uppercase tracking-widest py-2"
                         >
                             <ChevronDown size={14} className={`transition-transform duration-300 ${showDescription ? 'rotate-180' : ''}`} />
-                            {showDescription ? 'Detayları Gizle' : 'Slider Detayları (Kaynak & Açıklama)'}
+                            {showDescription ? t('common.less') : t('admin.post.slider_details')}
                         </button>
                     </div>
 
@@ -232,21 +234,21 @@ const PostSliderImageItem: React.FC<PostSliderImageItemProps> = ({
                             {/* SOURCE INSIDE COLLAPSIBLE */}
                             <div className="space-y-1.5">
                                 <label className="text-[13px] font-black text-palette-tan ml-1 flex items-center gap-1.5 uppercase tracking-wider">
-                                    <Settings2 size={12} /> Görsel Kaynağı
+                                    <Settings2 size={12} /> {t('admin.post.image_source')}
                                 </label>
                                 <input
                                     type="text"
                                     value={item.source || ''}
                                     onChange={(e) => onUpdate(item.id, 'source', e.target.value)}
                                     className="w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] px-4 py-2 text-sm font-bold text-palette-maroon outline-none focus:border-palette-red transition-all placeholder:font-normal"
-                                    placeholder="Örn: Fotoğraf: Reuters / Arşiv"
+                                    placeholder={t('admin.post.source_placeholder')}
                                 />
                             </div>
 
                             {/* DESCRIPTION INSIDE COLLAPSIBLE */}
                             <div className="space-y-2">
                                 <label className="text-[13px] font-black text-palette-tan ml-1 flex items-center gap-1.5 uppercase tracking-wider">
-                                    <FileText size={12} /> Slider Açıklaması (Zengin Metin)
+                                    <FileText size={12} /> {t('admin.post.image_desc')}
                                 </label>
                                 <div className="quill-modern-wrapper compact-quill border border-palette-tan/20 rounded-[3px] overflow-hidden focus-within:border-palette-red/40 transition-all shadow-sm bg-white min-h-[160px]">
                                     {(() => {
@@ -258,7 +260,7 @@ const PostSliderImageItem: React.FC<PostSliderImageItemProps> = ({
                                                 onChange={(content: string) => onUpdate(item.id, 'description', content)}
                                                 modules={QUILL_MODULES}
                                                 formats={QUILL_FORMATS}
-                                                placeholder="Slider hakkında detaylı bilgi buraya..."
+                                                placeholder={t('admin.post.content_placeholder')}
                                                 className="modern-quill-editor"
                                             />
                                         );

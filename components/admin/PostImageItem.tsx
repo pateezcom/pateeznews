@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import ReactQuill from 'react-quill-new';
 import { PostItem, QUILL_MODULES, QUILL_FORMATS } from './PostTextItem';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface PostImageItemProps {
     item: PostItem;
@@ -42,6 +43,7 @@ const PostImageItem: React.FC<PostImageItemProps> = ({
     onOpenUrlMode,
     onOpenImageEditor
 }) => {
+    const { t } = useLanguage();
     const [showOptions, setShowOptions] = useState(false);
     const [isImageLoading, setIsImageLoading] = useState(false);
 
@@ -56,7 +58,7 @@ const PostImageItem: React.FC<PostImageItemProps> = ({
                                 <button
                                     onClick={() => onMoveUp?.(index)}
                                     className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
-                                    title="Yukarı Taşı"
+                                    title={t('common.move_up')}
                                 >
                                     <ChevronDown size={18} className="rotate-180" />
                                 </button>
@@ -66,7 +68,7 @@ const PostImageItem: React.FC<PostImageItemProps> = ({
                                 <button
                                     onClick={() => onMoveDown?.(index)}
                                     className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
-                                    title="Aşağı Taşı"
+                                    title={t('common.move_down')}
                                 >
                                     <ChevronDown size={18} />
                                 </button>
@@ -78,7 +80,7 @@ const PostImageItem: React.FC<PostImageItemProps> = ({
                 <button
                     onClick={() => isDeletable && onRemove(item.id)}
                     disabled={!isDeletable}
-                    title={isDeletable ? "Bloğu Sil" : "Bu blok silinemez"}
+                    title={isDeletable ? t('admin.post.delete_block') : t('admin.post.not_deletable')}
                     className={`w-8 h-8 flex items-center justify-center rounded-[3px] transition-all ${isDeletable
                         ? "text-palette-tan/30 hover:text-white hover:bg-palette-red hover:shadow-md active:scale-90"
                         : "text-palette-tan/10 cursor-not-allowed"
@@ -96,14 +98,14 @@ const PostImageItem: React.FC<PostImageItemProps> = ({
                         <div className="p-2 bg-palette-beige/20 rounded-[3px] text-palette-maroon">
                             <LucideImage size={18} />
                         </div>
-                        <h3 className="text-base font-bold text-palette-maroon">Görsel İçerik Bloğu</h3>
+                        <h3 className="text-base font-bold text-palette-maroon">{t('admin.post.image_block')}</h3>
                     </div>
                 </div>
 
                 <div className="space-y-4">
                     {/* 1. TOP ROW: TITLE & BLOCK NUMBER */}
                     <div className="space-y-1.5 w-full">
-                        <label className="text-[13px] font-black text-palette-tan ml-1">Başlık</label>
+                        <label className="text-[13px] font-black text-palette-tan ml-1">{t('admin.post.title')}</label>
                         <div className="flex items-center gap-3">
                             {showBlockNumbers && (
                                 <div className="w-9 h-9 shrink-0 rounded-[3px] bg-palette-maroon text-white flex items-center justify-center text-base font-black shadow-md shadow-palette-maroon/10">
@@ -114,8 +116,8 @@ const PostImageItem: React.FC<PostImageItemProps> = ({
                                 type="text"
                                 value={item.title}
                                 onChange={(e) => onUpdate(item.id, 'title', e.target.value)}
-                                className="w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] px-4 py-2 text-base font-bold text-palette-maroon outline-none focus:border-palette-red transition-all placeholder:text-palette-tan/20"
-                                placeholder="Başlık Girin (Opsiyonel)"
+                                className="w-full h-9 bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] px-4 text-base font-bold text-palette-maroon outline-none focus:border-palette-red transition-all placeholder:text-palette-tan/20"
+                                placeholder={t('admin.post.slider_title_placeholder')}
                             />
                         </div>
                     </div>
@@ -124,7 +126,7 @@ const PostImageItem: React.FC<PostImageItemProps> = ({
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
                         {/* LEFT: IMAGE AREA */}
                         <div className="md:col-span-4 space-y-2">
-                            <label className="text-[13px] font-black text-palette-tan ml-1 uppercase tracking-wider">Görsel Paneli</label>
+                            <label className="text-[13px] font-black text-palette-tan ml-1 uppercase tracking-wider">{t('admin.post.image_panel')}</label>
                             <div className="rounded-[3px] bg-palette-beige/5 border-2 border-dashed border-palette-tan/20 flex flex-col items-center justify-center overflow-hidden transition-all relative group w-full min-h-[220px]">
                                 {item.mediaUrl ? (
                                     <div className="relative w-full h-full flex items-center justify-center bg-palette-beige/5 min-h-[220px]">
@@ -138,14 +140,14 @@ const PostImageItem: React.FC<PostImageItemProps> = ({
                                             <button
                                                 onClick={() => onOpenImageEditor(item.id)}
                                                 className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-emerald-600 transition-all"
-                                                title="Düzenle"
+                                                title={t('common.edit')}
                                             >
                                                 <Edit3 size={20} />
                                             </button>
                                             <button
                                                 onClick={() => onUpdate(item.id, 'mediaUrl', '')}
                                                 className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-palette-red transition-all"
-                                                title="Sil"
+                                                title={t('common.delete')}
                                             >
                                                 <Trash2 size={20} />
                                             </button>
@@ -163,13 +165,13 @@ const PostImageItem: React.FC<PostImageItemProps> = ({
                                             className="flex flex-col items-center cursor-pointer group/pick mb-4"
                                         >
                                             <Plus size={48} className="text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-2" />
-                                            <span className="text-[14px] font-bold text-palette-tan/50 px-4 text-center">Görsel Seç</span>
+                                            <span className="text-[14px] font-bold text-palette-tan/50 px-4 text-center">{t('admin.post.pick_image')}</span>
                                         </div>
                                         <button
                                             onClick={() => onOpenUrlMode(item.id)}
                                             className="mt-2 text-[10px] font-black text-palette-tan/60 hover:text-palette-maroon border border-palette-tan/20 px-3 py-1.5 rounded-[3px] bg-white shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 uppercase tracking-wider"
                                         >
-                                            <Globe size={11} /> URL İLE EKLE
+                                            <Globe size={11} /> {t('admin.post.url_or_upload')}
                                         </button>
                                     </div>
                                 )}
@@ -179,7 +181,7 @@ const PostImageItem: React.FC<PostImageItemProps> = ({
                         {/* RIGHT: RICH TEXT EDITOR */}
                         <div className="md:col-span-8 h-full flex flex-col">
                             <div className="space-y-2 group/editor flex-1 flex flex-col">
-                                <label className="text-[13px] font-black text-palette-tan ml-1">Görsel Açıklaması (Zengin Metin)</label>
+                                <label className="text-[13px] font-black text-palette-tan ml-1">{t('admin.post.image_desc')}</label>
                                 <div className="quill-modern-wrapper compact-quill border border-palette-tan/20 rounded-[3px] overflow-hidden focus-within:border-palette-red/40 transition-all shadow-sm bg-white flex-1 min-h-[200px]">
                                     {(() => {
                                         const Quill: any = ReactQuill;
@@ -190,7 +192,7 @@ const PostImageItem: React.FC<PostImageItemProps> = ({
                                                 onChange={(content: string) => onUpdate(item.id, 'description', content)}
                                                 modules={QUILL_MODULES}
                                                 formats={QUILL_FORMATS}
-                                                placeholder="Görsel hakkında detaylı bilgi veya hikaye buraya..."
+                                                placeholder={t('admin.post.content_placeholder')}
                                                 className="modern-quill-editor h-full"
                                             />
                                         );
@@ -209,7 +211,7 @@ const PostImageItem: React.FC<PostImageItemProps> = ({
                                 className="text-[11px] font-black text-palette-tan/50 hover:text-palette-maroon transition-colors flex items-center gap-1 uppercase tracking-widest"
                             >
                                 <ChevronDown size={14} className={`transition-transform duration-300 ${showOptions ? 'rotate-180' : ''}`} />
-                                {showOptions ? 'Daha Az' : 'Ek Ayarlar (Kaynak vb.)'}
+                                {showOptions ? t('common.less') : t('admin.post.extra_settings')}
                             </button>
                         </div>
 
@@ -217,14 +219,14 @@ const PostImageItem: React.FC<PostImageItemProps> = ({
                             <div className="animate-in slide-in-from-top-2 duration-300 w-full">
                                 <div className="space-y-1.5">
                                     <label className="text-[13px] font-black text-palette-tan ml-1 flex items-center gap-1.5">
-                                        <Settings2 size={12} /> Görsel Kaynağı
+                                        <Settings2 size={12} /> {t('admin.post.image_source')}
                                     </label>
                                     <input
                                         type="text"
                                         value={item.source || ''}
                                         onChange={(e) => onUpdate(item.id, 'source', e.target.value)}
                                         className="w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] px-4 py-2 text-sm font-bold text-palette-maroon outline-none focus:border-palette-red transition-all"
-                                        placeholder="Fotoğraf: [İsim/Ajans]..."
+                                        placeholder={t('admin.post.source_placeholder')}
                                     />
                                 </div>
                             </div>

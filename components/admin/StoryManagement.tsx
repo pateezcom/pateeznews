@@ -207,7 +207,7 @@ const StoryManagement: React.FC = () => {
         return (
             <div className="flex flex-col items-center justify-center h-[500px] gap-6">
                 <div className="w-10 h-10 border-4 border-palette-tan/15 border-t-palette-red rounded-[3px] animate-spin"></div>
-                <p className="text-[11px] font-black text-palette-tan/40 tracking-widest">Hikayeler Yükleniyor...</p>
+                <p className="text-[11px] font-black text-palette-tan/40 tracking-widest">{t('users.status.syncing')}</p>
             </div>
         );
     }
@@ -246,7 +246,7 @@ const StoryManagement: React.FC = () => {
             {errorMsg && (
                 <div className="mb-6 p-4 bg-palette-red/5 border border-palette-red/20 rounded-[3px] flex items-center gap-4 text-palette-red">
                     <AlertTriangle size={20} />
-                    <div className="text-xs font-bold tracking-wider">Hata: {errorMsg}</div>
+                    <div className="text-xs font-bold tracking-wider">{t('common.error')}: {errorMsg}</div>
                 </div>
             )}
 
@@ -258,7 +258,7 @@ const StoryManagement: React.FC = () => {
                             <th className="px-8 py-5 text-[11px] font-black text-palette-tan/40 tracking-widest">{t('stories.table.views')}</th>
                             <th className="px-8 py-5 text-[11px] font-black text-palette-tan/40 tracking-widest">{t('stories.table.expires')}</th>
                             <th className="px-8 py-5 text-[11px] font-black text-palette-tan/40 tracking-widest">{t('stories.table.status')}</th>
-                            <th className="px-8 py-5 text-[11px] font-black text-palette-tan/40 tracking-widest text-right">İşlemler</th>
+                            <th className="px-8 py-5 text-[11px] font-black text-palette-tan/40 tracking-widest text-right">{t('common.actions')}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-palette-tan/15">
@@ -299,14 +299,14 @@ const StoryManagement: React.FC = () => {
                                                 {new Date(story.expiresAt).toLocaleDateString('tr-TR')}
                                             </div>
                                         ) : (
-                                            <span className="text-palette-tan/30">Belirtilmedi</span>
+                                            <span className="text-palette-tan/30">{t('common.not_specified')}</span>
                                         )}
                                     </div>
                                 </td>
                                 <td className="px-8 py-5">
                                     <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[3px] text-[10px] font-black tracking-widest border ${story.isActive ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
                                         <div className={`w-1.5 h-1.5 rounded-[3px] ${story.isActive ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></div>
-                                        {story.isActive ? 'Yayında' : 'Pasif'}
+                                        {story.isActive ? t('admin.status.published') : t('stories.status.passive')}
                                     </div>
                                 </td>
                                 <td className="px-8 py-5 text-right relative overflow-visible">
@@ -324,7 +324,7 @@ const StoryManagement: React.FC = () => {
                                                 className="w-full flex items-center gap-3 px-4 py-2.5 text-[11px] font-bold text-palette-tan hover:bg-palette-beige/50 hover:text-palette-maroon transition-colors text-left"
                                             >
                                                 <Edit3 size={14} className="text-palette-tan/30" />
-                                                Düzenle
+                                                {t('common.edit')}
                                             </button>
                                             <button
                                                 onClick={() => { window.open(`/admin/hikaye-editor/${story.id}`, '_blank'); setOpenDropdownId(null); }}
@@ -338,7 +338,7 @@ const StoryManagement: React.FC = () => {
                                                 className="w-full flex items-center gap-3 px-4 py-2.5 text-[11px] font-bold text-palette-tan hover:bg-palette-beige/50 hover:text-palette-maroon transition-colors text-left"
                                             >
                                                 <ExternalLink size={14} className="text-palette-tan/30" />
-                                                Medyayı Gör
+                                                {t('stories.actions.view_media')}
                                             </button>
                                             <div className="h-px bg-palette-tan/10 mx-4 my-1"></div>
                                             <button
@@ -346,7 +346,7 @@ const StoryManagement: React.FC = () => {
                                                 className="w-full flex items-center gap-3 px-4 py-2.5 text-[11px] font-bold text-palette-red hover:bg-palette-red/5 transition-colors text-left"
                                             >
                                                 <Trash2 size={14} />
-                                                Sil
+                                                {t('common.delete')}
                                             </button>
                                         </div>
                                     )}
@@ -359,7 +359,7 @@ const StoryManagement: React.FC = () => {
                 {filteredStories.length === 0 && (
                     <div className="p-20 text-center text-palette-tan/30">
                         <Zap size={40} className="mx-auto mb-4 opacity-20" />
-                        <p className="text-[11px] font-black tracking-widest">Hikaye bulunamadı</p>
+                        <p className="text-[11px] font-black tracking-widest">{t('stories.empty_state')}</p>
                     </div>
                 )}
             </div>
@@ -416,8 +416,8 @@ const StoryManagement: React.FC = () => {
                                             onChange={e => setFormData({ ...formData, mediaType: e.target.value as 'image' | 'video' })}
                                             className={`${inputClasses} appearance-none px-4 pl-4`}
                                         >
-                                            <option value="image">Görsel (Image)</option>
-                                            <option value="video">Video (MP4)</option>
+                                            <option value="image">{t('admin.post.asset_label')} (Image)</option>
+                                            <option value="video">{t('admin.post.video_panel')} (MP4)</option>
                                         </select>
                                         <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-palette-tan/30" size={16} />
                                     </div>
@@ -452,7 +452,7 @@ const StoryManagement: React.FC = () => {
                             <div className="flex items-center gap-3 p-4 bg-palette-beige/20 rounded-[3px] border border-palette-tan/15">
                                 <div className="flex-1">
                                     <h4 className="text-[12px] font-black text-palette-maroon tracking-widest">{t('stories.form.is_active')}</h4>
-                                    <p className="text-[11px] text-palette-tan/60 font-medium">Hikaye yayında olsun mu?</p>
+                                    <p className="text-[11px] text-palette-tan/60 font-medium">{t('stories.form.is_active')}?</p>
                                 </div>
                                 <button
                                     type="button"

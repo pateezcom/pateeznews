@@ -243,9 +243,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
       <div className="w-20 h-20 bg-palette-beige/20 rounded-[3px] flex items-center justify-center mb-6 text-palette-red shadow-inner">
         <Lock size={32} />
       </div>
-      <h2 className="text-[26px] font-bold text-palette-maroon mb-2 tracking-tight font-display">Yetkisiz Erişim</h2>
+      <h2 className="text-[26px] font-bold text-palette-maroon mb-2 tracking-tight font-display">{t('common.error')}</h2>
       <p className="text-palette-tan font-medium max-w-md text-center leading-relaxed">
-        Bu sayfayı görüntülemek için gerekli yetkiye sahip değilsiniz.
+        {t('admin.error.fetch_failed')}
       </p>
     </div>
   );
@@ -308,17 +308,17 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
         <header className="h-20 bg-white/70 backdrop-blur-2xl border-b border-palette-tan/20 sticky top-0 z-30 px-8 flex items-center justify-between">
           <div>
             <h1 className="text-[22px] font-bold text-palette-maroon tracking-tight">
-              {activeTab === 'edit_user' ? 'Kullanıcı Düzenle' : (menuItems.find(i => i.id === activeTab)?.label || t('admin.sidebar.overview'))}
+              {activeTab === 'edit_user' ? t('users.role_modal.title') : (menuItems.find(i => i.id === activeTab)?.label || t('admin.sidebar.overview'))}
             </h1>
             <p className="text-[13px] text-palette-tan font-bold mt-0.5">
-              {new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+              {new Date().toLocaleDateString(t('admin.date_format'), { day: 'numeric', month: 'long', year: 'numeric' })}
             </p>
           </div>
 
           <div className="flex items-center gap-0">
             <div className="hidden lg:flex items-center gap-2 px-2 py-2 bg-palette-beige/30 rounded-[3px] border border-palette-tan/20 focus-within:bg-white focus-within:border-palette-tan transition-all group">
               <Search size={14} className="text-palette-tan/40 group-focus-within:text-palette-tan" />
-              <input type="text" placeholder="Hızlı arama..." className="bg-transparent border-none outline-none text-sm font-semibold w-40 placeholder:text-palette-tan/30 text-palette-maroon" />
+              <input type="text" placeholder={t('admin.header.search')} className="bg-transparent border-none outline-none text-sm font-semibold w-40 placeholder:text-palette-tan/30 text-palette-maroon" />
             </div>
 
             {/* View Site Button */}
@@ -327,7 +327,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
               target="_blank"
               rel="noopener noreferrer"
               className="p-2.5 flex items-center justify-center rounded-[3px] text-palette-tan hover:text-palette-maroon hover:bg-palette-beige transition-all group"
-              title="Siteyi Önizle"
+              title={t('nav.home')}
             >
               <Eye size={18} />
             </a>
@@ -370,7 +370,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
                 className="flex items-center gap-2 p-1 pl-1 pr-1 rounded-[3px] hover:bg-palette-beige transition-all group"
               >
                 <div className="w-9 h-9 rounded-[3px] border border-palette-tan/20 group-hover:border-palette-tan transition-all">
-                  <img src="https://picsum.photos/seed/admin/200" className="w-full h-full object-cover rounded-[3px]" alt="Admin" />
+                  <img src="https://picsum.photos/seed/admin/200" className="w-full h-full object-cover rounded-[3px]" alt={t('admin.header.my_account')} />
                 </div>
                 <div className="hidden sm:flex flex-col items-start text-left">
                   <span className="text-sm font-bold text-palette-maroon leading-none">S. Yönetici</span>
@@ -388,25 +388,25 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
                       </div>
                       <div>
                         <h4 className="text-base font-bold text-palette-maroon">Buzz Admin</h4>
-                        <p className="text-[13px] text-palette-tan font-bold">Süper Yetkili</p>
+                        <p className="text-[13px] text-palette-tan font-bold">{userRole}</p>
                       </div>
                     </div>
 
                     <div className="px-3 pb-3 space-y-1">
-                      <div className="px-4 py-2 text-[13px] font-bold text-palette-tan/40 border-t border-palette-tan/15 mt-2 pt-4">Hesap ve Güvenlik</div>
+                      <div className="px-4 py-2 text-[13px] font-bold text-palette-tan/40 border-t border-palette-tan/15 mt-2 pt-4">{t('admin.account.settings')}</div>
                       <button
                         onClick={() => { handleTabChange('my_profile'); setShowProfileMenu(false); }}
                         className="w-full flex items-center justify-between px-4 py-2.5 text-palette-tan hover:bg-palette-beige hover:text-palette-maroon rounded-[3px] text-sm font-semibold transition-all"
                       >
-                        <div className="flex items-center gap-3"><User size={16} strokeWidth={2} /> Profil Ayarlarım</div>
+                        <div className="flex items-center gap-3"><User size={16} strokeWidth={2} /> {t('users.actions.edit')}</div>
                         <ChevronDown size={12} className="-rotate-90 opacity-40" />
                       </button>
                       <button className="w-full flex items-center justify-between px-4 py-2.5 text-palette-tan hover:bg-palette-beige hover:text-palette-maroon rounded-[3px] text-sm font-semibold transition-all">
-                        <div className="flex items-center gap-3"><CreditCard size={16} strokeWidth={2} /> Üyelik Bilgileri</div>
+                        <div className="flex items-center gap-3"><CreditCard size={16} strokeWidth={2} /> {t('admin.management')}</div>
                         <ChevronDown size={12} className="-rotate-90 opacity-40" />
                       </button>
                       <button className="w-full flex items-center justify-between px-4 py-2.5 text-palette-tan hover:bg-palette-beige hover:text-palette-maroon rounded-[3px] text-sm font-semibold transition-all">
-                        <div className="flex items-center gap-3"><History size={16} strokeWidth={2} /> İşlem Geçmişi</div>
+                        <div className="flex items-center gap-3"><History size={16} strokeWidth={2} /> {t('admin.recent_activity')}</div>
                         <ChevronDown size={12} className="-rotate-90 opacity-40" />
                       </button>
 
@@ -416,7 +416,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
                         <div className="w-8 h-8 rounded-[3px] bg-palette-red/10 flex items-center justify-center">
                           <LogOut size={16} />
                         </div>
-                        Oturumu Kapat
+                        {t('admin.logout')}
                       </button>
                     </div>
                   </div>
@@ -466,7 +466,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
                     </div>
                     <h2 className="text-[38px] font-bold mb-5 tracking-tight">{t('admin.stats.setup_title')}</h2>
                     <p className="text-palette-beige/70 mb-12 text-xl font-medium leading-relaxed">
-                      Haber Merkeziniz Şu An Yayına Hazır Ancak Veri Girişi Yapılmamış. Demo Paketini Yükleyerek Sistemi Test Edebilirsiniz.
+                      {t('admin.stats.setup_desc')}
                     </p>
 
                     <button

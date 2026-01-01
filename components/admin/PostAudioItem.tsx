@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import ReactQuill from 'react-quill-new';
 import { PostItem, QUILL_MODULES, QUILL_FORMATS } from './PostTextItem';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface PostAudioItemProps {
     item: PostItem;
@@ -61,6 +62,7 @@ const PostAudioItem: React.FC<PostAudioItemProps> = ({
     onOpenFileManager,
     onOpenUrlMode
 }) => {
+    const { t } = useLanguage();
     const [showOptions, setShowOptions] = useState(false);
     const [isAudioLoading, setIsAudioLoading] = useState(true);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -166,13 +168,13 @@ const PostAudioItem: React.FC<PostAudioItemProps> = ({
                         <div className="p-2 bg-palette-beige/20 rounded-[3px] text-palette-maroon">
                             <Mic size={18} />
                         </div>
-                        <h3 className="text-base font-bold text-palette-maroon">Ses İçerik Bloğu</h3>
+                        <h3 className="text-base font-bold text-palette-maroon">{t('admin.post.audio_block')}</h3>
                     </div>
                 </div>
 
                 <div className="space-y-4">
                     <div className="space-y-1.5 w-full">
-                        <label className="text-[13px] font-black text-palette-tan ml-1">Başlık</label>
+                        <label className="text-[13px] font-black text-palette-tan ml-1">{t('admin.post.title')}</label>
                         <div className="flex items-center gap-3">
                             {showBlockNumbers && (
                                 <div className="w-9 h-9 shrink-0 rounded-[3px] bg-palette-maroon text-white flex items-center justify-center text-base font-black shadow-md shadow-palette-maroon/10">
@@ -183,8 +185,8 @@ const PostAudioItem: React.FC<PostAudioItemProps> = ({
                                 type="text"
                                 value={item.title}
                                 onChange={(e) => onUpdate(item.id, 'title', e.target.value)}
-                                className="w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] px-4 py-2 text-base font-bold text-palette-maroon outline-none focus:border-palette-red transition-all"
-                                placeholder="Ses Başlığı (Opsiyonel)"
+                                className="w-full h-9 bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] px-4 text-base font-bold text-palette-maroon outline-none focus:border-palette-red transition-all"
+                                placeholder={t('admin.post.slider_title_placeholder')}
                             />
                         </div>
                     </div>
@@ -192,7 +194,7 @@ const PostAudioItem: React.FC<PostAudioItemProps> = ({
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                         {/* AUDIO PLAYER PANEL */}
                         <div className="lg:col-span-5 space-y-2">
-                            <label className="text-[13px] font-black text-palette-tan ml-1 uppercase tracking-wider">Ses Paneli</label>
+                            <label className="text-[13px] font-black text-palette-tan ml-1 uppercase tracking-wider">{t('admin.post.audio_panel')}</label>
                             <div className="rounded-[3px] bg-palette-beige/5 border-2 border-dashed border-palette-tan/20 p-6 flex flex-col items-center justify-center min-h-[200px] relative transition-all overflow-hidden group">
                                 {item.mediaUrl ? (
                                     <div className="w-full space-y-4 relative z-10">
@@ -277,13 +279,13 @@ const PostAudioItem: React.FC<PostAudioItemProps> = ({
                                             <div className="w-14 h-14 rounded-full bg-palette-maroon/5 flex items-center justify-center mb-3 group-hover/pick:bg-palette-maroon/10 transition-all">
                                                 <Plus size={28} className="text-palette-tan/40 group-hover/pick:text-palette-maroon transition-all" />
                                             </div>
-                                            <span className="text-[13px] font-bold text-palette-tan/50 text-center">Ses Dosyası Seç / Yükle</span>
+                                            <span className="text-[13px] font-bold text-palette-tan/50 text-center">{t('admin.post.pick_audio')}</span>
                                         </div>
                                         <button
                                             onClick={() => onOpenUrlMode(item.id)}
                                             className="text-[10px] font-black text-palette-tan/60 hover:text-palette-maroon border border-palette-tan/20 px-3 py-1.5 rounded-[3px] bg-white shadow-sm transition-all flex items-center gap-1.5 uppercase tracking-widest"
                                         >
-                                            <Globe size={11} /> URL VEYA YT MUSIC EKLE
+                                            <Globe size={11} /> {t('admin.post.add_video_url')}
                                         </button>
                                     </div>
                                 )}
@@ -292,7 +294,7 @@ const PostAudioItem: React.FC<PostAudioItemProps> = ({
 
                         {/* DESCRIPTION EDITOR */}
                         <div className="lg:col-span-7 space-y-2 h-full flex flex-col">
-                            <label className="text-[13px] font-black text-palette-tan ml-1">Ses Açıklaması (Zengin Metin)</label>
+                            <label className="text-[13px] font-black text-palette-tan ml-1">{t('common.description')}</label>
                             <div className="quill-modern-wrapper compact-quill border border-palette-tan/20 rounded-[3px] overflow-hidden focus-within:border-palette-red/40 transition-all bg-white flex-1 min-h-[180px]">
                                 {(() => {
                                     const Quill: any = ReactQuill;
@@ -303,7 +305,7 @@ const PostAudioItem: React.FC<PostAudioItemProps> = ({
                                             onChange={(content: string) => onUpdate(item.id, 'description', content)}
                                             modules={QUILL_MODULES}
                                             formats={QUILL_FORMATS}
-                                            placeholder="Ses dosyası hakkında bilgi veya transkript..."
+                                            placeholder={t('admin.post.content_placeholder')}
                                             className="modern-quill-editor h-full"
                                         />
                                     );
@@ -319,19 +321,19 @@ const PostAudioItem: React.FC<PostAudioItemProps> = ({
                             className="text-[11px] font-black text-palette-tan/50 hover:text-palette-maroon transition-colors flex items-center gap-1 uppercase tracking-widest"
                         >
                             <ChevronDown size={14} className={`transition-transform duration-300 ${showOptions ? 'rotate-180' : ''}`} />
-                            {showOptions ? 'Daha Az' : 'Kaynak / Künye'}
+                            {showOptions ? t('common.less') : t('admin.post.extra_settings')}
                         </button>
                         {showOptions && (
                             <div className="mt-3 animate-in slide-in-from-top-2 duration-300">
                                 <label className="text-[11px] font-black text-palette-tan ml-1 flex items-center gap-1.5 uppercase opacity-60 mb-1.5">
-                                    <Settings2 size={12} /> Ses Kaynağı
+                                    <Settings2 size={12} /> {t('admin.post.source')}
                                 </label>
                                 <input
                                     type="text"
                                     value={item.source || ''}
                                     onChange={(e) => onUpdate(item.id, 'source', e.target.value)}
                                     className="w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] px-4 py-2 text-sm font-bold text-palette-maroon outline-none focus:border-palette-red transition-all"
-                                    placeholder="Ses: [İsim/Stüdyo]..."
+                                    placeholder={t('admin.post.source_placeholder')}
                                 />
                             </div>
                         )}

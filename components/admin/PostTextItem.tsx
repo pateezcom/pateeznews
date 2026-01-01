@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import ReactQuill from 'react-quill-new';
 import { ChevronDown, Trash2, FileText, Sparkles, Plus } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 export interface PostItem {
     id: string;
@@ -58,6 +59,7 @@ const PostTextItem: React.FC<PostTextItemProps> = ({
     onMoveUp,
     onMoveDown
 }) => {
+    const { t } = useLanguage();
     const [showSource, setShowSource] = useState(false);
     return (
         <div className="group bg-white rounded-[3px] border border-palette-tan/20 shadow-md flex overflow-hidden animate-in slide-in-from-left duration-300 admin-font">
@@ -70,7 +72,7 @@ const PostTextItem: React.FC<PostTextItemProps> = ({
                                 <button
                                     onClick={() => onMoveUp?.(index)}
                                     className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
-                                    title="Yukarı Taşı"
+                                    title={t('common.move_up')}
                                 >
                                     <ChevronDown size={18} className="rotate-180" />
                                 </button>
@@ -80,7 +82,7 @@ const PostTextItem: React.FC<PostTextItemProps> = ({
                                 <button
                                     onClick={() => onMoveDown?.(index)}
                                     className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
-                                    title="Aşağı Taşı"
+                                    title={t('common.move_down')}
                                 >
                                     <ChevronDown size={18} />
                                 </button>
@@ -92,7 +94,7 @@ const PostTextItem: React.FC<PostTextItemProps> = ({
                 <button
                     onClick={() => isDeletable && onRemove(item.id)}
                     disabled={!isDeletable}
-                    title={isDeletable ? "Bloğu Sil" : "Bu blok silinemez"}
+                    title={isDeletable ? t('admin.post.delete_block') : t('admin.post.not_deletable')}
                     className={`w-8 h-8 flex items-center justify-center rounded-[3px] transition-all ${isDeletable
                         ? "text-palette-tan/30 hover:text-white hover:bg-palette-red hover:shadow-md active:scale-90"
                         : "text-palette-tan/10 cursor-not-allowed"
@@ -110,14 +112,14 @@ const PostTextItem: React.FC<PostTextItemProps> = ({
                         <div className="p-2 bg-palette-beige/20 rounded-[3px] text-palette-maroon">
                             <FileText size={18} />
                         </div>
-                        <h3 className="text-base font-bold text-palette-maroon">Metin İçerik Bloğu</h3>
+                        <h3 className="text-base font-bold text-palette-maroon">{t('admin.post.text_block')}</h3>
                     </div>
                 </div>
 
                 <div className="space-y-2.5">
                     {/* TITLE FIELD WITH BLOCK NUMBER */}
                     <div className="space-y-1.5">
-                        <label className="text-[13px] font-black text-palette-tan ml-1">Blok Başlığı</label>
+                        <label className="text-[13px] font-black text-palette-tan ml-1">{t('admin.post.block_title')}</label>
                         <div className="flex items-center gap-3">
                             {showBlockNumbers && (
                                 <div className="w-9 h-9 shrink-0 rounded-[3px] bg-palette-maroon text-white flex items-center justify-center text-base font-black shadow-md shadow-palette-maroon/10">
@@ -128,8 +130,8 @@ const PostTextItem: React.FC<PostTextItemProps> = ({
                                 type="text"
                                 value={item.title}
                                 onChange={(e) => onUpdate(item.id, 'title', e.target.value)}
-                                className="w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] px-4 py-1.5 text-base font-bold text-palette-maroon outline-none focus:border-palette-red transition-all placeholder:text-palette-tan/20"
-                                placeholder="Başlık Girin (Opsiyonel)..."
+                                className="w-full h-9 bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] px-4 text-base font-bold text-palette-maroon outline-none focus:border-palette-red transition-all placeholder:text-palette-tan/20"
+                                placeholder={t('admin.post.title_placeholder')}
                             />
                         </div>
                     </div>
@@ -137,10 +139,10 @@ const PostTextItem: React.FC<PostTextItemProps> = ({
                     {/* INTEGRATED PROFESSIONAL RICH-TEXT EDITOR */}
                     <div className="space-y-2 group/editor">
                         <div className="flex items-center justify-between px-1">
-                            <label className="text-[13px] font-black text-palette-tan">İçerik Metni (Zengin Metin Editörü)</label>
+                            <label className="text-[13px] font-black text-palette-tan">{t('admin.post.content_label')}</label>
                             <div className="flex items-center gap-2 text-palette-tan/30 group-focus-within/editor:text-palette-red/40 transition-colors">
                                 <Sparkles size={12} />
-                                <span className="text-[12px] font-bold">AI Yazım Desteği Aktif</span>
+                                <span className="text-[12px] font-bold">{t('admin.post.ai_support')}</span>
                             </div>
                         </div>
                         <div className="quill-modern-wrapper border border-palette-tan/20 rounded-[3px] overflow-hidden focus-within:border-palette-red/40 transition-all shadow-sm bg-white">
@@ -153,7 +155,7 @@ const PostTextItem: React.FC<PostTextItemProps> = ({
                                         onChange={(content: string) => onUpdate(item.id, 'description', content)}
                                         modules={QUILL_MODULES}
                                         formats={QUILL_FORMATS}
-                                        placeholder="Haberinizin Bu Bölümündeki Hikayeyi Tüm Detaylarıyla Buraya Aktarın..."
+                                        placeholder={t('admin.post.content_placeholder')}
                                         className="modern-quill-editor"
                                     />
                                 );
@@ -169,7 +171,7 @@ const PostTextItem: React.FC<PostTextItemProps> = ({
                             className="text-[11px] font-black text-palette-tan/50 hover:text-palette-maroon transition-colors flex items-center gap-1 uppercase tracking-widest"
                         >
                             <ChevronDown size={14} className={`transition-transform duration-300 ${showSource ? 'rotate-180' : ''}`} />
-                            {showSource ? 'Daha Az' : 'Daha Fazla (Kaynak vb.)'}
+                            {showSource ? t('common.less') : t('admin.post.extra_settings')}
                         </button>
                     </div>
 
@@ -177,13 +179,13 @@ const PostTextItem: React.FC<PostTextItemProps> = ({
                     {showSource && (
                         <div className="pt-2 animate-in slide-in-from-top-2 duration-300">
                             <div className="space-y-2">
-                                <label className="text-[13px] font-black text-palette-tan ml-1">Kaynak</label>
+                                <label className="text-[13px] font-black text-palette-tan ml-1">{t('admin.post.source')}</label>
                                 <input
                                     type="text"
                                     value={item.source || ''}
                                     onChange={(e) => onUpdate(item.id, 'source', e.target.value)}
                                     className="w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] px-4 py-2 text-sm font-bold text-palette-maroon outline-none focus:border-palette-red transition-all"
-                                    placeholder="Haber Kaynağını Belirleyin..."
+                                    placeholder={t('admin.post.source_placeholder')}
                                 />
                             </div>
                         </div>

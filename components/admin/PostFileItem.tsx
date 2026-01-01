@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import ReactQuill from 'react-quill-new';
 import { PostItem, QUILL_MODULES, QUILL_FORMATS } from './PostTextItem';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface PostFileItemProps {
     item: PostItem;
@@ -53,6 +54,7 @@ const PostFileItem: React.FC<PostFileItemProps> = ({
     onMoveDown,
     onOpenFileManager
 }) => {
+    const { t } = useLanguage();
     const [showOptions, setShowOptions] = useState(false);
 
     const fileName = item.mediaUrl?.split('/').pop() || '';
@@ -99,13 +101,13 @@ const PostFileItem: React.FC<PostFileItemProps> = ({
                         <div className="p-2 bg-palette-beige/20 rounded-[3px] text-palette-maroon">
                             <Paperclip size={18} />
                         </div>
-                        <h3 className="text-base font-bold text-palette-maroon">Eklenti / Dosya Bloğu</h3>
+                        <h3 className="text-base font-bold text-palette-maroon">{t('admin.post.file_block')}</h3>
                     </div>
                 </div>
 
                 <div className="space-y-4">
                     <div className="space-y-1.5 w-full">
-                        <label className="text-[13px] font-black text-palette-tan ml-1">Dosya Başlığı / Açıklaması</label>
+                        <label className="text-[13px] font-black text-palette-tan ml-1">{t('admin.post.title')}</label>
                         <div className="flex items-center gap-3">
                             {showBlockNumbers && (
                                 <div className="w-9 h-9 shrink-0 rounded-[3px] bg-palette-maroon text-white flex items-center justify-center text-base font-black shadow-md shadow-palette-maroon/10">
@@ -116,8 +118,8 @@ const PostFileItem: React.FC<PostFileItemProps> = ({
                                 type="text"
                                 value={item.title}
                                 onChange={(e) => onUpdate(item.id, 'title', e.target.value)}
-                                className="w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] px-4 py-2 text-base font-bold text-palette-maroon outline-none focus:border-palette-red transition-all"
-                                placeholder="Dosya İçin Kısa Bir Başlık (Opsiyonel)"
+                                className="w-full h-9 bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] px-4 text-base font-bold text-palette-maroon outline-none focus:border-palette-red transition-all"
+                                placeholder={t('admin.post.slider_title_placeholder')}
                             />
                         </div>
                     </div>
@@ -125,7 +127,7 @@ const PostFileItem: React.FC<PostFileItemProps> = ({
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                         {/* FILE PREVIEW PANEL */}
                         <div className="lg:col-span-4 space-y-2">
-                            <label className="text-[13px] font-black text-palette-tan ml-1 uppercase tracking-wider">Dosya Paneli</label>
+                            <label className="text-[13px] font-black text-palette-tan ml-1 uppercase tracking-wider">{t('admin.post.file_panel')}</label>
                             <div className="rounded-[3px] bg-palette-beige/5 border-2 border-dashed border-palette-tan/20 p-6 flex flex-col items-center justify-center min-h-[180px] relative transition-all overflow-hidden group">
                                 {item.mediaUrl ? (
                                     <div className="w-full flex flex-col items-center space-y-4 relative z-10 animate-in fade-in zoom-in duration-300">
@@ -140,7 +142,7 @@ const PostFileItem: React.FC<PostFileItemProps> = ({
                                                 {fileName}
                                             </p>
                                             <p className="text-[10px] font-bold text-palette-tan/40 uppercase tracking-widest">
-                                                {fileName.split('.').pop()} Dökümanı
+                                                {fileName.split('.').pop()} {t('admin.post.asset_label')}
                                             </p>
                                         </div>
                                         <div className="flex gap-2 w-full pt-2">
@@ -150,7 +152,7 @@ const PostFileItem: React.FC<PostFileItemProps> = ({
                                                 rel="noopener noreferrer"
                                                 className="flex-1 h-9 flex items-center justify-center gap-2 bg-white border border-palette-tan/20 text-palette-maroon rounded-[3px] text-[10px] font-black tracking-widest hover:bg-palette-maroon hover:text-white transition-all shadow-sm"
                                             >
-                                                <ExternalLink size={12} /> GÖRÜNTÜLE
+                                                <ExternalLink size={12} /> {t('common.view')}
                                             </a>
                                             <button
                                                 onClick={() => onUpdate(item.id, 'mediaUrl', '')}
@@ -166,7 +168,7 @@ const PostFileItem: React.FC<PostFileItemProps> = ({
                                             <div className="w-14 h-14 rounded-full bg-palette-maroon/5 flex items-center justify-center mb-3 group-hover/pick:bg-palette-maroon/10 transition-all border border-transparent group-hover/pick:border-palette-maroon/10">
                                                 <Plus size={28} className="text-palette-tan/40 group-hover/pick:text-palette-maroon transition-all" />
                                             </div>
-                                            <span className="text-[13px] font-bold text-palette-tan/50 text-center uppercase tracking-widest">Dosya Seç / Yükle</span>
+                                            <span className="text-[13px] font-bold text-palette-tan/50 text-center uppercase tracking-widest">{t('admin.post.pick_file')}</span>
                                             <div className="mt-4 flex flex-wrap justify-center gap-1 opacity-40 grayscale group-hover/pick:grayscale-0 group-hover/pick:opacity-100 transition-all">
                                                 <span className="text-[8px] font-black bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded-[2px]">PDF</span>
                                                 <span className="text-[8px] font-black bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-[2px]" >DOCX</span>
@@ -180,7 +182,7 @@ const PostFileItem: React.FC<PostFileItemProps> = ({
 
                         {/* DESCRIPTION EDITOR */}
                         <div className="lg:col-span-8 space-y-2 h-full flex flex-col">
-                            <label className="text-[13px] font-black text-palette-tan ml-1">Dosya Detayları / Metin (Zengin Metin)</label>
+                            <label className="text-[13px] font-black text-palette-tan ml-1">{t('common.description')}</label>
                             <div className="quill-modern-wrapper compact-quill border border-palette-tan/20 rounded-[3px] overflow-hidden focus-within:border-palette-red/40 transition-all bg-white flex-1 min-h-[180px]">
                                 {(() => {
                                     const Quill: any = ReactQuill;
@@ -191,7 +193,7 @@ const PostFileItem: React.FC<PostFileItemProps> = ({
                                             onChange={(content: string) => onUpdate(item.id, 'description', content)}
                                             modules={QUILL_MODULES}
                                             formats={QUILL_FORMATS}
-                                            placeholder="Dosya içeriği hakkında özet bilgi veya ek açıklamalar..."
+                                            placeholder={t('admin.post.content_placeholder')}
                                             className="modern-quill-editor h-full"
                                         />
                                     );
@@ -207,7 +209,7 @@ const PostFileItem: React.FC<PostFileItemProps> = ({
                             className="text-[11px] font-black text-palette-tan/50 hover:text-palette-maroon transition-colors flex items-center gap-1 uppercase tracking-widest"
                         >
                             <ChevronDown size={14} className={`transition-transform duration-300 ${showOptions ? 'rotate-180' : ''}`} />
-                            {showOptions ? 'Daha Az' : 'Ek Ayarlar / Kaynak'}
+                            {showOptions ? t('common.less') : t('admin.post.extra_settings')}
                         </button>
                         {showOptions && (
                             <div className="mt-3 animate-in slide-in-from-top-2 duration-300">
@@ -219,7 +221,7 @@ const PostFileItem: React.FC<PostFileItemProps> = ({
                                     value={item.source || ''}
                                     onChange={(e) => onUpdate(item.id, 'source', e.target.value)}
                                     className="w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] px-4 py-2 text-sm font-bold text-palette-maroon outline-none focus:border-palette-red transition-all"
-                                    placeholder="Dosya Kaynağı: [İsim/Kurum]..."
+                                    placeholder={t('admin.post.source_placeholder')}
                                 />
                             </div>
                         )}

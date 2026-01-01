@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import ReactQuill from 'react-quill-new';
 import { PostItem, QUILL_MODULES, QUILL_FORMATS } from './PostTextItem';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface PostVideoItemProps {
     item: PostItem;
@@ -62,6 +63,7 @@ const PostVideoItem: React.FC<PostVideoItemProps> = ({
     onOpenFileManager,
     onOpenUrlMode
 }) => {
+    const { t } = useLanguage();
     const [showOptions, setShowOptions] = useState(false);
     const [isVideoLoading, setIsVideoLoading] = useState(true);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -139,7 +141,7 @@ const PostVideoItem: React.FC<PostVideoItemProps> = ({
                 <button
                     onClick={() => isDeletable && onRemove(item.id)}
                     disabled={!isDeletable}
-                    title={isDeletable ? "Bloğu Sil" : "Bu blok silinemez"}
+                    title={isDeletable ? t('admin.post.delete_block') : t('admin.post.not_deletable')}
                     className={`w-8 h-8 flex items-center justify-center rounded-[3px] transition-all ${isDeletable
                         ? "text-palette-tan/30 hover:text-white hover:bg-palette-red hover:shadow-md active:scale-90"
                         : "text-palette-tan/10 cursor-not-allowed"
@@ -157,14 +159,14 @@ const PostVideoItem: React.FC<PostVideoItemProps> = ({
                         <div className="p-2 bg-palette-beige/20 rounded-[3px] text-palette-maroon">
                             <Video size={18} />
                         </div>
-                        <h3 className="text-base font-bold text-palette-maroon">Video İçerik Bloğu</h3>
+                        <h3 className="text-base font-bold text-palette-maroon">{t('admin.post.video_block')}</h3>
                     </div>
                 </div>
 
                 <div className="space-y-4">
                     {/* 1. TOP ROW: TITLE & BLOCK NUMBER */}
                     <div className="space-y-1.5 w-full">
-                        <label className="text-[13px] font-black text-palette-tan ml-1">Başlık</label>
+                        <label className="text-[13px] font-black text-palette-tan ml-1">{t('admin.post.title')}</label>
                         <div className="flex items-center gap-3">
                             {showBlockNumbers && (
                                 <div className="w-9 h-9 shrink-0 rounded-[3px] bg-palette-maroon text-white flex items-center justify-center text-base font-black shadow-md shadow-palette-maroon/10">
@@ -175,8 +177,8 @@ const PostVideoItem: React.FC<PostVideoItemProps> = ({
                                 type="text"
                                 value={item.title}
                                 onChange={(e) => onUpdate(item.id, 'title', e.target.value)}
-                                className="w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] px-4 py-2 text-base font-bold text-palette-maroon outline-none focus:border-palette-red transition-all placeholder:text-palette-tan/20"
-                                placeholder="Başlık Girin (Opsiyonel)"
+                                className="w-full h-9 bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] px-4 text-base font-bold text-palette-maroon outline-none focus:border-palette-red transition-all placeholder:text-palette-tan/20"
+                                placeholder={t('admin.post.slider_title_placeholder')}
                             />
                         </div>
                     </div>
@@ -185,7 +187,7 @@ const PostVideoItem: React.FC<PostVideoItemProps> = ({
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
                         {/* LEFT: VIDEO AREA */}
                         <div className="md:col-span-12 lg:col-span-5 space-y-2">
-                            <label className="text-[13px] font-black text-palette-tan ml-1 uppercase tracking-wider">Video Paneli</label>
+                            <label className="text-[13px] font-black text-palette-tan ml-1 uppercase tracking-wider">{t('admin.post.video_panel')}</label>
                             <div
                                 ref={containerRef}
                                 className={`rounded-[3px] bg-palette-beige/5 border-2 border-dashed border-palette-tan/20 flex flex-col items-center justify-center overflow-hidden transition-all relative group w-full min-h-[250px] ${ytInfo?.isShorts ? 'aspect-[9/16] md:max-w-[300px] mx-auto' : 'aspect-video'}`}
@@ -244,7 +246,7 @@ const PostVideoItem: React.FC<PostVideoItemProps> = ({
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); onUpdate(item.id, 'mediaUrl', ''); setIsPlaying(false); }}
                                                     className="p-1.5 bg-palette-red/80 hover:bg-palette-red rounded-[3px] text-white transition-all"
-                                                    title="Sil"
+                                                    title={t('common.delete')}
                                                 >
                                                     <Trash2 size={16} />
                                                 </button>
@@ -278,13 +280,13 @@ const PostVideoItem: React.FC<PostVideoItemProps> = ({
                                             <div className="w-16 h-16 rounded-full bg-palette-maroon/5 flex items-center justify-center mb-3 group-hover/pick:bg-palette-maroon/10 transition-all">
                                                 <Plus size={32} className="text-palette-tan/40 group-hover/pick:text-palette-maroon transition-all" />
                                             </div>
-                                            <span className="text-[14px] font-bold text-palette-tan/50 px-4 text-center group-hover/pick:text-palette-maroon transition-all">Video Seç / Yükle</span>
+                                            <span className="text-[14px] font-bold text-palette-tan/50 px-4 text-center group-hover/pick:text-palette-maroon transition-all">{t('admin.post.pick_video')}</span>
                                         </div>
                                         <button
                                             onClick={() => onOpenUrlMode(item.id)}
                                             className="mt-2 text-[10px] font-black text-palette-tan/60 hover:text-palette-maroon border border-palette-tan/20 px-3 py-1.5 rounded-[3px] bg-white shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 uppercase tracking-wider"
                                         >
-                                            <Globe size={11} /> URL VEYA YOUTUBE EKLE
+                                            <Globe size={11} /> {t('admin.post.add_video_url')}
                                         </button>
                                     </div>
                                 )}
@@ -294,7 +296,7 @@ const PostVideoItem: React.FC<PostVideoItemProps> = ({
                         {/* RIGHT: RICH TEXT EDITOR */}
                         <div className="md:col-span-12 lg:col-span-7 h-full flex flex-col">
                             <div className="space-y-2 group/editor flex-1 flex flex-col">
-                                <label className="text-[13px] font-black text-palette-tan ml-1">Video Açıklaması (Zengin Metin)</label>
+                                <label className="text-[13px] font-black text-palette-tan ml-1">{t('common.description')}</label>
                                 <div className="quill-modern-wrapper compact-quill border border-palette-tan/20 rounded-[3px] overflow-hidden focus-within:border-palette-red/40 transition-all shadow-sm bg-white flex-1 min-h-[200px]">
                                     {(() => {
                                         const Quill: any = ReactQuill;
@@ -305,7 +307,7 @@ const PostVideoItem: React.FC<PostVideoItemProps> = ({
                                                 onChange={(content: string) => onUpdate(item.id, 'description', content)}
                                                 modules={QUILL_MODULES}
                                                 formats={QUILL_FORMATS}
-                                                placeholder="Video hakkında detaylı bilgi, altyazı veya açıklama buraya..."
+                                                placeholder={t('admin.post.content_placeholder')}
                                                 className="modern-quill-editor h-full"
                                             />
                                         );
@@ -324,7 +326,7 @@ const PostVideoItem: React.FC<PostVideoItemProps> = ({
                                 className="text-[11px] font-black text-palette-tan/50 hover:text-palette-maroon transition-colors flex items-center gap-1 uppercase tracking-widest"
                             >
                                 <ChevronDown size={14} className={`transition-transform duration-300 ${showOptions ? 'rotate-180' : ''}`} />
-                                {showOptions ? 'Daha Az' : 'Ek Ayarlar (Kaynak vb.)'}
+                                {showOptions ? t('common.less') : t('admin.post.extra_settings')}
                             </button>
                         </div>
 
@@ -332,14 +334,14 @@ const PostVideoItem: React.FC<PostVideoItemProps> = ({
                             <div className="animate-in slide-in-from-top-2 duration-300 w-full">
                                 <div className="space-y-1.5">
                                     <label className="text-[13px] font-black text-palette-tan ml-1 flex items-center gap-1.5">
-                                        <Settings2 size={12} /> Video Kaynağı / Künye
+                                        <Settings2 size={12} /> {t('admin.post.image_source')}
                                     </label>
                                     <input
                                         type="text"
                                         value={item.source || ''}
                                         onChange={(e) => onUpdate(item.id, 'source', e.target.value)}
                                         className="w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] px-4 py-2 text-sm font-bold text-palette-maroon outline-none focus:border-palette-red transition-all"
-                                        placeholder="Görüntü: [İsim/Ajans]..."
+                                        placeholder={t('admin.post.source_placeholder')}
                                     />
                                 </div>
                             </div>

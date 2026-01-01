@@ -391,7 +391,7 @@ const NavigationSettings: React.FC = () => {
           <div className="flex flex-col min-w-0">
             <div className="flex items-center gap-2">
               <h4 className="text-sm font-bold text-palette-maroon leading-tight truncate">{item.label}</h4>
-              {parentItem && <span className="text-[9px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-400 hidden sm:inline-block truncate max-w-[100px]"><span className="opacity-50">Üst:</span> {parentItem.label}</span>}
+              {parentItem && <span className="text-[9px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-400 hidden sm:inline-block truncate max-w-[100px]"><span className="opacity-50">{t('nav_settings.menu_select')}:</span> {parentItem.label}</span>}
             </div>
             <div className="flex items-center gap-2 mt-0.5">
               <span className="text-[10px] font-bold text-palette-tan/40 tracking-widest bg-palette-beige/30 px-1.5 py-0.5 rounded">{t(`nav_settings.type.${item.type}`)}</span>
@@ -489,7 +489,7 @@ const NavigationSettings: React.FC = () => {
               </button>
             )) : (
               <div className="text-center p-6 bg-white rounded-[3px] border border-palette-tan/15 border-dashed">
-                <p className="text-[11px] text-palette-tan/40 font-bold mb-3">Menü Bulunamadı</p>
+                <p className="text-[11px] text-palette-tan/40 font-bold mb-3">{t('stories.empty_state')}</p>
                 <button
                   onClick={createDefaultMenu}
                   disabled={seeding}
@@ -521,7 +521,7 @@ const NavigationSettings: React.FC = () => {
                     onClick={() => openModal()}
                     className="px-6 py-2 bg-white border border-palette-tan/15 rounded-[3px] text-palette-tan text-xs font-bold hover:border-palette-tan transition-all"
                   >
-                    İlk Öğeyi Ekle
+                    {t('nav_settings.add_item')}
                   </button>
                 )}
               </div>
@@ -545,7 +545,7 @@ const NavigationSettings: React.FC = () => {
                 <div className="p-1.5 bg-palette-red rounded-[3px] text-white shadow-md">
                   {editingItem ? <Edit3 size={16} /> : <Plus size={16} strokeWidth={3} />}
                 </div>
-                {editingItem ? 'Öğeyi Düzenle' : t('nav_settings.add_item')}
+                {editingItem ? t('common.edit') : t('nav_settings.add_item')}
               </h3>
               <button onClick={() => setShowItemModal(false)} className="p-1.5 text-palette-tan/40 hover:text-palette-red transition-colors"><X size={20} /></button>
             </div>
@@ -554,7 +554,7 @@ const NavigationSettings: React.FC = () => {
               {/* DİL SEÇİMİ (YENİ) */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-black text-palette-tan/50 ml-1 flex items-center gap-1.5">
-                  <Globe size={12} /> DİL SEÇİMİ
+                  <Globe size={12} /> {t('lang.page_title')}
                 </label>
                 <div className="relative group">
                   <select
@@ -596,13 +596,13 @@ const NavigationSettings: React.FC = () => {
                   </select>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-black text-palette-tan/50 ml-1">Bağlı Olduğu Menü</label>
+                  <label className="text-[11px] font-black text-palette-tan/50 ml-1">{t('nav_settings.menu_select')}</label>
                   <select
                     value={formData.parent_id}
                     onChange={e => setFormData({ ...formData, parent_id: e.target.value })}
                     className="w-full h-11 px-4 bg-palette-beige/30 border border-palette-tan/10 rounded-[3px] text-sm font-bold text-palette-maroon outline-none focus:bg-white focus:border-palette-tan focus:ring-4 focus:ring-palette-tan/5 transition-all appearance-none cursor-pointer"
                   >
-                    <option value="root">-- Ana Seviye --</option>
+                    <option value="root">-- {t('nav_settings.create_default')} --</option>
                     {parentOptions}
                   </select>
                 </div>
@@ -638,7 +638,7 @@ const NavigationSettings: React.FC = () => {
                       ) : <MousePointer2 size={16} />}
                     </div>
                     <span className={`text-sm font-bold ${formData.icon ? 'text-palette-maroon' : 'text-palette-tan/30'}`}>
-                      {formData.icon || 'İkon Seçin...'}
+                      {formData.icon || t('nav_settings.form.icon')}
                     </span>
                   </div>
                   <ChevronRight size={16} className="text-palette-tan/20" />
@@ -648,7 +648,7 @@ const NavigationSettings: React.FC = () => {
             </div>
 
             <div className="px-8 py-6 border-t border-palette-beige bg-palette-beige/10 flex items-center justify-end gap-3">
-              <button onClick={() => setShowItemModal(false)} className="px-5 py-2.5 font-black text-[11px] text-palette-tan/40 hover:text-palette-maroon tracking-widest">İptal</button>
+              <button onClick={() => setShowItemModal(false)} className="px-5 py-2.5 font-black text-[11px] text-palette-tan/40 hover:text-palette-maroon tracking-widest">{t('common.cancel')}</button>
               <button
                 onClick={handleSaveItem}
                 disabled={saving || !formData.label}
@@ -725,7 +725,7 @@ const NavigationSettings: React.FC = () => {
             {/* Modal Header */}
             <div className="px-10 py-8 border-b border-palette-tan/15 flex items-center justify-between bg-palette-beige/5">
               <div>
-                <h3 className="text-2xl font-black text-palette-maroon tracking-tight">İkon Kütüphanesi</h3>
+                <h3 className="text-2xl font-black text-palette-maroon tracking-tight">{t('nav_settings.form.icon')}</h3>
                 <p className="text-[11px] font-bold text-palette-tan/40 tracking-widest mt-1">Kategori İçin En Uygun İkonu Seçin</p>
               </div>
               <button
