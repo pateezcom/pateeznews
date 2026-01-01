@@ -117,8 +117,8 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
                             <ArrowLeftRight size={20} />
                         </div>
                         <div>
-                            <h3 className="text-base font-black text-palette-maroon leading-tight">Before & After bloğu</h3>
-                            <p className="text-[11px] font-bold text-palette-tan/50 tracking-wide">İki resmi sürgülü bir bar ile karşılaştırın</p>
+                            <h3 className="text-base font-black text-palette-maroon leading-tight">{t('admin.post.iframe_block').replace('Iframe', 'Before & After')}</h3>
+                            <p className="text-[11px] font-bold text-palette-tan/50 tracking-wide">{t('admin.post.before_after_desc')}</p>
                         </div>
                     </div>
                 </div>
@@ -137,7 +137,7 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
                             value={item.title || ''}
                             onChange={(e) => onUpdate(item.id, 'title', e.target.value)}
                             className="w-full h-9 bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] px-4 text-base font-bold text-palette-maroon outline-none focus:border-palette-red transition-all placeholder:text-palette-tan/20"
-                            placeholder="Blok başlığı (isteğe bağlı)..."
+                            placeholder={t('admin.post.title_placeholder')}
                         />
                     </div>
                 </div>
@@ -150,7 +150,7 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
                             <div className="w-6 h-6 bg-palette-maroon rounded-[3px] flex items-center justify-center text-white">
                                 <span className="text-[10px] font-black">1</span>
                             </div>
-                            <h4 className="text-[13px] font-black text-palette-maroon tracking-tight">Önce (Before) Ayarları</h4>
+                            <h4 className="text-[13px] font-black text-palette-maroon tracking-tight">{t('admin.post.before_settings')}</h4>
                         </div>
 
                         <div className="space-y-4">
@@ -208,7 +208,7 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
                             <div className="space-y-1.5">
                                 <div className="flex items-center gap-1.5 ml-1">
                                     <Type size={12} className="text-palette-tan/50" />
-                                    <label className="text-[11px] font-black text-palette-tan uppercase tracking-widest">Önce Etiketi</label>
+                                    <label className="text-[11px] font-black text-palette-tan uppercase tracking-widest">{t('admin.post.before_label')}</label>
                                 </div>
                                 <input
                                     type="text"
@@ -227,7 +227,7 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
                             <div className="w-6 h-6 bg-blue-600 rounded-[3px] flex items-center justify-center text-white">
                                 <span className="text-[10px] font-black">2</span>
                             </div>
-                            <h4 className="text-[13px] font-black text-palette-maroon tracking-tight">Sonra (After) Ayarları</h4>
+                            <h4 className="text-[13px] font-black text-palette-maroon tracking-tight">{t('admin.post.after_settings')}</h4>
                         </div>
 
                         <div className="space-y-4">
@@ -285,7 +285,7 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
                             <div className="space-y-1.5">
                                 <div className="flex items-center gap-1.5 ml-1">
                                     <Type size={12} className="text-palette-tan/50" />
-                                    <label className="text-[11px] font-black text-palette-tan uppercase tracking-widest">Sonra Etiketi</label>
+                                    <label className="text-[11px] font-black text-palette-tan uppercase tracking-widest">{t('admin.post.after_label')}</label>
                                 </div>
                                 <input
                                     type="text"
@@ -305,7 +305,7 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
                         <div className="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500 text-white shadow-lg shadow-emerald-500/20">
                             <Sparkles size={14} />
                         </div>
-                        <h4 className="text-[12px] font-black text-palette-maroon uppercase tracking-[0.2em]">Canlı Önizleme</h4>
+                        <h4 className="text-[12px] font-black text-palette-maroon uppercase tracking-[0.2em]">{t('admin.post.live_preview')}</h4>
                     </div>
 
                     <div className="flex flex-col items-center bg-palette-beige/5 rounded-[3px] p-8 border border-palette-tan/5 relative overflow-hidden">
@@ -317,7 +317,7 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
                                     dangerouslySetInnerHTML={{ __html: item.description }}
                                 />
                             ) : (
-                                <p className="text-gray-400 text-sm italic">Blok açıklaması henüz girilmedi...</p>
+                                <p className="text-gray-400 text-sm italic">{t('feed.empty')}</p>
                             )}
                         </div>
 
@@ -388,7 +388,7 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
 
                             {/* Hint overlay */}
                             <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-black/30 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10 pointer-events-none z-20">
-                                <span className="text-[10px] text-white/80 font-bold uppercase tracking-widest">Karşılaştırmak için kaydır</span>
+                                <span className="text-[10px] text-white/80 font-bold uppercase tracking-widest">{t('admin.post.compare_hint')}</span>
                             </div>
                         </div>
                     </div>
@@ -402,7 +402,7 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
                         className="text-[11px] font-black text-palette-tan/50 hover:text-palette-maroon transition-colors flex items-center gap-1.5 uppercase tracking-[0.15em]"
                     >
                         <Settings2 size={13} className={`transition-transform duration-300 ${showOptions ? 'rotate-90' : ''}`} />
-                        Ek ayarlar
+                        {t('admin.post.extra_settings_alt')}
                         <ChevronDown size={14} className={`transition-transform duration-300 ${showOptions ? 'rotate-180' : ''}`} />
                     </button>
 
@@ -420,7 +420,7 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
                             </div>
 
                             <div className="space-y-1.5">
-                                <label className="text-[12px] font-black text-palette-tan ml-1 uppercase tracking-wider">Blok açıklaması (Alt metin)</label>
+                                <label className="text-[12px] font-black text-palette-tan ml-1 uppercase tracking-wider">{t('common.description')}</label>
                                 <div className="quill-modern-wrapper compact-quill border border-palette-tan/20 rounded-[3px] overflow-hidden focus-within:border-palette-red/40 transition-all shadow-sm bg-white">
                                     {(() => {
                                         const Quill: any = ReactQuill;

@@ -78,15 +78,15 @@ const PostIframeItem: React.FC<PostIframeItemProps> = ({
                             <Code size={20} />
                         </div>
                         <div>
-                            <h3 className="text-base font-black text-palette-maroon leading-tight">Iframe Bloğu</h3>
-                            <p className="text-[11px] font-bold text-palette-tan/50 tracking-wide uppercase">Dış içerik veya embed kodu</p>
+                            <h3 className="text-base font-black text-palette-maroon leading-tight">{t('admin.post.iframe_block')}</h3>
+                            <p className="text-[11px] font-bold text-palette-tan/50 tracking-wide uppercase">{t('admin.post.iframe_desc')}</p>
                         </div>
                     </div>
                 </div>
 
                 {/* 2. TITLE FIELD */}
                 <div className="space-y-1.5">
-                    <label className="text-[13px] font-black text-palette-tan ml-1 uppercase tracking-wider">Başlık (Opsiyonel)</label>
+                    <label className="text-[13px] font-black text-palette-tan ml-1 uppercase tracking-wider">{t('admin.post.optional_title')}</label>
                     <div className="flex items-center gap-3">
                         {showBlockNumbers && (
                             <div className="w-9 h-9 shrink-0 rounded-[3px] bg-palette-maroon text-white flex items-center justify-center text-base font-black shadow-md shadow-palette-maroon/10">
@@ -98,7 +98,7 @@ const PostIframeItem: React.FC<PostIframeItemProps> = ({
                             value={item.title}
                             onChange={(e) => onUpdate(item.id, 'title', e.target.value)}
                             className="w-full h-10 bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] px-4 text-base font-bold text-palette-maroon outline-none focus:border-palette-red transition-all shadow-inner"
-                            placeholder="Iframe için bir başlık girin..."
+                            placeholder={t('admin.post.iframe_placeholder')}
                         />
                     </div>
                 </div>
@@ -106,7 +106,7 @@ const PostIframeItem: React.FC<PostIframeItemProps> = ({
                 {/* 3. IFRAME CODE AREA */}
                 <div className="space-y-2">
                     <label className="text-[13px] font-black text-palette-tan ml-1 uppercase tracking-wider flex items-center gap-2">
-                        <Globe size={14} className="text-indigo-600" /> Iframe / Embed Kodu
+                        <Globe size={14} className="text-indigo-600" /> {t('admin.post.iframe_label')}
                     </label>
                     <div className="relative group/textarea">
                         <textarea
@@ -120,14 +120,14 @@ const PostIframeItem: React.FC<PostIframeItemProps> = ({
                         </div>
                     </div>
                     <p className="text-[10px] font-bold text-palette-tan/40 italic ml-1">
-                        * Buraya yapıştırılan iframe kodu ön sayfada olduğu gibi render edilecektir.
+                        {t('admin.post.iframe_help')}
                     </p>
                 </div>
 
                 {/* 4. PREVIEW AREA (IF CODE EXISTS) */}
                 {item.description && item.description.includes('<iframe') && (
                     <div className="space-y-2 pt-2">
-                        <label className="text-[11px] font-black text-palette-tan/60 ml-1 uppercase tracking-widest">Önizleme</label>
+                        <label className="text-[11px] font-black text-palette-tan/60 ml-1 uppercase tracking-widest">{t('admin.post.preview')}</label>
                         <div
                             className="w-full rounded-[3px] border border-palette-tan/10 bg-palette-beige/5 overflow-hidden flex items-center justify-center p-4 min-h-[100px]"
                             dangerouslySetInnerHTML={{ __html: item.description }}
@@ -143,7 +143,7 @@ const PostIframeItem: React.FC<PostIframeItemProps> = ({
                         className="text-[11px] font-black text-palette-tan/50 hover:text-palette-maroon transition-colors flex items-center gap-1.5 uppercase tracking-[0.15em] p-1 rounded hover:bg-palette-beige/20"
                     >
                         <Settings2 size={13} className={`transition-transform duration-300 ${showOptions ? 'rotate-90' : ''}`} />
-                        Ek Ayarlar
+                        {t('admin.post.extra_settings_alt')}
                         <ChevronDown size={14} className={`transition-transform duration-300 ${showOptions ? 'rotate-180' : ''}`} />
                     </button>
 

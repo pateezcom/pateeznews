@@ -1457,12 +1457,12 @@ const PostManagement: React.FC = () => {
                         <div className="border-b border-palette-tan/15 bg-white">
                             <div className="flex h-24">
                                 {[
-                                    { id: 'article', label: 'Article', icon: FileText },
-                                    { id: 'quiz', label: 'Quiz', icon: CheckCircle2 },
-                                    { id: 'poll', label: 'Poll', icon: BarChart2 },
-                                    { id: 'video', label: 'Video', icon: Video },
-                                    { id: 'contents', label: 'Table of Contents', icon: ListOrdered },
-                                    { id: 'recipe', label: 'Recipe', icon: Utensils }
+                                    { id: 'article', label: t('admin.post.tab.article'), icon: FileText },
+                                    { id: 'quiz', label: t('admin.post.tab.quiz'), icon: CheckCircle2 },
+                                    { id: 'poll', label: t('admin.post.tab.poll'), icon: BarChart2 },
+                                    { id: 'video', label: t('admin.post.tab.video'), icon: Video },
+                                    { id: 'contents', label: t('admin.post.tab.contents'), icon: ListOrdered },
+                                    { id: 'recipe', label: t('admin.post.tab.recipe'), icon: Utensils }
                                 ].map((tab, idx, arr) => (
                                     <button
                                         key={tab.id}
@@ -2054,49 +2054,49 @@ const PostManagement: React.FC = () => {
                                 className="flex items-center justify-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-orange-600/10 leading-none"
                             >
                                 <RotateCw size={14} className="shrink-0" />
-                                <span className="leading-none mt-[1px]">Flipcard ekle</span>
+                                <span className="leading-none mt-[1px]">{t('admin.post.add.flip')}</span>
                             </button>
                             <button
                                 onClick={handleAddBeforeAfterItem}
                                 className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-blue-600/10 leading-none"
                             >
                                 <ArrowLeftRight size={14} className="shrink-0" />
-                                <span className="leading-none mt-[1px]">Before & After ekle</span>
+                                <span className="leading-none mt-[1px]">{t('admin.post.add.before_after')}</span>
                             </button>
                             <button
                                 onClick={handleAddPollItem}
                                 className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-indigo-600/10 leading-none"
                             >
                                 <BarChart2 size={14} className="shrink-0" />
-                                <span className="leading-none mt-[1px]">Anket ekle</span>
+                                <span className="leading-none mt-[1px]">{t('admin.post.add.poll_alt')}</span>
                             </button>
                             <button
                                 onClick={handleAddVSItem}
                                 className="flex items-center justify-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-rose-600/10 leading-none"
                             >
                                 <Swords size={14} className="shrink-0" />
-                                <span className="leading-none mt-[1px]">VS ekle</span>
+                                <span className="leading-none mt-[1px]">{t('admin.post.add.vs')}</span>
                             </button>
                             <button
                                 onClick={handleAddReviewItem}
                                 className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-emerald-600/10 leading-none"
                             >
                                 <Award size={14} className="shrink-0" />
-                                <span className="leading-none mt-[1px]">İnceleme ekle</span>
+                                <span className="leading-none mt-[1px]">{t('admin.post.add.review_alt')}</span>
                             </button>
                             <button
                                 onClick={handleAddQuoteItem}
                                 className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-slate-800/10 leading-none"
                             >
                                 <Quote size={14} className="shrink-0" />
-                                <span className="leading-none mt-[1px]">Alıntı ekle</span>
+                                <span className="leading-none mt-[1px]">{t('admin.post.add.quote')}</span>
                             </button>
                             <button
                                 onClick={handleAddIframeItem}
                                 className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-700 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-indigo-700/10 leading-none"
                             >
                                 <Globe size={14} className="shrink-0" />
-                                <span className="leading-none mt-[1px]">Iframe ekle</span>
+                                <span className="leading-none mt-[1px]">{t('admin.post.add.iframe')}</span>
                             </button>
                         </div>
 
@@ -2136,7 +2136,7 @@ const PostManagement: React.FC = () => {
                                             <button
                                                 onClick={() => setFormData({ ...formData, thumbnail: '' })}
                                                 className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-palette-red transition-all"
-                                                title="Sil"
+                                                title={t('common.delete')}
                                             >
                                                 <Trash2 size={20} />
                                             </button>

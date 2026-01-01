@@ -269,7 +269,7 @@ const PostAudioItem: React.FC<PostAudioItemProps> = ({
                                         )}
                                         {ytInfo?.isMusic && (
                                             <div className="flex items-center justify-center gap-2 text-[10px] font-black text-palette-tan/40 uppercase tracking-widest">
-                                                <Music size={12} /> YouTube Music İçeriği
+                                                <Music size={12} /> {t('admin.post.youtube_music_help')}
                                             </div>
                                         )}
                                     </div>
@@ -326,7 +326,7 @@ const PostAudioItem: React.FC<PostAudioItemProps> = ({
                         {showOptions && (
                             <div className="mt-3 animate-in slide-in-from-top-2 duration-300">
                                 <label className="text-[11px] font-black text-palette-tan ml-1 flex items-center gap-1.5 uppercase opacity-60 mb-1.5">
-                                    <Settings2 size={12} /> {t('admin.post.source')}
+                                    <Settings2 size={12} /> {t('admin.post.image_source')}
                                 </label>
                                 <input
                                     type="text"

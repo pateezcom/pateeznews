@@ -141,8 +141,8 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                             <RotateCw size={20} />
                         </div>
                         <div>
-                            <h3 className="text-base font-black text-palette-maroon leading-tight">Flip kart bloğu</h3>
-                            <p className="text-[11px] font-bold text-palette-tan/50 tracking-wide">Üzerine gelince veya tıklayınca dönen etkileşimli kart</p>
+                            <h3 className="text-base font-black text-palette-maroon leading-tight">{t('admin.post.iframe_block').replace('Iframe', 'Flip kart')}</h3>
+                            <p className="text-[11px] font-bold text-palette-tan/50 tracking-wide">{t('admin.post.flip_desc')}</p>
                         </div>
                     </div>
                 </div>
@@ -181,7 +181,7 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                             <div className="w-6 h-6 bg-palette-red rounded-[3px] flex items-center justify-center text-white">
                                 <span className="text-[10px] font-black">1</span>
                             </div>
-                            <h4 className="text-[13px] font-black text-palette-maroon tracking-tight">Ön taraf settings</h4>
+                            <h4 className="text-[13px] font-black text-palette-maroon tracking-tight">{t('admin.post.front_settings')}</h4>
                         </div>
 
                         <div className="space-y-4">
@@ -239,21 +239,21 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                             <div className="space-y-1.5">
                                 <div className="flex items-center gap-1.5 ml-1">
                                     <Type size={12} className="text-palette-tan/50" />
-                                    <label className="text-[11px] font-black text-palette-tan uppercase tracking-widest">Ön başlık</label>
+                                    <label className="text-[11px] font-black text-palette-tan uppercase tracking-widest">{t('admin.post.front_title')}</label>
                                 </div>
                                 <input
                                     type="text"
                                     value={item.flipData?.frontTitle || ''}
                                     onChange={(e) => updateFlipData('frontTitle', e.target.value)}
                                     className="w-full h-10 bg-white border border-palette-tan/20 rounded-[3px] px-4 text-sm font-bold text-palette-maroon outline-none focus:border-palette-red transition-all shadow-sm"
-                                    placeholder="Örn: Gerçeği öğrenmek için tıklayın..."
+                                    placeholder={t('admin.post.placeholder_example')}
                                 />
                             </div>
 
                             <div className="space-y-1.5">
                                 <div className="flex items-center gap-1.5 ml-1">
                                     <LinkIcon size={12} className="text-palette-tan/50" />
-                                    <label className="text-[11px] font-black text-palette-tan uppercase tracking-widest">Ön Başlık Linki</label>
+                                    <label className="text-[11px] font-black text-palette-tan uppercase tracking-widest">{t('admin.post.front_link')}</label>
                                 </div>
                                 <input
                                     type="text"
@@ -267,7 +267,7 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                             <div className="space-y-1.5">
                                 <div className="flex items-center gap-1.5 ml-1">
                                     <FileText size={12} className="text-palette-tan/50" />
-                                    <label className="text-[11px] font-black text-palette-tan uppercase tracking-widest">Ön açıklama</label>
+                                    <label className="text-[11px] font-black text-palette-tan uppercase tracking-widest">{t('admin.post.front_description')}</label>
                                 </div>
                                 <div className="quill-modern-wrapper compact-quill border border-palette-tan/20 rounded-[3px] overflow-hidden focus-within:border-palette-red/40 transition-all shadow-sm bg-white">
                                     {(() => {
@@ -279,7 +279,7 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                                                 onChange={(content: string) => updateFlipData('frontDescription', content)}
                                                 modules={FLIP_QUILL_MODULES}
                                                 formats={FLIP_QUILL_FORMATS}
-                                                placeholder="Kartın ön yüzünde görünecek açıklama..."
+                                                placeholder={t('admin.post.desc_placeholder_front')}
                                                 className="modern-quill-editor"
                                             />
                                         );
@@ -295,7 +295,7 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                             <div className="w-6 h-6 bg-blue-600 rounded-[3px] flex items-center justify-center text-white">
                                 <span className="text-[10px] font-black">2</span>
                             </div>
-                            <h4 className="text-[13px] font-black text-palette-maroon tracking-tight">Arka taraf settings</h4>
+                            <h4 className="text-[13px] font-black text-palette-maroon tracking-tight">{t('admin.post.back_settings')}</h4>
                         </div>
 
                         <div className="space-y-4">
@@ -353,21 +353,21 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                             <div className="space-y-1.5">
                                 <div className="flex items-center gap-1.5 ml-1">
                                     <Type size={12} className="text-palette-tan/50" />
-                                    <label className="text-[11px] font-black text-palette-tan uppercase tracking-widest">Arka başlık</label>
+                                    <label className="text-[11px] font-black text-palette-tan uppercase tracking-widest">{t('admin.post.back_title')}</label>
                                 </div>
                                 <input
                                     type="text"
                                     value={item.flipData?.backTitle || ''}
                                     onChange={(e) => updateFlipData('backTitle', e.target.value)}
                                     className="w-full h-10 bg-white border border-palette-tan/20 rounded-[3px] px-4 text-sm font-bold text-palette-maroon outline-none focus:border-palette-red transition-all shadow-sm"
-                                    placeholder="Örn: Ve işte büyük sürpriz!"
+                                    placeholder={t('admin.post.example_surprise')}
                                 />
                             </div>
 
                             <div className="space-y-1.5">
                                 <div className="flex items-center gap-1.5 ml-1">
                                     <LinkIcon size={12} className="text-palette-tan/50" />
-                                    <label className="text-[11px] font-black text-palette-tan uppercase tracking-widest">Arka Başlık Linki</label>
+                                    <label className="text-[11px] font-black text-palette-tan uppercase tracking-widest">{t('admin.post.back_link')}</label>
                                 </div>
                                 <input
                                     type="text"
@@ -381,7 +381,7 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                             <div className="space-y-1.5">
                                 <div className="flex items-center gap-1.5 ml-1">
                                     <FileText size={12} className="text-palette-tan/50" />
-                                    <label className="text-[11px] font-black text-palette-tan uppercase tracking-widest">Arka açıklama</label>
+                                    <label className="text-[11px] font-black text-palette-tan uppercase tracking-widest">{t('admin.post.back_description')}</label>
                                 </div>
                                 <div className="quill-modern-wrapper compact-quill border border-palette-tan/20 rounded-[3px] overflow-hidden focus-within:border-palette-red/40 transition-all shadow-sm bg-white">
                                     {(() => {
@@ -393,7 +393,7 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                                                 onChange={(content: string) => updateFlipData('backDescription', content)}
                                                 modules={FLIP_QUILL_MODULES}
                                                 formats={FLIP_QUILL_FORMATS}
-                                                placeholder="Kartın arka yüzünde görünecek açıklama..."
+                                                placeholder={t('admin.post.desc_placeholder_back')}
                                                 className="modern-quill-editor"
                                             />
                                         );
@@ -410,7 +410,7 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                         <div className="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500 text-white shadow-lg shadow-emerald-500/20">
                             <Sparkles size={14} />
                         </div>
-                        <h4 className="text-[12px] font-black text-palette-maroon uppercase tracking-[0.2em]">Canlı Önizleme</h4>
+                        <h4 className="text-[12px] font-black text-palette-maroon uppercase tracking-[0.2em]">{t('admin.post.live_preview')}</h4>
                     </div>
 
                     <div className="flex justify-center bg-palette-beige/5 rounded-[3px] p-8 border border-palette-tan/5 relative overflow-hidden">
@@ -443,7 +443,7 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                                             <div className="absolute bottom-0 left-0 w-full p-6 text-white text-left">
                                                 <div className="flex items-center gap-1.5 mb-2.5">
                                                     <span className="bg-blue-600 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg shadow-blue-600/20 animate-pulse">
-                                                        Tıkla & Çevir
+                                                        {t('admin.post.click_to_flip')}
                                                     </span>
                                                 </div>
                                                 {item.flipData?.frontLink ? (
@@ -467,7 +467,7 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                                                 )}
                                                 <div className="flex items-center gap-2 text-white/70 text-[10px] font-bold">
                                                     <RotateCw size={12} className="animate-spin-slow" />
-                                                    <span className="uppercase tracking-widest">Arkası için dokun</span>
+                                                    <span className="uppercase tracking-widest">{t('admin.post.flip_for_back')}</span>
                                                 </div>
                                             </div>
                                         </>
@@ -495,7 +495,7 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                                             )}
                                             <div className="flex items-center gap-2 bg-white text-palette-maroon px-5 py-2.5 rounded-full font-black text-[10px] uppercase tracking-[0.15em] shadow-xl hover:bg-palette-beige transition-colors">
                                                 <RotateCw size={12} className="animate-spin-slow" />
-                                                <span>Tıkla & Çevir</span>
+                                                <span>{t('admin.post.click_to_flip')}</span>
                                             </div>
                                         </div>
                                     )}
@@ -539,7 +539,7 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                                                 )}
                                                 <div className="flex items-center gap-2 text-white/70 text-[10px] font-bold">
                                                     <RotateCw size={12} className="animate-spin-slow" />
-                                                    <span className="uppercase tracking-widest text-[9px]">Geri Dön</span>
+                                                    <span className="uppercase tracking-widest text-[9px]">{t('admin.post.go_back')}</span>
                                                 </div>
                                             </div>
                                         </>
@@ -567,7 +567,7 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                                             )}
                                             <div className="flex items-center gap-2 bg-white text-black px-5 py-2.5 rounded-full font-black text-[10px] uppercase tracking-[0.15em] shadow-xl hover:bg-blue-50 transition-colors">
                                                 <RotateCw size={12} />
-                                                <span>Geri Dön</span>
+                                                <span>{t('admin.post.go_back')}</span>
                                             </div>
                                         </div>
                                     )}
@@ -588,7 +588,7 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                         className="text-[11px] font-black text-palette-tan/50 hover:text-palette-maroon transition-colors flex items-center gap-1.5 uppercase tracking-[0.15em]"
                     >
                         <Settings2 size={13} className={`transition-transform duration-300 ${showOptions ? 'rotate-90' : ''}`} />
-                        Ek ayarlar
+                        {t('admin.post.extra_settings_alt')}
                         <ChevronDown size={14} className={`transition-transform duration-300 ${showOptions ? 'rotate-180' : ''}`} />
                     </button>
 
@@ -606,7 +606,7 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                             </div>
 
                             <div className="space-y-1.5">
-                                <label className="text-[12px] font-black text-palette-tan ml-1 uppercase tracking-wider">Blok açıklaması (Alt metin)</label>
+                                <label className="text-[12px] font-black text-palette-tan ml-1 uppercase tracking-wider">{t('common.description')}</label>
                                 <div className="quill-modern-wrapper compact-quill border border-palette-tan/20 rounded-[3px] overflow-hidden focus-within:border-palette-red/40 transition-all shadow-sm bg-white">
                                     {(() => {
                                         const Quill: any = ReactQuill;
@@ -617,7 +617,7 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                                                 onChange={(content: string) => onUpdate(item.id, 'description', content)}
                                                 modules={QUILL_MODULES}
                                                 formats={QUILL_FORMATS}
-                                                placeholder="Bu blok hakkında kısa bir bilgi..."
+                                                placeholder={t('admin.post.block_info_help')}
                                                 className="modern-quill-editor"
                                             />
                                         );

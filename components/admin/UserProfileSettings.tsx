@@ -112,7 +112,7 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({ userId, onSuc
   if (loading) return (
     <div className="flex flex-col items-center justify-center h-[400px] gap-4">
       <Loader2 className="animate-spin text-palette-red" size={32} />
-      <span className="text-[13px] font-black tracking-widest text-palette-tan/40">Profil Verileri Yükleniyor</span>
+      <span className="text-[13px] font-black tracking-widest text-palette-tan/40">{t('admin.post.loading_profile')}</span>
     </div>
   );
 

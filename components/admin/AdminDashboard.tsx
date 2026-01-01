@@ -373,7 +373,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
                   <img src="https://picsum.photos/seed/admin/200" className="w-full h-full object-cover rounded-[3px]" alt={t('admin.header.my_account')} />
                 </div>
                 <div className="hidden sm:flex flex-col items-start text-left">
-                  <span className="text-sm font-bold text-palette-maroon leading-none">S. Yönetici</span>
+                  <span className="text-sm font-bold text-palette-maroon leading-none">{t('admin.user.super_admin')}</span>
                   <span className="text-[12px] text-palette-tan font-bold mt-0.5">{userRole}</span>
                 </div>
               </button>
@@ -442,7 +442,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
                           <stat.icon size={22} />
                         </div>
                         <span className="px-3 py-1 rounded-[3px] text-[13px] font-bold bg-palette-beige text-palette-maroon border border-palette-tan/25">
-                          {stat.change} İvme
+                          {stat.change} {t('admin.stats.acceleration')}
                         </span>
                       </div>
                       <h3 className="text-[32px] font-bold text-palette-tan mb-1 tracking-tight">
