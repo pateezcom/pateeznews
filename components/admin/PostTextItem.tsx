@@ -5,7 +5,7 @@ import { useLanguage } from '../../context/LanguageContext';
 
 export interface PostItem {
     id: string;
-    type?: 'text' | 'image' | 'slider' | 'video' | 'audio' | 'file' | 'social' | 'flipcard' | 'beforeafter' | 'poll';
+    type?: 'text' | 'image' | 'slider' | 'video' | 'audio' | 'file' | 'social' | 'flipcard' | 'beforeafter' | 'poll' | 'vs' | 'review';
     title: string;
     description: string;
     mediaUrl?: string;
@@ -28,6 +28,15 @@ export interface PostItem {
         afterImage: string;
         beforeLabel: string;
         afterLabel: string;
+    };
+    reviewData?: {
+        productName: string;
+        productImage: string;
+        score: number;
+        pros: string[];
+        cons: string[];
+        breakdown: { label: string; score: number }[];
+        verdict: string;
     };
     options?: {
         id: string;

@@ -10,6 +10,8 @@ import PostSocialItem from './PostSocialItem';
 import PostFlipCardItem from './PostFlipCardItem';
 import PostBeforeAfterItem from './PostBeforeAfterItem';
 import PostPollItem from './PostPollItem';
+import PostVSItem from './PostVSItem';
+import PostReviewItem from './PostReviewItem';
 import 'react-quill-new/dist/quill.snow.css';
 import { useDropzone } from 'react-dropzone';
 import { NavigationItem } from '../../types';
@@ -19,7 +21,7 @@ import {
     Save, FileText, Settings2, Search,
     Globe, Loader2, Share2,
     Calendar, Clock, SortAsc, SortDesc, Hash, Video, ShieldCheck, ListOrdered, Utensils, BarChart2,
-    Check, ChevronDown, ChevronRight, Edit3, Images, Film, Mic, Paperclip, RotateCw, ArrowLeftRight
+    Check, ChevronDown, ChevronRight, Edit3, Images, Film, Mic, Paperclip, RotateCw, ArrowLeftRight, Swords, Award
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { storageService, MediaItem } from '../../services/storageService';
@@ -1211,7 +1213,7 @@ const PostManagement: React.FC = () => {
                 { id: Math.random().toString(36).substr(2, 9), text: '', votes: 0, image: '' },
                 { id: Math.random().toString(36).substr(2, 9), text: '', votes: 0, image: '' }
             ],
-            isImagePoll: false,
+            isImagePoll: true,
             pollColumns: 2
         };
 
@@ -1238,6 +1240,74 @@ const PostManagement: React.FC = () => {
                 item.id === id ? { ...item, [field]: value } : item
             )
         }));
+    };
+
+    const handleAddVSItem = () => {
+        const newItem: PostItem = {
+            id: Math.random().toString(36).substr(2, 9),
+            type: 'vs',
+            title: '',
+            description: '',
+            orderNumber: 0,
+            options: [
+                { id: Math.random().toString(36).substr(2, 9), text: 'Sol Taraf', votes: 0, image: '' },
+                { id: Math.random().toString(36).substr(2, 9), text: 'Sağ Taraf', votes: 0, image: '' }
+            ],
+            isImagePoll: true,
+            pollColumns: 2
+        };
+
+        const newItems = [...formData.items, newItem];
+        let finalItems = newItems;
+        if (activeSort) {
+            finalItems = newItems.map((item, idx) => ({
+                ...item,
+                orderNumber: activeSort === 'asc' ? (idx + 1) : (newItems.length - idx)
+            }));
+        } else {
+            const nextOrder = formData.items.length > 0
+                ? Math.max(...formData.items.map(i => i.orderNumber || 0)) + 1
+                : 1;
+            finalItems[finalItems.length - 1].orderNumber = nextOrder;
+        }
+        setFormData({ ...formData, items: finalItems });
+    };
+
+    const handleAddReviewItem = () => {
+        const newItem: PostItem = {
+            id: Math.random().toString(36).substr(2, 9),
+            type: 'review',
+            title: '',
+            description: '',
+            orderNumber: 0,
+            reviewData: {
+                productName: '',
+                productImage: '',
+                score: 85,
+                pros: ['Artı özellikleri buraya ekleyin...'],
+                cons: ['Eksi özellikleri buraya ekleyin...'],
+                breakdown: [
+                    { label: 'Tasarım', score: 80 },
+                    { label: 'Performans', score: 80 }
+                ],
+                verdict: 'Nihai kararınızı buraya yazın...'
+            }
+        };
+
+        const newItems = [...formData.items, newItem];
+        let finalItems = newItems;
+        if (activeSort) {
+            finalItems = newItems.map((item, idx) => ({
+                ...item,
+                orderNumber: activeSort === 'asc' ? (idx + 1) : (newItems.length - idx)
+            }));
+        } else {
+            const nextOrder = formData.items.length > 0
+                ? Math.max(...formData.items.map(i => i.orderNumber || 0)) + 1
+                : 1;
+            finalItems[finalItems.length - 1].orderNumber = nextOrder;
+        }
+        setFormData({ ...formData, items: finalItems });
     };
 
     const handleRemoveItem = (id: string) => {
@@ -1759,6 +1829,82 @@ const PostManagement: React.FC = () => {
                                         setShowImageEditor(true);
                                     }}
                                 />
+                            ) : item.type === 'vs' ? (
+                                <PostVSItem
+                                    key={item.id}
+                                    item={item}
+                                    index={index}
+                                    totalItems={formData.items.length}
+                                    showBlockNumbers={showBlockNumbers}
+                                    onUpdate={handleUpdateItem}
+                                    onRemove={handleRemoveItem}
+                                    isDeletable={activeDetailTab !== 'article' || formData.items.length > 1}
+                                    onMoveUp={(idx) => handleMoveItem(idx, 'up')}
+                                    onMoveDown={(idx) => handleMoveItem(idx, 'down')}
+                                    onOpenFileManager={(id, subField, optionId) => {
+                                        setActiveMediaTarget(id);
+                                        setActiveMediaSubTarget(subField || null);
+                                        setActiveMediaOptionTarget(optionId || null);
+                                        setActiveMediaType('image');
+                                        fetchMedia('image');
+                                        setShowFileManager(true);
+                                    }}
+                                    onOpenUrlMode={(id, subField, optionId) => {
+                                        setActiveMediaTarget(id);
+                                        setActiveMediaSubTarget(subField || null);
+                                        setActiveMediaOptionTarget(optionId || null);
+                                        setActiveMediaType('image');
+                                        setTempUrl('');
+                                        setUrlError(null);
+                                        setIsUrlMode(true);
+                                    }}
+                                    onOpenImageEditor={(id, subField, optionId) => {
+                                        setActiveMediaTarget(id);
+                                        setActiveMediaSubTarget(subField || null);
+                                        setActiveMediaOptionTarget(optionId || null);
+                                        editorSaveInFlightRef.current = false;
+                                        setIsEditorSaving(false);
+                                        setShowImageEditor(true);
+                                    }}
+                                />
+                            ) : item.type === 'review' ? (
+                                <PostReviewItem
+                                    key={item.id}
+                                    item={item}
+                                    index={index}
+                                    totalItems={formData.items.length}
+                                    showBlockNumbers={showBlockNumbers}
+                                    onUpdate={handleUpdateItem}
+                                    onRemove={handleRemoveItem}
+                                    isDeletable={activeDetailTab !== 'article' || formData.items.length > 1}
+                                    onMoveUp={(idx) => handleMoveItem(idx, 'up')}
+                                    onMoveDown={(idx) => handleMoveItem(idx, 'down')}
+                                    onOpenFileManager={(id, subField, optionId) => {
+                                        setActiveMediaTarget(id);
+                                        setActiveMediaSubTarget(subField || null);
+                                        setActiveMediaOptionTarget(optionId || null);
+                                        setActiveMediaType('image');
+                                        fetchMedia('image');
+                                        setShowFileManager(true);
+                                    }}
+                                    onOpenUrlMode={(id, subField, optionId) => {
+                                        setActiveMediaTarget(id);
+                                        setActiveMediaSubTarget(subField || null);
+                                        setActiveMediaOptionTarget(optionId || null);
+                                        setActiveMediaType('image');
+                                        setTempUrl('');
+                                        setUrlError(null);
+                                        setIsUrlMode(true);
+                                    }}
+                                    onOpenImageEditor={(id, subField, optionId) => {
+                                        setActiveMediaTarget(id);
+                                        setActiveMediaSubTarget(subField || null);
+                                        setActiveMediaOptionTarget(optionId || null);
+                                        editorSaveInFlightRef.current = false;
+                                        setIsEditorSaving(false);
+                                        setShowImageEditor(true);
+                                    }}
+                                />
                             ) : (
                                 <PostTextItem
                                     key={item.id}
@@ -1845,6 +1991,20 @@ const PostManagement: React.FC = () => {
                             >
                                 <BarChart2 size={14} className="shrink-0" />
                                 <span className="leading-none mt-[1px]">Anket ekle</span>
+                            </button>
+                            <button
+                                onClick={handleAddVSItem}
+                                className="flex items-center justify-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-rose-600/10 leading-none"
+                            >
+                                <Swords size={14} className="shrink-0" />
+                                <span className="leading-none mt-[1px]">VS ekle</span>
+                            </button>
+                            <button
+                                onClick={handleAddReviewItem}
+                                className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-emerald-600/10 leading-none"
+                            >
+                                <Award size={14} className="shrink-0" />
+                                <span className="leading-none mt-[1px]">İnceleme ekle</span>
                             </button>
                         </div>
 
