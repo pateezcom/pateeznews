@@ -1,26 +1,6 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '../../lib/supabase';
-import {
-  Users2,
-  Search,
-  Plus,
-  CheckCircle2,
-  X,
-  Save,
-  Loader2,
-  ShieldCheck,
-  Fingerprint,
-  Mail,
-  Lock,
-  User as UserIcon,
-  ChevronDown,
-  AlertTriangle,
-  MoreVertical,
-  Edit3,
-  UserCog,
-  Trash2
-} from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
 interface Profile {
@@ -225,7 +205,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
 
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-3 px-4 py-2 bg-palette-beige/40 border border-palette-tan/20 rounded-[3px] shadow-sm w-full max-w-md focus-within:ring-4 focus-within:ring-palette-tan/5 focus-within:border-palette-tan focus-within:bg-white transition-all group">
-            <Search size={16} className="text-palette-tan/30 group-focus-within:text-palette-tan transition-colors" />
+            <span className="material-symbols-rounded text-palette-tan/30 group-focus-within:text-palette-tan transition-colors" style={{ fontSize: '16px' }}>search</span>
             <input
               type="text"
               placeholder={t('users.search_placeholder')}
@@ -239,7 +219,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
             onClick={() => setShowAddModal(true)}
             className="h-10 px-10 bg-palette-red text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-primary-600 transition-all shadow-lg active:scale-95 flex items-center gap-2 whitespace-nowrap"
           >
-            <Plus size={16} strokeWidth={3} />
+            <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>add</span>
             <span>{t('users.add_new')}</span>
           </button>
         </div>
@@ -247,7 +227,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
 
       {errorMsg && (
         <div className="mb-6 p-4 bg-palette-red/5 border border-palette-red/30 rounded-[3px] flex items-center gap-4 text-palette-red">
-          <AlertTriangle size={20} />
+          <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>report</span>
           <div className="text-sm font-bold tracking-wider">{t('common.error')}: {errorMsg}</div>
         </div>
       )}
@@ -280,16 +260,16 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
                     user.role === 'moderator' ? 'bg-palette-maroon/5 text-palette-maroon border-palette-maroon/20' :
                       'bg-palette-tan/5 text-palette-tan border-palette-tan/20'
                     }`}>
-                    <ShieldCheck size={12} />
+                    <span className="material-symbols-rounded" style={{ fontSize: '12px' }}>verified_user</span>
                     {getRoleLabel(user.role)}
                   </div>
                 </td>
                 <td className="px-8 py-5 text-right relative overflow-visible">
                   <button
                     onClick={(e) => { e.stopPropagation(); setOpenDropdownId(openDropdownId === user.id ? null : user.id); }}
-                    className={`p-2 rounded-[3px] transition-all active:scale-90 shadow-sm ${openDropdownId === user.id ? 'bg-palette-maroon text-white' : 'bg-palette-beige/50 text-palette-tan/40 hover:bg-palette-tan hover:text-white'}`}
+                    className={`p-2 rounded-[3px] transition-all active:scale-90 shadow-sm flex items-center justify-center ${openDropdownId === user.id ? 'bg-palette-maroon text-white' : 'bg-palette-beige/50 text-palette-tan/40 hover:bg-palette-tan hover:text-white'}`}
                   >
-                    <MoreVertical size={16} />
+                    <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>more_vert</span>
                   </button>
 
                   {openDropdownId === user.id && (
@@ -298,14 +278,14 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
                         onClick={() => { onEditUser(user.id); setOpenDropdownId(null); }}
                         className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-bold text-palette-tan hover:bg-palette-beige/50 hover:text-palette-maroon transition-colors text-left"
                       >
-                        <Edit3 size={14} className="text-palette-tan/30" />
+                        <span className="material-symbols-rounded text-palette-tan/30" style={{ fontSize: '14px' }}>edit_square</span>
                         {t('users.actions.edit')}
                       </button>
                       <button
                         onClick={() => { setSelectedUser(user); setShowRoleModal(true); setOpenDropdownId(null); }}
                         className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-bold text-palette-tan hover:bg-palette-beige/50 hover:text-palette-maroon transition-colors text-left"
                       >
-                        <UserCog size={14} className="text-palette-tan/30" />
+                        <span className="material-symbols-rounded text-palette-tan/30" style={{ fontSize: '14px' }}>manage_accounts</span>
                         {t('users.actions.role')}
                       </button>
                       <div className="h-px bg-palette-tan/10 mx-4 my-1"></div>
@@ -313,7 +293,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
                         onClick={() => { handleDeleteUser(user); setOpenDropdownId(null); }}
                         className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-bold text-palette-red hover:bg-palette-red/5 transition-colors text-left"
                       >
-                        <Trash2 size={14} />
+                        <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>delete</span>
                         {t('users.actions.delete')}
                       </button>
                     </div>
@@ -326,7 +306,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
 
         {filteredUsers.length === 0 && (
           <div className="p-20 text-center text-palette-tan/30">
-            <Users2 size={40} className="mx-auto mb-4 opacity-20" />
+            <span className="material-symbols-rounded mx-auto mb-4 opacity-20" style={{ fontSize: '40px' }}>group</span>
             <p className="text-[13px] font-black tracking-widest">{t('users.empty_state')}</p>
             <p className="text-[11px] mt-2 font-medium">{t('users.sql_notice')}</p>
           </div>
@@ -340,11 +320,11 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
             <div className="px-8 py-6 border-b border-palette-tan/15 flex items-center justify-between bg-palette-beige/10">
               <h3 className="text-[20px] font-black text-palette-maroon tracking-tight flex items-center gap-3">
                 <div className="w-8 h-8 bg-palette-red rounded-[3px] flex items-center justify-center text-white shadow-lg shadow-palette-red/20">
-                  <Plus size={18} strokeWidth={3} />
+                  <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>add</span>
                 </div>
                 {t('users.form.title')}
               </h3>
-              <button onClick={() => setShowAddModal(false)} className="p-1 text-palette-tan/40 hover:text-palette-red transition-colors"><X size={20} /></button>
+              <button onClick={() => setShowAddModal(false)} className="p-1 text-palette-tan/40 hover:text-palette-red transition-colors flex items-center justify-center"><span className="material-symbols-rounded" style={{ fontSize: '20px' }}>close</span></button>
             </div>
 
             <form onSubmit={handleAddUser} className="p-8 space-y-5">
@@ -352,7 +332,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
                 <div className="space-y-1.5">
                   <label className="text-[13px] font-black text-palette-tan/50 ml-1">{t('users.form.full_name')}</label>
                   <div className="relative group">
-                    <UserIcon className={iconClasses} size={14} />
+                    <span className="material-symbols-rounded absolute left-4 top-1/2 -translate-y-1/2 text-palette-tan/40 group-focus-within:text-palette-tan transition-colors" style={{ fontSize: '14px' }}>person</span>
                     <input type="text" required value={newUser.full_name} onChange={e => setNewUser({ ...newUser, full_name: e.target.value })} className={inputClasses} />
                   </div>
                 </div>
@@ -368,7 +348,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
               <div className="space-y-1.5">
                 <label className="text-[13px] font-black text-palette-tan/50 ml-1">{t('users.form.email')}</label>
                 <div className="relative group">
-                  <Mail className={iconClasses} size={14} />
+                  <span className="material-symbols-rounded absolute left-4 top-1/2 -translate-y-1/2 text-palette-tan/40 group-focus-within:text-palette-tan transition-colors" style={{ fontSize: '14px' }}>mail</span>
                   <input type="email" required value={newUser.email} onChange={e => setNewUser({ ...newUser, email: e.target.value })} className={inputClasses} />
                 </div>
               </div>
@@ -376,7 +356,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
               <div className="space-y-1.5">
                 <label className="text-[13px] font-black text-palette-tan/50 ml-1">{t('users.form.password')}</label>
                 <div className="relative group">
-                  <Lock className={iconClasses} size={14} />
+                  <span className="material-symbols-rounded absolute left-4 top-1/2 -translate-y-1/2 text-palette-tan/40 group-focus-within:text-palette-tan transition-colors" style={{ fontSize: '14px' }}>lock</span>
                   <input type="password" required value={newUser.password} onChange={e => setNewUser({ ...newUser, password: e.target.value })} className={inputClasses} minLength={6} />
                 </div>
               </div>
@@ -387,13 +367,13 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
                   <select value={newUser.role} onChange={e => setNewUser({ ...newUser, role: e.target.value })} className={`${inputClasses} appearance-none px-4 pl-4`}>
                     {roles.map(r => <option key={r.id} value={r.name}>{r.label}</option>)}
                   </select>
-                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-palette-tan/30" size={16} />
+                  <span className="material-symbols-rounded absolute right-4 top-1/2 -translate-y-1/2 text-palette-tan/30" style={{ fontSize: '16px' }}>expand_more</span>
                 </div>
               </div>
 
               <div className="pt-4">
                 <button type="submit" disabled={saving} className="w-full h-12 bg-palette-tan text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-maroon shadow-xl active:scale-95 flex items-center justify-center gap-3 transition-all">
-                  {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                  {saving ? <span className="material-symbols-rounded animate-spin" style={{ fontSize: '16px' }}>progress_activity</span> : <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>save</span>}
                   <span>{t('users.form.add_btn')}</span>
                 </button>
               </div>
@@ -410,13 +390,13 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
             <div className="px-8 py-6 border-b border-palette-tan/15 flex items-center justify-between bg-palette-beige/10">
               <div className="flex items-center gap-4">
                 <div className="w-8 h-8 bg-palette-maroon rounded-[3px] flex items-center justify-center text-white shadow-lg">
-                  <Fingerprint size={18} />
+                  <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>fingerprint</span>
                 </div>
                 <div>
                   <h3 className="text-xl font-black text-palette-maroon leading-none">{t('users.role_modal.title')}</h3>
                 </div>
               </div>
-              <button onClick={() => setShowRoleModal(false)} className="p-1 text-palette-tan/40 hover:text-palette-red transition-colors"><X size={20} /></button>
+              <button onClick={() => setShowRoleModal(false)} className="p-1 text-palette-tan/40 hover:text-palette-red transition-colors flex items-center justify-center"><span className="material-symbols-rounded" style={{ fontSize: '20px' }}>close</span></button>
             </div>
 
             <div className="p-8 space-y-6">
@@ -443,10 +423,10 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
                         }`}
                     >
                       <div className="flex items-center gap-3">
-                        <ShieldCheck size={18} className={selectedUser.role === role.name ? 'text-white' : 'text-palette-tan/30'} />
+                        <span className="material-symbols-rounded" style={{ fontSize: '18px', color: selectedUser.role === role.name ? 'white' : 'rgba(var(--palette-tan-rgb), 0.3)' }}>verified_user</span>
                         <span className="text-[13px] font-black tracking-widest">{role.label}</span>
                       </div>
-                      {selectedUser.role === role.name && <CheckCircle2 size={18} />}
+                      {selectedUser.role === role.name && <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>check_circle</span>}
                     </button>
                   ))}
                 </div>
@@ -455,14 +435,14 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
 
             <div className="px-8 py-6 border-t border-palette-tan/15 bg-palette-beige/10 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                {success && <div className="flex items-center gap-1 text-emerald-600 text-[12px] font-black tracking-wider animate-in fade-in zoom-in"><CheckCircle2 size={12} /> {t('common.updated')}</div>}
+                {success && <div className="flex items-center gap-1 text-emerald-600 text-[12px] font-black tracking-wider animate-in fade-in zoom-in"><span className="material-symbols-rounded" style={{ fontSize: '12px' }}>check_circle</span> {t('common.updated')}</div>}
               </div>
               <button
                 onClick={handleUpdateRole}
                 disabled={saving}
                 className="flex items-center gap-2 px-8 py-3 bg-palette-maroon text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-black transition-all shadow-xl active:scale-95 disabled:opacity-40"
               >
-                {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                {saving ? <span className="material-symbols-rounded animate-spin" style={{ fontSize: '14px' }}>progress_activity</span> : <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>save</span>}
                 <span>{t('users.role_modal.submit')}</span>
               </button>
             </div>
@@ -476,7 +456,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
           <div className="absolute inset-0 bg-palette-maroon/40 backdrop-blur-sm animate-in fade-in" onClick={() => !saving && setShowDeleteModal(false)} />
           <div className="relative bg-white rounded-[3px] shadow-[0_20px_70px_rgba(0,0,0,0.2)] w-full max-w-sm overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 p-8 text-center">
             <div className="w-20 h-20 bg-red-50 text-palette-red rounded-[3px] flex items-center justify-center mx-auto mb-6 shadow-inner">
-              <Trash2 size={32} />
+              <span className="material-symbols-rounded" style={{ fontSize: '32px' }}>delete</span>
             </div>
             <h3 className="text-[22px] font-black text-palette-maroon tracking-tight mb-3">{t('users.delete_title')}</h3>
             <p className="text-sm font-bold text-palette-tan/60 leading-relaxed mb-8">
@@ -489,7 +469,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
                 disabled={saving}
                 className="w-full h-12 bg-palette-red text-white rounded-[3px] font-black text-[14px] tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-palette-red/20 flex items-center justify-center gap-2"
               >
-                {saving ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                {saving ? <span className="material-symbols-rounded animate-spin" style={{ fontSize: '16px' }}>progress_activity</span> : <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>delete</span>}
                 {t('common.delete_kalici')}
               </button>
               <button
@@ -510,7 +490,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
           <div className="absolute inset-0 bg-palette-maroon/20 backdrop-blur-[2px] animate-in fade-in" onClick={() => setStatusModal({ ...statusModal, show: false })} />
           <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-xs overflow-hidden animate-in slide-in-from-bottom-4 border border-palette-tan/15 p-8 text-center">
             <div className={`w-16 h-16 rounded-[3px] flex items-center justify-center mx-auto mb-6 ${statusModal.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
-              {statusModal.type === 'error' ? <X size={28} strokeWidth={3} /> : <CheckCircle2 size={28} strokeWidth={3} />}
+              {statusModal.type === 'error' ? <span className="material-symbols-rounded" style={{ fontSize: '28px' }}>close</span> : <span className="material-symbols-rounded" style={{ fontSize: '28px' }}>check_circle</span>}
             </div>
             <p className="text-base font-black text-palette-maroon mb-8 leading-relaxed">{statusModal.message}</p>
             <button

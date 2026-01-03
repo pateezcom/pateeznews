@@ -1,103 +1,50 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import {
-  TrendingUp,
-  Award,
-  Clapperboard,
-  Gamepad2,
-  Heart,
-  Microscope,
-  Globe,
-  Smartphone,
-  ChevronRight,
-  MapPin,
-  ChevronDown,
-  ChevronUp,
-  Flag,
-  CheckCircle2,
-  List,
-  LayoutGrid,
-  Zap
-} from 'lucide-react';
 import Footer from './Footer';
 import { useLanguage } from '../context/LanguageContext';
 import { NavigationItem } from '../types';
 
-const ICON_MAP: Record<string, any> = {
-  TrendingUp, Award, Clapperboard, Gamepad2, Heart, Microscope, Globe, Smartphone,
-  MapPin, Flag, List, CheckCircle2, LayoutGrid, Zap
-};
-
 interface SidebarProps {
-  onPublishersClick?: () => void;
-  onPublisherItemClick?: (name: string) => void;
-  onStoriesClick?: () => void;
-  onCategoriesTitleClick?: () => void;
-  onCategoryItemClick?: (label: string) => void;
   items?: NavigationItem[];
+  onPublisherItemClick?: (name: string) => void;
+  onCategoryItemClick?: (category: string) => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({
-  onPublishersClick,
-  onPublisherItemClick,
-  onStoriesClick,
-  onCategoriesTitleClick,
-  onCategoryItemClick,
-  items: propItems
-}) => {
-  const [items, setItems] = useState<NavigationItem[]>(propItems || []);
+const Sidebar: React.FC<SidebarProps> = ({ items: propItems, onPublisherItemClick, onCategoryItemClick }) => {
+  const { currentLang, t } = useLanguage();
+  const [items, setItems] = useState<NavigationItem[]>([]);
   const [activeParentTop, setActiveParentTop] = useState<string | null>(localStorage.getItem('buzz_active_parent_top'));
   const [activeParentCat, setActiveParentCat] = useState<string | null>(localStorage.getItem('buzz_active_parent_cat'));
-
   const [selections, setSelections] = useState<Record<string, string>>(() => {
     const saved = localStorage.getItem('buzz_sidebar_context');
     return saved ? JSON.parse(saved) : {};
   });
 
-  const { t } = useLanguage();
-
   const publishers = [
     { name: 'Buzz Tech', img: 'https://picsum.photos/seed/tech/100' },
     { name: 'Buzz Culture', img: 'https://picsum.photos/seed/culture/100' },
-    { name: 'Buzz History', img: 'https://picsum.photos/seed/history/100' },
-    { name: 'Buzz Gaming', img: 'https://picsum.photos/seed/gaming/100' },
+    { name: 'Buzz Business', img: 'https://picsum.photos/seed/business/100' },
+    { name: 'Buzz Sport', img: 'https://picsum.photos/seed/sport/100' },
+    { name: 'Buzz Science', img: 'https://picsum.photos/seed/science/100' },
   ];
 
   useEffect(() => {
-    let mounted = true;
-    if (propItems && propItems.length > 0) {
+    if (propItems) {
       setItems(propItems);
-      return;
     }
-    const fetchNavigation = async () => {
-      try {
-        const { data: menuData } = await supabase
-          .from('navigation_menus')
-          .select('id')
-          .eq('code', 'sidebar_main')
-          .limit(1)
-          .maybeSingle();
-
-        if (menuData && mounted) {
-          const { data: itemsData } = await supabase
-            .from('navigation_items')
-            .select('*')
-            .eq('menu_id', menuData.id)
-            .order('order_index');
-          if (itemsData && mounted) setItems(itemsData);
-        }
-      } catch (e) {
-        console.error("Sidebar fetch error:", e);
-      }
-    };
-    fetchNavigation();
-    return () => { mounted = false; };
   }, [propItems]);
 
   const renderIcon = (iconName: string, size = 18) => {
-    const Icon = ICON_MAP[iconName] || List;
-    return <Icon size={size} />;
+    if (!iconName) return null;
+    return (
+      <span
+        className="material-symbols-rounded"
+        style={{ fontSize: `${size}px`, fontVariationSettings: "'FILL' 0, 'wght' 400" }}
+      >
+        {iconName.toLowerCase()}
+      </span>
+    );
   };
 
   const handleItemClick = (item: NavigationItem) => {
@@ -117,8 +64,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   const selectedCity = items.find(i => i.id === selectedCityId);
 
   // Dynamic Category Items:
-  // If a city is selected, show its children as the main list in the category section.
-  // Otherwise, show default top-level categories.
   const dynamicCategoryItems = selectedCityId
     ? getChildren(selectedCityId)
     : items.filter(i => !i.parent_id && i.id !== cityRoot?.id);
@@ -141,35 +86,45 @@ const Sidebar: React.FC<SidebarProps> = ({
             >
               <div className="flex items-center gap-3">
                 <div className={`transition-colors ${selectedCityId ? 'text-palette-red' : 'text-palette-tan/20'}`}>
-                  <MapPin size={20} strokeWidth={2.5} />
+                  <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>location_on</span>
                 </div>
                 <span className={`text-[13px] font-bold ${selectedCityId ? 'text-gray-900' : 'text-palette-tan/60'}`}>
                   {selectedCity ? selectedCity.label : cityRoot.label}
                 </span>
               </div>
-              <ChevronDown size={14} className={`text-palette-tan/20 transition-transform ${activeParentTop === cityRoot.id ? 'rotate-180' : ''}`} />
+              <span className={`material-symbols-rounded text-palette-tan/20 transition-transform ${activeParentTop === cityRoot.id ? 'rotate-180' : ''}`} style={{ fontSize: '20px' }}>expand_more</span>
             </button>
 
             {activeParentTop === cityRoot.id && (
               <div className="mt-1 ml-9 flex flex-col items-start gap-1 border-l border-palette-beige py-1 animate-in fade-in slide-in-from-top-1">
-                {getChildren(cityRoot.id).map(child => (
-                  <button
-                    key={child.id}
-                    onClick={() => {
-                      handleItemClick(child);
-                      const newSelections = { ...selections, [cityRoot.id]: child.id };
-                      setSelections(newSelections);
-                      localStorage.setItem('buzz_sidebar_context', JSON.stringify(newSelections));
-                      setActiveParentTop(null);
-                      localStorage.removeItem('buzz_active_parent_top');
-                      // Reset active cat expansion when switching city
-                      setActiveParentCat(null);
-                    }}
-                    className={`text-[12px] font-bold px-3 py-1.5 transition-colors w-full text-left rounded-lg ${selectedCityId === child.id ? 'text-palette-red bg-palette-red/5' : 'text-palette-tan/40 hover:text-palette-tan hover:bg-palette-beige/5'}`}
-                  >
-                    {child.label}
-                  </button>
-                ))}
+                {getChildren(cityRoot.id).map(child => {
+                  if (child.type === 'header') {
+                    return (
+                      <div key={child.id} className="px-3 py-1.5 pt-3">
+                        <span className="text-[10px] font-black text-palette-tan/40 uppercase tracking-widest">
+                          {child.label}
+                        </span>
+                      </div>
+                    );
+                  }
+                  return (
+                    <button
+                      key={child.id}
+                      onClick={() => {
+                        handleItemClick(child);
+                        const newSelections = { ...selections, [cityRoot.id]: child.id };
+                        setSelections(newSelections);
+                        localStorage.setItem('buzz_sidebar_context', JSON.stringify(newSelections));
+                        setActiveParentTop(null);
+                        localStorage.removeItem('buzz_active_parent_top');
+                        setActiveParentCat(null);
+                      }}
+                      className={`text-[12px] font-bold px-3 py-1.5 transition-colors w-full text-left rounded-lg ${selectedCityId === child.id ? 'text-palette-red bg-palette-red/5' : 'text-palette-tan/40 hover:text-palette-tan hover:bg-palette-beige/5'}`}
+                    >
+                      {child.label}
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -198,66 +153,81 @@ const Sidebar: React.FC<SidebarProps> = ({
       {/* 3. CATEGORIES (DYNAMIC SECTION) */}
       <div className="px-3">
         <h3 className="text-[10px] font-black text-palette-tan/20 uppercase tracking-[0.2em] mb-3">{t('sidebar.categories')}</h3>
-        <div className="flex flex-col gap-0.5">
-          {dynamicCategoryItems.map((item) => {
-            const children = getChildren(item.id);
-            const isExpanded = activeParentCat === item.id;
-            const selectedChildId = selections[item.id];
-            const selectedChild = children.find(c => c.id === selectedChildId);
-            const isSelected = !!selectedChildId;
 
-            return (
-              <div key={item.id} className="w-full">
-                <button
-                  onClick={() => {
-                    if (children.length > 0) {
-                      const next = isExpanded ? null : item.id;
-                      setActiveParentCat(next);
-                      if (next) localStorage.setItem('buzz_active_parent_cat', next);
-                      else localStorage.removeItem('buzz_active_parent_cat');
-                    } else {
-                      handleItemClick(item);
-                    }
-                  }}
-                  className={`w-full flex items-center justify-between py-2.5 px-3 rounded-xl transition-all ${isSelected ? 'bg-palette-red/5' : 'hover:bg-palette-beige/10'
-                    }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`transition-colors ${isSelected ? 'text-palette-red' : 'text-palette-tan/20'}`}>
-                      {renderIcon(item.icon, 19)}
-                    </div>
-                    <span className={`text-[13px] font-bold ${isSelected ? 'text-gray-900' : 'text-palette-tan/60'}`}>
-                      {selectedChild && !isExpanded ? selectedChild.label : item.label}
+        <div className="flex flex-col gap-0.5">
+          {dynamicCategoryItems
+            .filter(item => {
+              const label = item.label.toLowerCase();
+              return label !== 'gündem' && label !== 'video';
+            })
+            .map((item) => {
+              if (item.type === 'header') {
+                return (
+                  <div key={item.id} className="pt-4 pb-2 px-3">
+                    <span className="text-[10px] font-black text-palette-tan/40 uppercase tracking-widest">
+                      {item.label}
                     </span>
                   </div>
-                  {children.length > 0 && (
-                    <ChevronDown size={14} className={`text-palette-tan/20 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-                  )}
-                </button>
+                );
+              }
 
-                {isExpanded && children.length > 0 && (
-                  <div className="mt-1 ml-9 flex flex-col items-start gap-1 border-l border-palette-beige py-1 animate-in fade-in slide-in-from-top-1">
-                    {children.map(child => (
-                      <button
-                        key={child.id}
-                        onClick={() => {
-                          handleItemClick(child);
-                          const newSelections = { ...selections, [item.id]: child.id };
-                          setSelections(newSelections);
-                          localStorage.setItem('buzz_sidebar_context', JSON.stringify(newSelections));
-                          setActiveParentCat(null);
-                          localStorage.removeItem('buzz_active_parent_cat');
-                        }}
-                        className={`text-[12px] font-bold px-3 py-1.5 transition-colors w-full text-left rounded-lg ${selectedChildId === child.id ? 'text-palette-red bg-palette-red/5' : 'text-palette-tan/40 hover:text-palette-tan hover:bg-palette-beige/5'}`}
-                      >
-                        {child.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+              const children = getChildren(item.id);
+              const isExpanded = activeParentCat === item.id;
+              const selectedChildId = selections[item.id];
+              const selectedChild = children.find(c => c.id === selectedChildId);
+              const isSelected = !!selectedChildId;
+
+              return (
+                <div key={item.id} className="w-full">
+                  <button
+                    onClick={() => {
+                      if (children.length > 0) {
+                        const next = isExpanded ? null : item.id;
+                        setActiveParentCat(next);
+                        if (next) localStorage.setItem('buzz_active_parent_cat', next);
+                        else localStorage.removeItem('buzz_active_parent_cat');
+                      } else {
+                        handleItemClick(item);
+                      }
+                    }}
+                    className={`w-full flex items-center justify-between py-2.5 px-3 rounded-xl transition-all ${isSelected ? 'bg-palette-red/5' : 'hover:bg-palette-beige/10'}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`transition-colors ${isSelected ? 'text-palette-red' : 'text-palette-tan/20'}`}>
+                        {renderIcon(item.icon, 19)}
+                      </div>
+                      <span className={`text-[13px] font-bold ${isSelected ? 'text-gray-900' : 'text-palette-tan/60'}`}>
+                        {selectedChild && !isExpanded ? selectedChild.label : item.label}
+                      </span>
+                    </div>
+                    {children.length > 0 && (
+                      <span className={`material-symbols-rounded text-palette-tan/20 transition-transform ${isExpanded ? 'rotate-180' : ''}`} style={{ fontSize: '20px' }}>expand_more</span>
+                    )}
+                  </button>
+
+                  {isExpanded && children.length > 0 && (
+                    <div className="mt-1 ml-9 flex flex-col items-start gap-1 border-l border-palette-beige py-1 animate-in fade-in slide-in-from-top-1">
+                      {children.map(child => (
+                        <button
+                          key={child.id}
+                          onClick={() => {
+                            handleItemClick(child);
+                            const newSelections = { ...selections, [item.id]: child.id };
+                            setSelections(newSelections);
+                            localStorage.setItem('buzz_sidebar_context', JSON.stringify(newSelections));
+                            setActiveParentCat(null);
+                            localStorage.removeItem('buzz_active_parent_cat');
+                          }}
+                          className={`text-[12px] font-bold px-3 py-1.5 transition-colors w-full text-left rounded-lg ${selectedChildId === child.id ? 'text-palette-red bg-palette-red/5' : 'text-palette-tan/40 hover:text-palette-tan hover:bg-palette-beige/5'}`}
+                        >
+                          {child.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
         </div>
       </div>
 

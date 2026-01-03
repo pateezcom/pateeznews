@@ -14,17 +14,10 @@ import PostVSItem from './PostVSItem';
 import PostReviewItem from './PostReviewItem';
 import PostQuoteItem from './PostQuoteItem';
 import PostIframeItem from './PostIframeItem';
+import PostQuizItem from './PostQuizItem';
 import 'react-quill-new/dist/quill.snow.css';
 import { useDropzone } from 'react-dropzone';
 import { NavigationItem } from '../../types';
-import {
-    X, Upload, ImageIcon, Zap, Languages, Layout, Trash2, CheckCircle2,
-    Plus, Image as LucideImage, Type, List,
-    Save, FileText, Settings2, Search,
-    Globe, Loader2, Share2,
-    Calendar, Clock, SortAsc, SortDesc, Hash, Video, ShieldCheck, ListOrdered, Utensils, BarChart2,
-    Check, ChevronDown, ChevronRight, Edit3, Images, Film, Mic, Paperclip, RotateCw, ArrowLeftRight, Swords, Award, Quote
-} from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { storageService, MediaItem } from '../../services/storageService';
 import { useLanguage } from '../../context/LanguageContext';
@@ -521,12 +514,30 @@ const PostManagement: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        if (activeDetailTab === 'article' && formData.items.length === 0) {
-            handleAddItem();
-        } else if (activeDetailTab === 'poll') {
-            // Poll sekmesine tıklandığında metin itemi olmayacak ve en az bir poll olacak
+        if (activeDetailTab === 'article') {
+            const hasQuiz = formData.items.some(item => item.type === 'quiz' as any);
             const hasPoll = formData.items.some(item => item.type === 'poll');
-            if (!hasPoll || formData.items.length > 1 || formData.items.some(item => item.type !== 'poll')) {
+            const hasVideo = formData.items.some(item => item.type === 'video');
+
+            // Eğer özel bir tabdan (Quiz/Poll/Video) Article'a geçiliyorsa veya boşsa temizleyip metin bloğu ekle
+            if (hasQuiz || (formData.items.length === 1 && (hasPoll || hasVideo)) || formData.items.length === 0) {
+                if (hasQuiz || hasPoll || hasVideo || formData.items.length === 0) {
+                    const newItem: PostItem = {
+                        id: Math.random().toString(36).substr(2, 9),
+                        type: 'text',
+                        title: '',
+                        description: '',
+                        mediaUrl: '',
+                        createdAt: Date.now(),
+                        orderNumber: 1
+                    };
+                    setFormData(prev => ({ ...prev, items: [newItem] }));
+                }
+            }
+        } else if (activeDetailTab === 'poll') {
+            const hasPoll = formData.items.some(item => item.type === 'poll');
+            const onlyPoll = formData.items.length === 1 && hasPoll;
+            if (!onlyPoll) {
                 const pollItem: PostItem = {
                     id: Math.random().toString(36).substr(2, 9),
                     type: 'poll',
@@ -543,9 +554,9 @@ const PostManagement: React.FC = () => {
                 setFormData(prev => ({ ...prev, items: [pollItem] }));
             }
         } else if (activeDetailTab === 'video') {
-            // Video sekmesine tıklandığında sadece bir video itemi olacak
             const hasVideo = formData.items.some(item => item.type === 'video');
-            if (!hasVideo || formData.items.length > 1 || formData.items.some(item => item.type !== 'video')) {
+            const onlyVideo = formData.items.length === 1 && hasVideo;
+            if (!onlyVideo) {
                 const videoItem: PostItem = {
                     id: Math.random().toString(36).substr(2, 9),
                     type: 'video',
@@ -556,6 +567,42 @@ const PostManagement: React.FC = () => {
                     orderNumber: 1
                 };
                 setFormData(prev => ({ ...prev, items: [videoItem] }));
+            }
+        } else if (activeDetailTab === 'quiz') {
+            const hasQuiz = formData.items.some(item => item.type === 'quiz' as any);
+            const onlyQuiz = formData.items.length === 1 && hasQuiz;
+            if (!onlyQuiz) {
+                const quizItem: PostItem = {
+                    id: Math.random().toString(36).substr(2, 9),
+                    type: 'quiz' as any,
+                    title: '',
+                    description: '',
+                    orderNumber: 1,
+                    quizData: {
+                        quizType: 'personality',
+                        results: [
+                            { id: Math.random().toString(36).substr(2, 9), title: '', description: '', image: '' }
+                        ],
+                        questions: [
+                            {
+                                id: Math.random().toString(36).substr(2, 9),
+                                title: '',
+                                description: '',
+                                image: '',
+                                showOnCover: true,
+                                layout: 'list',
+                                answers: [
+                                    { id: Math.random().toString(36).substr(2, 9), text: '', image: '', resultId: '' },
+                                    { id: Math.random().toString(36).substr(2, 9), text: '', image: '', resultId: '' }
+                                ]
+                            }
+                        ],
+                        questionSorting: 'asc',
+                        showResults: true,
+                        allowMultiple: false
+                    }
+                };
+                setFormData(prev => ({ ...prev, items: [quizItem] }));
             }
         }
     }, [activeDetailTab]);
@@ -1397,7 +1444,7 @@ const PostManagement: React.FC = () => {
     };
 
     const handleRemoveItem = (id: string) => {
-        if ((activeDetailTab === 'article' || activeDetailTab === 'poll' || activeDetailTab === 'video') && formData.items.length <= 1) return;
+        if ((activeDetailTab === 'article' || activeDetailTab === 'poll' || activeDetailTab === 'video' || activeDetailTab === 'quiz') && formData.items.length <= 1) return;
         let filtered = formData.items.filter(item => item.id !== id);
         if (activeSort) {
             // Re-sequence remaining items
@@ -1491,12 +1538,12 @@ const PostManagement: React.FC = () => {
                         <div className="border-b border-palette-tan/15 bg-white">
                             <div className="flex h-24">
                                 {[
-                                    { id: 'article', label: t('admin.post.tab.article'), icon: FileText },
-                                    { id: 'quiz', label: t('admin.post.tab.quiz'), icon: CheckCircle2 },
-                                    { id: 'poll', label: t('admin.post.tab.poll'), icon: BarChart2 },
-                                    { id: 'video', label: t('admin.post.tab.video'), icon: Video },
-                                    { id: 'contents', label: t('admin.post.tab.contents'), icon: ListOrdered },
-                                    { id: 'recipe', label: t('admin.post.tab.recipe'), icon: Utensils }
+                                    { id: 'article', label: t('admin.post.tab.article'), icon: 'description' },
+                                    { id: 'quiz', label: t('admin.post.tab.quiz'), icon: 'quiz' },
+                                    { id: 'poll', label: t('admin.post.tab.poll'), icon: 'poll' },
+                                    { id: 'video', label: t('admin.post.tab.video'), icon: 'smart_display' },
+                                    { id: 'contents', label: t('admin.post.tab.contents'), icon: 'format_list_numbered' },
+                                    { id: 'recipe', label: t('admin.post.tab.recipe'), icon: 'restaurant' }
                                 ].map((tab, idx, arr) => (
                                     <button
                                         key={tab.id}
@@ -1509,11 +1556,12 @@ const PostManagement: React.FC = () => {
                                                 : 'text-palette-tan/40 hover:bg-palette-beige/5 hover:text-palette-maroon'}
                                         `}
                                     >
-                                        <tab.icon
-                                            size={28}
-                                            strokeWidth={1.5}
-                                            className={`${activeDetailTab === tab.id ? 'text-palette-maroon' : 'text-palette-tan/30 group-hover:text-palette-maroon'} transition-colors`}
-                                        />
+                                        <span
+                                            className={`material-symbols-rounded ${activeDetailTab === tab.id ? 'text-palette-maroon' : 'text-palette-tan/30 group-hover:text-palette-maroon'} transition-colors`}
+                                            style={{ fontSize: '28px' }}
+                                        >
+                                            {tab.icon}
+                                        </span>
                                         <span className={`text-[12px] uppercase font-black tracking-widest ${activeDetailTab === tab.id ? 'opacity-100' : 'opacity-60'}`}>
                                             {tab.label}
                                         </span>
@@ -1537,7 +1585,7 @@ const PostManagement: React.FC = () => {
                         {/* BASIC & SEO INTEGRATED INFO */}
                         <div className="p-8 space-y-6">
                             <div className="flex items-center gap-3 border-b border-palette-tan/15 pb-4">
-                                <FileText size={18} className="text-palette-red" />
+                                <span className="material-symbols-rounded text-palette-red" style={{ fontSize: '20px' }}>description</span>
                                 <h3 className="text-base font-bold text-palette-maroon uppercase tracking-widest">{t('admin.post.content_info')}</h3>
                             </div>
 
@@ -1569,7 +1617,7 @@ const PostManagement: React.FC = () => {
                             <div className="mt-8 pt-8 border-t border-palette-tan/15 space-y-5">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                        <Settings2 size={18} className="text-palette-tan" />
+                                        <span className="material-symbols-rounded text-palette-tan" style={{ fontSize: '20px' }}>settings</span>
                                         <h3 className="text-[13px] font-bold text-palette-tan uppercase tracking-tighter">{t('admin.post.seo_ai')}</h3>
                                     </div>
                                     <span className="text-[11px] font-black text-green-600 bg-green-50 px-2 py-1 rounded-[3px] border border-green-100 italic">Google AI Ready</span>
@@ -1616,9 +1664,9 @@ const PostManagement: React.FC = () => {
                                                         const newTags = formData.keywords.split(',').filter((_, i) => i !== idx);
                                                         setFormData({ ...formData, keywords: newTags.join(',') });
                                                     }}
-                                                    className="hover:text-palette-beige transition-colors"
+                                                    className="hover:text-palette-beige transition-colors flex items-center"
                                                 >
-                                                    <X size={10} strokeWidth={3} />
+                                                    <span className="material-symbols-rounded" style={{ fontSize: '12px' }}>close</span>
                                                 </button>
                                             </span>
                                         ))}
@@ -1653,40 +1701,42 @@ const PostManagement: React.FC = () => {
                     </div>
 
                     {/* ITEM LIST CONTROLS */}
-                    <div className="flex justify-center items-center py-4">
-                        <div className="inline-flex bg-white border border-palette-tan/20 rounded-[3px] p-1.5 shadow-sm gap-1">
-                            <button
-                                onClick={() => handleSortItems('asc')}
-                                className={`flex items-center justify-center gap-2 px-4 py-2 rounded-[3px] text-[12px] font-black transition-all active:scale-95 leading-none group ${activeSort === 'asc'
-                                    ? 'bg-palette-maroon text-white shadow-md shadow-palette-maroon/20 scale-[1.02]'
-                                    : 'text-palette-tan hover:text-palette-maroon hover:bg-palette-beige/30'
-                                    }`}
-                            >
-                                <SortAsc size={16} />
-                                <span className="leading-none">{t('admin.post.sort.asc')}</span>
-                            </button>
-                            <button
-                                onClick={() => handleSortItems('desc')}
-                                className={`flex items-center justify-center gap-2 px-4 py-2 rounded-[3px] text-[12px] font-black transition-all active:scale-95 leading-none group ${activeSort === 'desc'
-                                    ? 'bg-palette-maroon text-white shadow-md shadow-palette-maroon/20 scale-[1.02]'
-                                    : 'text-palette-tan hover:text-palette-maroon hover:bg-palette-beige/30'
-                                    }`}
-                            >
-                                <SortDesc size={16} />
-                                <span className="leading-none">{t('admin.post.sort.desc')}</span>
-                            </button>
-                            <button
-                                onClick={() => { setActiveSort(null); setShowBlockNumbers(false); }}
-                                className={`flex items-center justify-center gap-2 px-4 py-2 rounded-[3px] text-[12px] font-black transition-all active:scale-95 leading-none group ${activeSort === null
-                                    ? 'bg-palette-maroon text-white shadow-md shadow-palette-maroon/20 scale-[1.02]'
-                                    : 'text-palette-tan hover:text-palette-maroon hover:bg-palette-beige/30'
-                                    }`}
-                            >
-                                <Hash size={15} />
-                                <span className="leading-none">{t('admin.post.sort.hide')}</span>
-                            </button>
+                    {activeDetailTab !== 'quiz' && (
+                        <div className="flex justify-center items-center py-4">
+                            <div className="inline-flex bg-white border border-palette-tan/20 rounded-[3px] p-1.5 shadow-sm gap-1">
+                                <button
+                                    onClick={() => handleSortItems('asc')}
+                                    className={`flex items-center justify-center gap-2 px-4 py-2 rounded-[3px] text-[12px] font-black transition-all active:scale-95 leading-none group ${activeSort === 'asc'
+                                        ? 'bg-palette-maroon text-white shadow-md shadow-palette-maroon/20 scale-[1.02]'
+                                        : 'text-palette-tan hover:text-palette-maroon hover:bg-palette-beige/30'
+                                        }`}
+                                >
+                                    <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>sort</span>
+                                    <span className="leading-none">{t('admin.post.sort.asc')}</span>
+                                </button>
+                                <button
+                                    onClick={() => handleSortItems('desc')}
+                                    className={`flex items-center justify-center gap-2 px-4 py-2 rounded-[3px] text-[12px] font-black transition-all active:scale-95 leading-none group ${activeSort === 'desc'
+                                        ? 'bg-palette-maroon text-white shadow-md shadow-palette-maroon/20 scale-[1.02]'
+                                        : 'text-palette-tan hover:text-palette-maroon hover:bg-palette-beige/30'
+                                        }`}
+                                >
+                                    <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>sort</span>
+                                    <span className="leading-none">{t('admin.post.sort.desc')}</span>
+                                </button>
+                                <button
+                                    onClick={() => { setActiveSort(null); setShowBlockNumbers(false); }}
+                                    className={`flex items-center justify-center gap-2 px-4 py-2 rounded-[3px] text-[12px] font-black transition-all active:scale-95 leading-none group ${activeSort === null
+                                        ? 'bg-palette-maroon text-white shadow-md shadow-palette-maroon/20 scale-[1.02]'
+                                        : 'text-palette-tan hover:text-palette-maroon hover:bg-palette-beige/30'
+                                        }`}
+                                >
+                                    <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>numbers</span>
+                                    <span className="leading-none">{t('admin.post.sort.hide')}</span>
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     <div className="space-y-6">
                         {formData.items.map((item, index) => (
@@ -1699,7 +1749,7 @@ const PostManagement: React.FC = () => {
                                     showBlockNumbers={showBlockNumbers}
                                     onUpdate={handleUpdateItem}
                                     onRemove={handleRemoveItem}
-                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video') || formData.items.length > 1}
+                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video' && activeDetailTab !== 'quiz') || formData.items.length > 1}
                                     onMoveUp={(idx) => handleMoveItem(idx, 'up')}
                                     onMoveDown={(idx) => handleMoveItem(idx, 'down')}
                                     onOpenFileManager={(id) => {
@@ -1718,7 +1768,7 @@ const PostManagement: React.FC = () => {
                                     showBlockNumbers={showBlockNumbers}
                                     onUpdate={handleUpdateItem}
                                     onRemove={handleRemoveItem}
-                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video') || formData.items.length > 1}
+                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video' && activeDetailTab !== 'quiz') || formData.items.length > 1}
                                     onMoveUp={(idx) => handleMoveItem(idx, 'up')}
                                     onMoveDown={(idx) => handleMoveItem(idx, 'down')}
                                     onOpenFileManager={(id) => {
@@ -1744,7 +1794,7 @@ const PostManagement: React.FC = () => {
                                     showBlockNumbers={showBlockNumbers}
                                     onUpdate={handleUpdateItem}
                                     onRemove={handleRemoveItem}
-                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video') || formData.items.length > 1}
+                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video' && activeDetailTab !== 'quiz') || formData.items.length > 1}
                                     onMoveUp={(idx) => handleMoveItem(idx, 'up')}
                                     onMoveDown={(idx) => handleMoveItem(idx, 'down')}
                                     onOpenFileManager={(id) => {
@@ -1764,7 +1814,7 @@ const PostManagement: React.FC = () => {
                                     showBlockNumbers={showBlockNumbers}
                                     onUpdate={handleUpdateItem}
                                     onRemove={handleRemoveItem}
-                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video') || formData.items.length > 1}
+                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video' && activeDetailTab !== 'quiz') || formData.items.length > 1}
                                     onMoveUp={(idx) => handleMoveItem(idx, 'up')}
                                     onMoveDown={(idx) => handleMoveItem(idx, 'down')}
                                     onOpenFileManager={(id) => {
@@ -1784,7 +1834,7 @@ const PostManagement: React.FC = () => {
                                     showBlockNumbers={showBlockNumbers}
                                     onUpdate={handleUpdateItem}
                                     onRemove={handleRemoveItem}
-                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video') || formData.items.length > 1}
+                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video' && activeDetailTab !== 'quiz') || formData.items.length > 1}
                                     onMoveUp={(idx) => handleMoveItem(idx, 'up')}
                                     onMoveDown={(idx) => handleMoveItem(idx, 'down')}
                                     onOpenFileManager={(id) => {
@@ -1803,7 +1853,7 @@ const PostManagement: React.FC = () => {
                                     showBlockNumbers={showBlockNumbers}
                                     onUpdate={handleUpdateItem}
                                     onRemove={handleRemoveItem}
-                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video') || formData.items.length > 1}
+                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video' && activeDetailTab !== 'quiz') || formData.items.length > 1}
                                     onMoveUp={(idx) => handleMoveItem(idx, 'up')}
                                     onMoveDown={(idx) => handleMoveItem(idx, 'down')}
                                 />
@@ -1816,7 +1866,7 @@ const PostManagement: React.FC = () => {
                                     showBlockNumbers={showBlockNumbers}
                                     onUpdate={handleUpdateItem}
                                     onRemove={handleRemoveItem}
-                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video') || formData.items.length > 1}
+                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video' && activeDetailTab !== 'quiz') || formData.items.length > 1}
                                     onMoveUp={(idx) => handleMoveItem(idx, 'up')}
                                     onMoveDown={(idx) => handleMoveItem(idx, 'down')}
                                     onOpenFileManager={(id, subField) => {
@@ -1851,7 +1901,7 @@ const PostManagement: React.FC = () => {
                                     showBlockNumbers={showBlockNumbers}
                                     onUpdate={handleUpdateItem}
                                     onRemove={handleRemoveItem}
-                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video') || formData.items.length > 1}
+                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video' && activeDetailTab !== 'quiz') || formData.items.length > 1}
                                     onMoveUp={(idx) => handleMoveItem(idx, 'up')}
                                     onMoveDown={(idx) => handleMoveItem(idx, 'down')}
                                     onOpenFileManager={(id, subField) => {
@@ -1877,6 +1927,44 @@ const PostManagement: React.FC = () => {
                                         setShowImageEditor(true);
                                     }}
                                 />
+                            ) : item.type === ('quiz' as any) ? (
+                                <PostQuizItem
+                                    key={item.id}
+                                    item={item}
+                                    index={index}
+                                    totalItems={formData.items.length}
+                                    showBlockNumbers={showBlockNumbers}
+                                    onUpdate={handleUpdateItem}
+                                    onRemove={handleRemoveItem}
+                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video' && activeDetailTab !== 'quiz') || formData.items.length > 1}
+                                    onMoveUp={(idx) => handleMoveItem(idx, 'up')}
+                                    onMoveDown={(idx) => handleMoveItem(idx, 'down')}
+                                    onOpenFileManager={(id, subField, optionId) => {
+                                        setActiveMediaTarget(id);
+                                        setActiveMediaSubTarget(subField || null);
+                                        setActiveMediaOptionTarget(optionId || null);
+                                        setActiveMediaType('image');
+                                        fetchMedia('image');
+                                        setShowFileManager(true);
+                                    }}
+                                    onOpenUrlMode={(id, subField, optionId) => {
+                                        setActiveMediaTarget(id);
+                                        setActiveMediaSubTarget(subField || null);
+                                        setActiveMediaOptionTarget(optionId || null);
+                                        setActiveMediaType('image');
+                                        setTempUrl('');
+                                        setUrlError(null);
+                                        setIsUrlMode(true);
+                                    }}
+                                    onOpenImageEditor={(id, subField, optionId) => {
+                                        setActiveMediaTarget(id);
+                                        setActiveMediaSubTarget(subField || null);
+                                        setActiveMediaOptionTarget(optionId || null);
+                                        editorSaveInFlightRef.current = false;
+                                        setIsEditorSaving(false);
+                                        setShowImageEditor(true);
+                                    }}
+                                />
                             ) : item.type === 'iframe' ? (
                                 <PostIframeItem
                                     key={item.id}
@@ -1886,7 +1974,7 @@ const PostManagement: React.FC = () => {
                                     showBlockNumbers={showBlockNumbers}
                                     onUpdate={handleUpdateItem}
                                     onRemove={handleRemoveItem}
-                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video') || formData.items.length > 1}
+                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video' && activeDetailTab !== 'quiz') || formData.items.length > 1}
                                     onMoveUp={(idx) => handleMoveItem(idx, 'up')}
                                     onMoveDown={(idx) => handleMoveItem(idx, 'down')}
                                 />
@@ -1899,7 +1987,7 @@ const PostManagement: React.FC = () => {
                                     showBlockNumbers={showBlockNumbers}
                                     onUpdate={handleUpdateItem}
                                     onRemove={handleRemoveItem}
-                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video') || formData.items.length > 1}
+                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video' && activeDetailTab !== 'quiz') || formData.items.length > 1}
                                     onMoveUp={(idx) => handleMoveItem(idx, 'up')}
                                     onMoveDown={(idx) => handleMoveItem(idx, 'down')}
                                 />
@@ -1912,7 +2000,7 @@ const PostManagement: React.FC = () => {
                                     showBlockNumbers={showBlockNumbers}
                                     onUpdate={handleUpdateItem}
                                     onRemove={handleRemoveItem}
-                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video') || formData.items.length > 1}
+                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video' && activeDetailTab !== 'quiz') || formData.items.length > 1}
                                     onMoveUp={(idx) => handleMoveItem(idx, 'up')}
                                     onMoveDown={(idx) => handleMoveItem(idx, 'down')}
                                     onOpenFileManager={(id, subField, optionId) => {
@@ -1950,7 +2038,7 @@ const PostManagement: React.FC = () => {
                                     showBlockNumbers={showBlockNumbers}
                                     onUpdate={handleUpdateItem}
                                     onRemove={handleRemoveItem}
-                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video') || formData.items.length > 1}
+                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video' && activeDetailTab !== 'quiz') || formData.items.length > 1}
                                     onMoveUp={(idx) => handleMoveItem(idx, 'up')}
                                     onMoveDown={(idx) => handleMoveItem(idx, 'down')}
                                     onOpenFileManager={(id, subField, optionId) => {
@@ -1988,7 +2076,7 @@ const PostManagement: React.FC = () => {
                                     showBlockNumbers={showBlockNumbers}
                                     onUpdate={handleUpdateItem}
                                     onRemove={handleRemoveItem}
-                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video') || formData.items.length > 1}
+                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video' && activeDetailTab !== 'quiz') || formData.items.length > 1}
                                     onMoveUp={(idx) => handleMoveItem(idx, 'up')}
                                     onMoveDown={(idx) => handleMoveItem(idx, 'down')}
                                     onOpenFileManager={(id, subField, optionId) => {
@@ -2026,111 +2114,111 @@ const PostManagement: React.FC = () => {
                                     showBlockNumbers={showBlockNumbers}
                                     onUpdate={handleUpdateItem}
                                     onRemove={handleRemoveItem}
-                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video') || formData.items.length > 1}
+                                    isDeletable={(activeDetailTab !== 'article' && activeDetailTab !== 'poll' && activeDetailTab !== 'video' && activeDetailTab !== 'quiz') || formData.items.length > 1}
                                     onMoveUp={(idx) => handleMoveItem(idx, 'up')}
                                     onMoveDown={(idx) => handleMoveItem(idx, 'down')}
                                 />
                             )
                         ))}
 
-                        {(activeDetailTab !== 'poll' && activeDetailTab !== 'video') && (
+                        {(activeDetailTab !== 'poll' && activeDetailTab !== 'video' && activeDetailTab !== 'quiz') && (
                             <div className="flex flex-wrap pt-4 gap-3">
                                 <button
                                     onClick={handleAddItem}
                                     className="flex items-center justify-center gap-2 px-4 py-2 bg-palette-maroon text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-palette-maroon/10 leading-none"
                                 >
-                                    <Type size={14} className="shrink-0" />
+                                    <span className="material-symbols-rounded shrink-0" style={{ fontSize: '18px' }}>title</span>
                                     <span className="leading-none mt-[1px]">{t('admin.post.add.text')}</span>
                                 </button>
                                 <button
                                     onClick={handleAddImageItem}
                                     className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-emerald-600/10 leading-none"
                                 >
-                                    <LucideImage size={14} className="shrink-0" />
+                                    <span className="material-symbols-rounded shrink-0" style={{ fontSize: '18px' }}>image</span>
                                     <span className="leading-none mt-[1px]">{t('admin.post.add.image')}</span>
                                 </button>
                                 <button
                                     onClick={handleAddSliderItem}
                                     className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-indigo-600/10 leading-none"
                                 >
-                                    <Images size={14} className="shrink-0" />
+                                    <span className="material-symbols-rounded shrink-0" style={{ fontSize: '18px' }}>gallery_thumbnail</span>
                                     <span className="leading-none mt-[1px]">{t('admin.post.add.slider')}</span>
                                 </button>
                                 <button
                                     onClick={handleAddVideoItem}
                                     className="flex items-center justify-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-rose-600/10 leading-none"
                                 >
-                                    <Video size={14} className="shrink-0" />
+                                    <span className="material-symbols-rounded shrink-0" style={{ fontSize: '18px' }}>videocam</span>
                                     <span className="leading-none mt-[1px]">{t('admin.post.add.video')}</span>
                                 </button>
                                 <button
                                     onClick={handleAddAudioItem}
                                     className="flex items-center justify-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-amber-600/10 leading-none"
                                 >
-                                    <Mic size={14} className="shrink-0" />
+                                    <span className="material-symbols-rounded shrink-0" style={{ fontSize: '18px' }}>mic</span>
                                     <span className="leading-none mt-[1px]">{t('admin.post.add.audio')}</span>
                                 </button>
                                 <button
                                     onClick={handleAddFileItem}
                                     className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-slate-600/10 leading-none"
                                 >
-                                    <Paperclip size={14} className="shrink-0" />
+                                    <span className="material-symbols-rounded shrink-0" style={{ fontSize: '18px' }}>attach_file</span>
                                     <span className="leading-none mt-[1px]">{t('admin.post.add.file')}</span>
                                 </button>
                                 <button
                                     onClick={handleAddSocialItem}
                                     className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-blue-500/10 leading-none"
                                 >
-                                    <Share2 size={14} className="shrink-0" />
+                                    <span className="material-symbols-rounded shrink-0" style={{ fontSize: '18px' }}>share</span>
                                     <span className="leading-none mt-[1px]">{t('admin.post.add.social')}</span>
                                 </button>
                                 <button
                                     onClick={handleAddFlipCardItem}
                                     className="flex items-center justify-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-orange-600/10 leading-none"
                                 >
-                                    <RotateCw size={14} className="shrink-0" />
+                                    <span className="material-symbols-rounded shrink-0" style={{ fontSize: '18px' }}>sync</span>
                                     <span className="leading-none mt-[1px]">{t('admin.post.add.flip')}</span>
                                 </button>
                                 <button
                                     onClick={handleAddBeforeAfterItem}
                                     className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-blue-600/10 leading-none"
                                 >
-                                    <ArrowLeftRight size={14} className="shrink-0" />
+                                    <span className="material-symbols-rounded shrink-0" style={{ fontSize: '18px' }}>compare</span>
                                     <span className="leading-none mt-[1px]">{t('admin.post.add.before_after')}</span>
                                 </button>
                                 <button
                                     onClick={handleAddPollItem}
                                     className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-indigo-600/10 leading-none"
                                 >
-                                    <BarChart2 size={14} className="shrink-0" />
+                                    <span className="material-symbols-rounded shrink-0" style={{ fontSize: '18px' }}>poll</span>
                                     <span className="leading-none mt-[1px]">{t('admin.post.add.poll_alt')}</span>
                                 </button>
                                 <button
                                     onClick={handleAddVSItem}
                                     className="flex items-center justify-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-rose-600/10 leading-none"
                                 >
-                                    <Swords size={14} className="shrink-0" />
+                                    <span className="material-symbols-rounded shrink-0" style={{ fontSize: '18px' }}>swords</span>
                                     <span className="leading-none mt-[1px]">{t('admin.post.add.vs')}</span>
                                 </button>
                                 <button
                                     onClick={handleAddReviewItem}
                                     className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-emerald-600/10 leading-none"
                                 >
-                                    <Award size={14} className="shrink-0" />
+                                    <span className="material-symbols-rounded shrink-0" style={{ fontSize: '18px' }}>stars</span>
                                     <span className="leading-none mt-[1px]">{t('admin.post.add.review_alt')}</span>
                                 </button>
                                 <button
                                     onClick={handleAddQuoteItem}
                                     className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-slate-800/10 leading-none"
                                 >
-                                    <Quote size={14} className="shrink-0" />
+                                    <span className="material-symbols-rounded shrink-0" style={{ fontSize: '18px' }}>format_quote</span>
                                     <span className="leading-none mt-[1px]">{t('admin.post.add.quote')}</span>
                                 </button>
                                 <button
                                     onClick={handleAddIframeItem}
                                     className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-700 text-white rounded-[3px] text-[11px] font-black tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-indigo-700/10 leading-none"
                                 >
-                                    <Globe size={14} className="shrink-0" />
+                                    <span className="material-symbols-rounded shrink-0" style={{ fontSize: '18px' }}>public</span>
                                     <span className="leading-none mt-[1px]">{t('admin.post.add.iframe')}</span>
                                 </button>
                             </div>
@@ -2167,33 +2255,33 @@ const PostManagement: React.FC = () => {
                                                 className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-emerald-600 transition-all"
                                                 title={t('common.edit')}
                                             >
-                                                <Edit3 size={20} />
+                                                <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>edit</span>
                                             </button>
                                             <button
                                                 onClick={() => setFormData({ ...formData, thumbnail: '' })}
                                                 className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-palette-red transition-all"
                                                 title={t('common.delete')}
                                             >
-                                                <Trash2 size={20} />
+                                                <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>delete</span>
                                             </button>
                                         </div>
                                         {isThumbnailLoading && (
                                             <div className="absolute inset-0 flex items-center justify-center bg-white/60 pointer-events-none">
-                                                <Loader2 size={22} className="animate-spin text-palette-maroon" />
+                                                <span className="material-symbols-rounded animate-spin text-palette-maroon" style={{ fontSize: '22px' }}>progress_activity</span>
                                             </div>
                                         )}
                                     </div>
                                 ) : (
                                     <div className="flex flex-col items-center justify-center py-8">
                                         <div onClick={() => { setActiveMediaTarget('thumbnail'); setActiveMediaType('image'); fetchMedia('image'); setShowFileManager(true); }} className="flex flex-col items-center cursor-pointer group/pick mb-2">
-                                            <Plus size={40} className="text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-2" />
+                                            <span className="material-symbols-rounded text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-2" style={{ fontSize: '40px' }}>add</span>
                                             <span className="text-[13px] font-bold text-palette-tan/50 px-4 text-center">{t('admin.post.pick_image_alt')}</span>
                                         </div>
                                         <button
                                             onClick={() => { setActiveMediaTarget('thumbnail'); setActiveMediaType('image'); setIsUrlMode(true); setTempUrl(''); setUrlError(null); }}
                                             className="mt-2 text-[10px] font-black text-palette-tan/60 hover:text-palette-maroon border border-palette-tan/20 px-3 py-1.5 rounded-[3px] bg-white shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 uppercase tracking-wider"
                                         >
-                                            <Globe size={11} /> {t('admin.post.add_with_url')}
+                                            <span className="material-symbols-rounded" style={{ fontSize: '11px' }}>public</span> {t('admin.post.add_with_url')}
                                         </button>
                                     </div>
                                 )}
@@ -2204,14 +2292,14 @@ const PostManagement: React.FC = () => {
                     <div className="bg-white p-6 rounded-[3px] border border-palette-tan/20 shadow-sm space-y-5">
                         <h4 className="text-[13px] font-bold text-palette-tan ml-1 border-b border-palette-tan/15 pb-2 uppercase tracking-widest flex items-center justify-between">
                             {t('admin.post.cat_settings')}
-                            <Settings2 size={14} className="text-palette-tan/30" />
+                            <span className="material-symbols-rounded text-palette-tan/30" style={{ fontSize: '14px' }}>settings</span>
                         </h4>
 
                         <div className="space-y-4">
                             {/* DİL SEÇİMİ */}
                             <div className="space-y-1.5">
                                 <label className="text-[11px] font-black text-palette-tan/60 ml-1 flex items-center gap-1.5">
-                                    <Languages size={12} /> {t('admin.post.post_lang')}
+                                    <span className="material-symbols-rounded" style={{ fontSize: '12px' }}>language</span> {t('admin.post.post_lang')}
                                 </label>
                                 <div className="relative group">
                                     <select
@@ -2223,14 +2311,14 @@ const PostManagement: React.FC = () => {
                                             <option key={lang.code} value={lang.code}>{lang.name}</option>
                                         ))}
                                     </select>
-                                    <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/40 pointer-events-none group-hover:text-palette-maroon transition-colors" />
+                                    <span className="material-symbols-rounded absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/40 pointer-events-none group-hover:text-palette-maroon transition-colors" style={{ fontSize: '16px' }}>expand_more</span>
                                 </div>
                             </div>
 
                             {/* ANA KATEGORİ SEÇİMİ */}
                             <div className="space-y-1.5">
                                 <label className="text-[11px] font-black text-palette-tan/60 ml-1 flex items-center gap-1.5">
-                                    <Layout size={12} /> {t('admin.post.main_cat')}
+                                    <span className="material-symbols-rounded" style={{ fontSize: '12px' }}>category</span> {t('admin.post.main_cat')}
                                 </label>
                                 <div className="relative group">
                                     <select
@@ -2243,14 +2331,14 @@ const PostManagement: React.FC = () => {
                                             <option key={cat.id} value={cat.id}>{cat.label}</option>
                                         ))}
                                     </select>
-                                    <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/40 pointer-events-none group-hover:text-palette-maroon transition-colors" />
+                                    <span className="material-symbols-rounded absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/40 pointer-events-none group-hover:text-palette-maroon transition-colors" style={{ fontSize: '16px' }}>expand_more</span>
                                 </div>
                             </div>
 
                             {/* ALT KATEGORİ SEÇİMİ */}
                             <div className="space-y-1.5">
                                 <label className="text-[11px] font-black text-palette-tan/60 ml-1 flex items-center gap-1.5">
-                                    <List size={12} /> {t('admin.post.sub_cat')}
+                                    <span className="material-symbols-rounded" style={{ fontSize: '12px' }}>list</span> {t('admin.post.sub_cat')}
                                 </label>
                                 <div className="relative group">
                                     <select
@@ -2264,7 +2352,7 @@ const PostManagement: React.FC = () => {
                                             <option key={cat.id} value={cat.id}>{cat.label}</option>
                                         ))}
                                     </select>
-                                    <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/40 pointer-events-none group-hover:text-palette-maroon transition-colors" />
+                                    <span className="material-symbols-rounded absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/40 pointer-events-none group-hover:text-palette-maroon transition-colors" style={{ fontSize: '16px' }}>expand_more</span>
                                 </div>
                             </div>
                         </div>
@@ -2283,7 +2371,7 @@ const PostManagement: React.FC = () => {
 
                             <div className="flex items-center justify-between p-4 bg-palette-beige/10 rounded-[3px] border border-palette-tan/20">
                                 <div className="flex items-center gap-2">
-                                    <ShieldCheck size={16} className={formData.factChecked ? 'text-green-500' : 'text-palette-tan/30'} />
+                                    <span className={`material-symbols-rounded ${formData.factChecked ? 'text-green-500' : 'text-palette-tan/30'}`} style={{ fontSize: '16px' }}>verified_user</span>
                                     <span className="text-[13px] font-bold text-palette-maroon">Fact-Check</span>
                                 </div>
                                 <button onClick={() => setFormData({ ...formData, factChecked: !formData.factChecked })} className={`w-10 h-5 rounded-full relative transition-all ${formData.factChecked ? 'bg-green-500' : 'bg-palette-tan/20'}`}>
@@ -2385,7 +2473,7 @@ const PostManagement: React.FC = () => {
                         <div className="text-center space-y-5">
                             <div className="flex flex-col items-center gap-2">
                                 <div className="p-3 bg-palette-beige/20 rounded-full">
-                                    <Globe size={24} className="text-palette-maroon" />
+                                    <span className="material-symbols-rounded text-palette-maroon" style={{ fontSize: '24px' }}>public</span>
                                 </div>
                                 <h3 className="text-lg font-black text-palette-maroon tracking-tight uppercase">
                                     {activeMediaType === 'video' ? t('admin.post.url_title_video') : activeMediaType === 'audio' ? t('admin.post.url_title_audio') : t('admin.post.url_title_image')}
@@ -2444,7 +2532,7 @@ const PostManagement: React.FC = () => {
                         {isEditorSaving && (
                             <div className="absolute inset-0 z-[99999] flex items-center justify-center bg-white/60">
                                 <div className="flex items-center gap-2 px-4 py-2 rounded-[3px] bg-white shadow-md border border-palette-tan/20">
-                                    <Loader2 size={18} className="animate-spin text-palette-maroon" />
+                                    <span className="material-symbols-rounded animate-spin text-palette-maroon" style={{ fontSize: '18px' }}>progress_activity</span>
                                     <span className="text-[11px] font-black tracking-widest text-palette-maroon uppercase">{t('common.processing')}</span>
                                 </div>
                             </div>
@@ -2579,7 +2667,7 @@ const MediaManagerModal: React.FC<{
                             <h3 className="text-xl font-black text-palette-maroon tracking-tight uppercase">{t('admin.post.media_library')}</h3>
                         </div>
                         <div className="relative flex-1 max-w-lg group">
-                            <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-palette-tan/30 group-focus-within:text-palette-maroon transition-colors" />
+                            <span className="material-symbols-rounded absolute left-4 top-1/2 -translate-y-1/2 text-palette-tan/30 group-focus-within:text-palette-maroon transition-colors" style={{ fontSize: '18px' }}>search</span>
                             <input
                                 type="text"
                                 placeholder={t('admin.post.search_storage')}
@@ -2589,7 +2677,7 @@ const MediaManagerModal: React.FC<{
                             />
                         </div>
                     </div>
-                    <button onClick={onClose} className="w-10 h-10 flex items-center justify-center rounded-[3px] text-palette-tan/30 hover:text-palette-red hover:bg-red-50 transition-all border border-transparent hover:border-red-100"><X size={22} /></button>
+                    <button onClick={onClose} className="w-10 h-10 flex items-center justify-center rounded-[3px] text-palette-tan/30 hover:text-palette-red hover:bg-red-50 transition-all border border-transparent hover:border-red-100"><span className="material-symbols-rounded" style={{ fontSize: '22px' }}>close</span></button>
                 </div>
 
                 <div className="flex-1 flex overflow-hidden">
@@ -2632,7 +2720,7 @@ const MediaManagerModal: React.FC<{
 
                             <div className="mb-6 relative">
                                 <div className={`w-16 h-16 rounded-full flex items-center justify-center transition-all duration-500 ${isDragActive ? 'bg-palette-maroon scale-110' : 'bg-palette-tan/5'}`}>
-                                    <Upload size={28} className={`transition-colors duration-500 ${isDragActive ? 'text-white' : 'text-palette-tan/20'}`} strokeWidth={1.5} />
+                                    <span className={`material-symbols-rounded transition-colors duration-500 ${isDragActive ? 'text-white' : 'text-palette-tan/20'}`} style={{ fontSize: '28px' }}>upload</span>
                                 </div>
                                 {!isDragActive && (
                                     <div className="absolute inset-0 border-4 border-palette-tan/10 border-t-palette-maroon/20 rounded-full animate-spin-slow opacity-30" />
@@ -2644,7 +2732,7 @@ const MediaManagerModal: React.FC<{
                             </p>
 
                             <button className="flex items-center justify-center gap-2 w-full h-10 bg-white border border-palette-tan/20 text-palette-maroon text-[11px] font-black tracking-widest rounded-[3px] hover:bg-palette-maroon hover:text-white hover:border-palette-maroon transition-all shadow-sm active:scale-95">
-                                <Plus size={14} />
+                                <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>add</span>
                                 {t('admin.post.browse_files')}
                             </button>
 
@@ -2664,7 +2752,7 @@ const MediaManagerModal: React.FC<{
                                                     playsInline
                                                 />
                                                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                                    <Video size={48} className="text-white opacity-20" />
+                                                    <span className="material-symbols-rounded text-white opacity-20" style={{ fontSize: '48px' }}>videocam</span>
                                                 </div>
                                             </div>
                                         ) : (
@@ -2672,7 +2760,7 @@ const MediaManagerModal: React.FC<{
                                         )}
                                         <div className="absolute inset-0 flex flex-col items-center justify-center bg-palette-maroon/10 backdrop-blur-[1px]">
                                             <div className="relative">
-                                                <Loader2 size={32} className="text-palette-maroon animate-spin" />
+                                                <span className="material-symbols-rounded text-palette-maroon animate-spin" style={{ fontSize: '32px' }}>progress_activity</span>
                                                 <div className="absolute inset-0 flex items-center justify-center">
                                                     <span className="text-[8px] font-black text-palette-maroon">{uploadProgress}%</span>
                                                 </div>
@@ -2700,7 +2788,7 @@ const MediaManagerModal: React.FC<{
                     >
                         {filteredFiles.length === 0 ? (
                             <div className="h-full flex flex-col items-center justify-center text-palette-tan/10">
-                                {type === 'video' ? <Film size={80} strokeWidth={0.5} className="mb-6" /> : type === 'audio' ? <Mic size={80} strokeWidth={0.5} className="mb-6" /> : type === 'file' ? <FileText size={80} strokeWidth={0.5} className="mb-6" /> : <ImageIcon size={80} strokeWidth={0.5} className="mb-6" />}
+                                {type === 'video' ? <span className="material-symbols-rounded mb-6" style={{ fontSize: '80px' }}>movie</span> : type === 'audio' ? <span className="material-symbols-rounded mb-6" style={{ fontSize: '80px' }}>mic</span> : type === 'file' ? <span className="material-symbols-rounded mb-6" style={{ fontSize: '80px' }}>description</span> : <span className="material-symbols-rounded mb-6" style={{ fontSize: '80px' }}>image</span>}
                                 <p className="text-[12px] font-black tracking-[0.3em] uppercase opacity-50">
                                     {t(`admin.post.empty_vault_${type}`)}
                                 </p>
@@ -2734,18 +2822,18 @@ const MediaManagerModal: React.FC<{
                                                     />
                                                 ) : (
                                                     <div className="w-full h-full flex flex-col items-center justify-center bg-slate-900">
-                                                        <Video size={48} className="text-white/20 mb-2" />
+                                                        <span className="material-symbols-rounded text-white/20 mb-2" style={{ fontSize: '48px' }}>videocam</span>
                                                         <span className="text-[8px] font-black text-white/40 uppercase tracking-widest">{file.value?.split('.').pop()}</span>
                                                     </div>
                                                 )
                                             ) : type === 'audio' ? (
                                                 <div className="w-full h-full flex flex-col items-center justify-center bg-amber-50">
-                                                    <Mic size={48} className="text-amber-500 mb-2 opacity-40 group-hover:opacity-100 transition-opacity" />
+                                                    <span className="material-symbols-rounded text-amber-500 mb-2 opacity-40 group-hover:opacity-100 transition-opacity" style={{ fontSize: '48px' }}>mic</span>
                                                     <span className="text-[8px] font-black text-amber-800/40 uppercase tracking-widest">{file.value?.split('.').pop()}</span>
                                                 </div>
                                             ) : type === 'file' ? (
                                                 <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50">
-                                                    <Paperclip size={48} className="text-slate-500 mb-2 opacity-40 group-hover:opacity-100 transition-opacity" />
+                                                    <span className="material-symbols-rounded text-slate-500 mb-2 opacity-40 group-hover:opacity-100 transition-opacity" style={{ fontSize: '48px' }}>attach_file</span>
                                                     <span className="text-[8px] font-black text-slate-800/40 uppercase tracking-widest">{file.value?.split('.').pop()}</span>
                                                 </div>
                                             ) : (
@@ -2761,7 +2849,7 @@ const MediaManagerModal: React.FC<{
                                             {selectedImage === file.src && (
                                                 <div className="absolute inset-0 bg-emerald-500/5 flex items-center justify-center">
                                                     <div className="bg-emerald-500 text-white rounded-full p-2 shadow-2xl animate-in zoom-in-50 duration-300 ring-4 ring-white">
-                                                        <Check size={18} strokeWidth={4} />
+                                                        <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>check</span>
                                                     </div>
                                                 </div>
                                             )}
@@ -2793,7 +2881,7 @@ const MediaManagerModal: React.FC<{
                         disabled={!selectedImage}
                         className="flex items-center justify-center gap-2 h-9 px-5 bg-palette-red text-white rounded-[3px] text-[11px] font-black tracking-widest hover:bg-red-700 transition-all shadow-xl shadow-palette-red/10 disabled:opacity-20 disabled:shadow-none active:scale-95"
                     >
-                        <Trash2 size={16} />
+                        <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>delete</span>
                         {t('admin.post.delete_permanently')}
                     </button>
 
@@ -2803,7 +2891,7 @@ const MediaManagerModal: React.FC<{
                             onClick={() => selectedImage && onSelect(selectedImage)}
                             className="flex items-center justify-center gap-2 h-10 px-8 bg-emerald-600 text-white rounded-[3px] text-[11px] font-black tracking-[0.2em] shadow-2xl shadow-emerald-600/20 hover:bg-emerald-700 transition-all disabled:opacity-20 disabled:shadow-none active:scale-95"
                         >
-                            <CheckCircle2 size={18} />
+                            <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>check_circle</span>
                             <span>{t('admin.post.use_this').replace('{type}', type.toUpperCase())}</span>
                         </button>
                         <button

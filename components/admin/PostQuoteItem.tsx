@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import ReactQuill from 'react-quill-new';
-import { ChevronDown, Trash2, Quote, Sparkles } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { PostItem, QUILL_MODULES, QUILL_FORMATS } from './PostTextItem';
 
@@ -42,7 +41,7 @@ const PostQuoteItem: React.FC<PostQuoteItemProps> = ({
                                     onClick={() => onMoveUp?.(index)}
                                     className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
                                 >
-                                    <ChevronDown size={18} className="rotate-180" />
+                                    <span className="material-symbols-rounded rotate-180" style={{ fontSize: '20px' }}>expand_more</span>
                                 </button>
                             ) : <div className="w-8 h-8" />}
 
@@ -51,7 +50,7 @@ const PostQuoteItem: React.FC<PostQuoteItemProps> = ({
                                     onClick={() => onMoveDown?.(index)}
                                     className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
                                 >
-                                    <ChevronDown size={18} />
+                                    <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>expand_more</span>
                                 </button>
                             ) : <div className="w-8 h-8" />}
                         </>
@@ -66,7 +65,7 @@ const PostQuoteItem: React.FC<PostQuoteItemProps> = ({
                         : "text-palette-tan/10 cursor-not-allowed"
                         }`}
                 >
-                    <Trash2 size={16} />
+                    <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>delete</span>
                 </button>
             </div>
 
@@ -74,14 +73,14 @@ const PostQuoteItem: React.FC<PostQuoteItemProps> = ({
             <div className="flex-1 p-5 space-y-4 relative overflow-hidden">
                 {/* DECORATIVE QUOTE ICON IN BACKGROUND */}
                 <div className="absolute top-10 right-4 opacity-[0.03] pointer-events-none">
-                    <Quote size={120} strokeWidth={2.5} />
+                    <span className="material-symbols-rounded" style={{ fontSize: '120px' }}>format_quote</span>
                 </div>
 
                 {/* BLOCK HEADER */}
                 <div className="flex items-center justify-between border-b border-palette-tan/15 pb-3">
                     <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-palette-maroon/5 rounded-[3px] text-palette-maroon border border-palette-maroon/10 shadow-sm">
-                            <Quote size={20} fill="currentColor" className="opacity-20" />
+                        <div className="p-2.5 bg-palette-maroon/5 rounded-[3px] text-palette-maroon border border-palette-maroon/10 shadow-sm flex items-center justify-center">
+                            <span className="material-symbols-rounded" style={{ fontSize: '20px', fontVariationSettings: '"FILL" 1' }}>format_quote</span>
                         </div>
                         <div>
                             <h3 className="text-base font-black text-palette-maroon leading-tight">Özlü Söz / Paragraf</h3>
@@ -115,7 +114,7 @@ const PostQuoteItem: React.FC<PostQuoteItemProps> = ({
                         <div className="flex items-center justify-between px-1">
                             <label className="text-[13px] font-black text-palette-tan uppercase tracking-wider">İçerik (Alıntı Metni)</label>
                             <div className="flex items-center gap-2 text-palette-tan/30 group-focus-within/editor:text-palette-red/40 transition-colors">
-                                <Sparkles size={12} />
+                                <span className="material-symbols-rounded" style={{ fontSize: '12px' }}>auto_awesome</span>
                                 <span className="text-[11px] font-bold">{t('admin.post.ai_support')}</span>
                             </div>
                         </div>
@@ -144,7 +143,7 @@ const PostQuoteItem: React.FC<PostQuoteItemProps> = ({
                             onClick={() => setShowSource(!showSource)}
                             className="text-[11px] font-black text-palette-tan/50 hover:text-palette-maroon transition-colors flex items-center gap-1.5 uppercase tracking-[0.15em] p-1 rounded hover:bg-palette-beige/20"
                         >
-                            <ChevronDown size={14} className={`transition-transform duration-300 ${showSource ? 'rotate-180' : ''}`} />
+                            <span className={`material-symbols-rounded transition-transform duration-300 ${showSource ? 'rotate-180' : ''}`} style={{ fontSize: '18px' }}>expand_more</span>
                             Ek Ayarlar
                         </button>
                     </div>

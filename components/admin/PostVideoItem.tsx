@@ -1,19 +1,5 @@
 
 import React, { useState, useRef } from 'react';
-import {
-    ChevronDown,
-    Trash2,
-    Video,
-    Plus,
-    Globe,
-    Loader2,
-    Settings2,
-    Play,
-    Pause,
-    Volume2,
-    VolumeX,
-    Maximize
-} from 'lucide-react';
 import ReactQuill from 'react-quill-new';
 import { PostItem, QUILL_MODULES, QUILL_FORMATS } from './PostTextItem';
 import { useLanguage } from '../../context/LanguageContext';
@@ -121,7 +107,7 @@ const PostVideoItem: React.FC<PostVideoItemProps> = ({
                                     className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
                                     title="Yukarı Taşı"
                                 >
-                                    <ChevronDown size={18} className="rotate-180" />
+                                    <span className="material-symbols-rounded rotate-180" style={{ fontSize: '20px' }}>expand_more</span>
                                 </button>
                             ) : <div className="w-8 h-8" />}
 
@@ -131,7 +117,7 @@ const PostVideoItem: React.FC<PostVideoItemProps> = ({
                                     className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
                                     title="Aşağı Taşı"
                                 >
-                                    <ChevronDown size={18} />
+                                    <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>expand_more</span>
                                 </button>
                             ) : <div className="w-8 h-8" />}
                         </>
@@ -147,7 +133,7 @@ const PostVideoItem: React.FC<PostVideoItemProps> = ({
                         : "text-palette-tan/10 cursor-not-allowed"
                         }`}
                 >
-                    <Trash2 size={16} />
+                    <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>delete</span>
                 </button>
             </div>
 
@@ -157,7 +143,7 @@ const PostVideoItem: React.FC<PostVideoItemProps> = ({
                 <div className="flex items-center justify-between border-b border-palette-tan/15 pb-2">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-palette-beige/20 rounded-[3px] text-palette-maroon">
-                            <Video size={18} />
+                            <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>videocam</span>
                         </div>
                         <h3 className="text-base font-bold text-palette-maroon">{t('admin.post.video_block')}</h3>
                     </div>
@@ -230,25 +216,25 @@ const PostVideoItem: React.FC<PostVideoItemProps> = ({
                                         {/* CUSTOM COMPACT CONTROLS */}
                                         <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-between gap-3 z-[5]">
                                             <div className="flex items-center gap-2">
-                                                <button onClick={togglePlay} className="p-1.5 bg-white/20 hover:bg-white/40 rounded-[3px] text-white transition-all">
-                                                    {isPlaying ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" />}
+                                                <button onClick={togglePlay} className="p-1.5 bg-white/20 hover:bg-white/40 rounded-[3px] text-white transition-all flex items-center justify-center">
+                                                    {isPlaying ? <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>pause</span> : <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>play_arrow</span>}
                                                 </button>
                                                 {!isYoutube && (
-                                                    <button onClick={toggleMute} className="p-1.5 bg-white/20 hover:bg-white/40 rounded-[3px] text-white transition-all">
-                                                        {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+                                                    <button onClick={toggleMute} className="p-1.5 bg-white/20 hover:bg-white/40 rounded-[3px] text-white transition-all flex items-center justify-center">
+                                                        {isMuted ? <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>volume_off</span> : <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>volume_up</span>}
                                                     </button>
                                                 )}
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <button onClick={handleFullscreen} className="p-1.5 bg-white/20 hover:bg-white/40 rounded-[3px] text-white transition-all">
-                                                    <Maximize size={16} />
+                                                <button onClick={handleFullscreen} className="p-1.5 bg-white/20 hover:bg-white/40 rounded-[3px] text-white transition-all flex items-center justify-center">
+                                                    <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>fullscreen</span>
                                                 </button>
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); onUpdate(item.id, 'mediaUrl', ''); setIsPlaying(false); }}
-                                                    className="p-1.5 bg-palette-red/80 hover:bg-palette-red rounded-[3px] text-white transition-all"
+                                                    className="p-1.5 bg-palette-red/80 hover:bg-palette-red rounded-[3px] text-white transition-all flex items-center justify-center"
                                                     title={t('common.delete')}
                                                 >
-                                                    <Trash2 size={16} />
+                                                    <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>delete</span>
                                                 </button>
                                             </div>
                                         </div>
@@ -260,14 +246,14 @@ const PostVideoItem: React.FC<PostVideoItemProps> = ({
                                                 className="absolute inset-0 flex items-center justify-center group/play z-[4]"
                                             >
                                                 <div className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white scale-100 group-hover/play:scale-110 transition-all">
-                                                    <Play size={32} fill="currentColor" className="ml-1" />
+                                                    <span className="material-symbols-rounded" style={{ fontSize: '36px' }}>play_arrow</span>
                                                 </div>
                                             </button>
                                         )}
 
                                         {!isYoutube && isVideoLoading && (
                                             <div className="absolute inset-0 flex items-center justify-center bg-black/40 pointer-events-none">
-                                                <Loader2 size={24} className="animate-spin text-white" />
+                                                <span className="material-symbols-rounded animate-spin text-white" style={{ fontSize: '24px' }}>progress_activity</span>
                                             </div>
                                         )}
                                     </div>
@@ -278,7 +264,7 @@ const PostVideoItem: React.FC<PostVideoItemProps> = ({
                                             className="flex flex-col items-center cursor-pointer group/pick mb-4"
                                         >
                                             <div className="w-16 h-16 rounded-full bg-palette-maroon/5 flex items-center justify-center mb-3 group-hover/pick:bg-palette-maroon/10 transition-all">
-                                                <Plus size={32} className="text-palette-tan/40 group-hover/pick:text-palette-maroon transition-all" />
+                                                <span className="material-symbols-rounded text-palette-tan/40 group-hover/pick:text-palette-maroon transition-all" style={{ fontSize: '32px' }}>add</span>
                                             </div>
                                             <span className="text-[14px] font-bold text-palette-tan/50 px-4 text-center group-hover/pick:text-palette-maroon transition-all">{t('admin.post.pick_video')}</span>
                                         </div>
@@ -286,7 +272,7 @@ const PostVideoItem: React.FC<PostVideoItemProps> = ({
                                             onClick={() => onOpenUrlMode(item.id)}
                                             className="mt-2 text-[10px] font-black text-palette-tan/60 hover:text-palette-maroon border border-palette-tan/20 px-3 py-1.5 rounded-[3px] bg-white shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 uppercase tracking-wider"
                                         >
-                                            <Globe size={11} /> {t('admin.post.add_video_url')}
+                                            <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>public</span> {t('admin.post.add_video_url')}
                                         </button>
                                     </div>
                                 )}
@@ -325,7 +311,7 @@ const PostVideoItem: React.FC<PostVideoItemProps> = ({
                                 onClick={() => setShowOptions(!showOptions)}
                                 className="text-[11px] font-black text-palette-tan/50 hover:text-palette-maroon transition-colors flex items-center gap-1 uppercase tracking-widest"
                             >
-                                <ChevronDown size={14} className={`transition-transform duration-300 ${showOptions ? 'rotate-180' : ''}`} />
+                                <span className={`material-symbols-rounded transition-transform duration-300 ${showOptions ? 'rotate-180' : ''}`} style={{ fontSize: '18px' }}>expand_more</span>
                                 {showOptions ? t('common.less') : t('admin.post.extra_settings')}
                             </button>
                         </div>
@@ -334,7 +320,7 @@ const PostVideoItem: React.FC<PostVideoItemProps> = ({
                             <div className="animate-in slide-in-from-top-2 duration-300 w-full">
                                 <div className="space-y-1.5">
                                     <label className="text-[13px] font-black text-palette-tan ml-1 flex items-center gap-1.5">
-                                        <Settings2 size={12} /> {t('admin.post.image_source')}
+                                        <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>settings</span> {t('admin.post.image_source')}
                                     </label>
                                     <input
                                         type="text"

@@ -1,20 +1,4 @@
 import React, { useState } from 'react';
-import {
-    ChevronDown,
-    Trash2,
-    RotateCw,
-    Plus,
-    Settings2,
-    FileText,
-    Image as LucideImage,
-    Type,
-    ArrowRightLeft,
-    Globe,
-    Edit3,
-    Loader2,
-    Sparkles,
-    Link as LinkIcon
-} from 'lucide-react';
 import ReactQuill from 'react-quill-new';
 import { PostItem, QUILL_MODULES, QUILL_FORMATS } from './PostTextItem';
 import { useLanguage } from '../../context/LanguageContext';
@@ -102,7 +86,7 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                                     className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
                                     title={t('common.move_up')}
                                 >
-                                    <ChevronDown size={18} className="rotate-180" />
+                                    <span className="material-symbols-rounded rotate-180" style={{ fontSize: '20px' }}>expand_more</span>
                                 </button>
                             ) : <div className="w-8 h-8" />}
 
@@ -112,7 +96,7 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                                     className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
                                     title={t('common.move_down')}
                                 >
-                                    <ChevronDown size={18} />
+                                    <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>expand_more</span>
                                 </button>
                             ) : <div className="w-8 h-8" />}
                         </>
@@ -128,7 +112,7 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                         : "text-palette-tan/10 cursor-not-allowed"
                         }`}
                 >
-                    <Trash2 size={16} />
+                    <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>delete</span>
                 </button>
             </div>
 
@@ -138,7 +122,7 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                 <div className="flex items-center justify-between border-b border-palette-tan/15 pb-3">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-orange-50 text-orange-600 rounded-[3px] flex items-center justify-center shadow-sm border border-orange-100/50">
-                            <RotateCw size={20} />
+                            <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>sync</span>
                         </div>
                         <div>
                             <h3 className="text-base font-black text-palette-maroon leading-tight">{t('admin.post.iframe_block').replace('Iframe', 'Flip kart')}</h3>
@@ -170,8 +154,8 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 relative">
                     {/* Visual Connector Line for large screens */}
                     <div className="hidden lg:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-                        <div className="bg-white p-2 rounded-full border border-palette-tan/15 shadow-sm text-palette-tan/40">
-                            <ArrowRightLeft size={16} />
+                        <div className="bg-white p-2 rounded-full border border-palette-tan/15 shadow-sm text-palette-tan/40 flex items-center justify-center">
+                            <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>swap_horiz</span>
                         </div>
                     </div>
 
@@ -198,22 +182,22 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-2">
                                             <button
                                                 onClick={() => onOpenImageEditor(item.id, 'frontImage')}
-                                                className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-emerald-600 transition-all"
+                                                className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-emerald-600 transition-all flex items-center justify-center"
                                                 title={t('common.edit')}
                                             >
-                                                <Edit3 size={20} />
+                                                <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>edit_square</span>
                                             </button>
                                             <button
                                                 onClick={() => updateFlipData('frontImage', '')}
-                                                className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-palette-red transition-all"
+                                                className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-palette-red transition-all flex items-center justify-center"
                                                 title={t('common.delete')}
                                             >
-                                                <Trash2 size={20} />
+                                                <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>delete</span>
                                             </button>
                                         </div>
                                         {isFrontLoading && (
                                             <div className="absolute inset-0 flex items-center justify-center bg-white/60 pointer-events-none">
-                                                <Loader2 size={22} className="animate-spin text-palette-maroon" />
+                                                <span className="material-symbols-rounded animate-spin text-palette-maroon" style={{ fontSize: '22px' }}>progress_activity</span>
                                             </div>
                                         )}
                                     </div>
@@ -223,14 +207,14 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                                             onClick={() => onOpenFileManager(item.id, 'frontImage')}
                                             className="flex flex-col items-center cursor-pointer group/pick mb-4"
                                         >
-                                            <Plus size={48} className="text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-2" />
+                                            <span className="material-symbols-rounded text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-2" style={{ fontSize: '48px' }}>add</span>
                                             <span className="text-[14px] font-bold text-palette-tan/50 px-4 text-center">{t('admin.post.pick_image')} (Ön)</span>
                                         </div>
                                         <button
                                             onClick={() => onOpenUrlMode(item.id, 'frontImage')}
                                             className="mt-2 text-[10px] font-black text-palette-tan/60 hover:text-palette-maroon border border-palette-tan/20 px-3 py-1.5 rounded-[3px] bg-white shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 uppercase tracking-wider"
                                         >
-                                            <Globe size={11} /> {t('admin.post.url_or_upload')}
+                                            <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>public</span> {t('admin.post.url_or_upload')}
                                         </button>
                                     </div>
                                 )}
@@ -238,7 +222,7 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
 
                             <div className="space-y-1.5">
                                 <div className="flex items-center gap-1.5 ml-1">
-                                    <Type size={12} className="text-palette-tan/50" />
+                                    <span className="material-symbols-rounded text-palette-tan/50" style={{ fontSize: '14px' }}>title</span>
                                     <label className="text-[11px] font-black text-palette-tan uppercase tracking-widest">{t('admin.post.front_title')}</label>
                                 </div>
                                 <input
@@ -252,7 +236,7 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
 
                             <div className="space-y-1.5">
                                 <div className="flex items-center gap-1.5 ml-1">
-                                    <LinkIcon size={12} className="text-palette-tan/50" />
+                                    <span className="material-symbols-rounded text-palette-tan/50" style={{ fontSize: '14px' }}>link</span>
                                     <label className="text-[11px] font-black text-palette-tan uppercase tracking-widest">{t('admin.post.front_link')}</label>
                                 </div>
                                 <input
@@ -266,7 +250,7 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
 
                             <div className="space-y-1.5">
                                 <div className="flex items-center gap-1.5 ml-1">
-                                    <FileText size={12} className="text-palette-tan/50" />
+                                    <span className="material-symbols-rounded text-palette-tan/50" style={{ fontSize: '14px' }}>description</span>
                                     <label className="text-[11px] font-black text-palette-tan uppercase tracking-widest">{t('admin.post.front_description')}</label>
                                 </div>
                                 <div className="quill-modern-wrapper compact-quill border border-palette-tan/20 rounded-[3px] overflow-hidden focus-within:border-palette-red/40 transition-all shadow-sm bg-white">
@@ -312,22 +296,22 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-2">
                                             <button
                                                 onClick={() => onOpenImageEditor(item.id, 'backImage')}
-                                                className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-emerald-600 transition-all"
+                                                className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-emerald-600 transition-all flex items-center justify-center"
                                                 title={t('common.edit')}
                                             >
-                                                <Edit3 size={20} />
+                                                <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>edit_square</span>
                                             </button>
                                             <button
                                                 onClick={() => updateFlipData('backImage', '')}
-                                                className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-palette-red transition-all"
+                                                className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-palette-red transition-all flex items-center justify-center"
                                                 title={t('common.delete')}
                                             >
-                                                <Trash2 size={20} />
+                                                <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>delete</span>
                                             </button>
                                         </div>
                                         {isBackLoading && (
                                             <div className="absolute inset-0 flex items-center justify-center bg-white/60 pointer-events-none">
-                                                <Loader2 size={22} className="animate-spin text-palette-maroon" />
+                                                <span className="material-symbols-rounded animate-spin text-palette-maroon" style={{ fontSize: '22px' }}>progress_activity</span>
                                             </div>
                                         )}
                                     </div>
@@ -337,14 +321,14 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                                             onClick={() => onOpenFileManager(item.id, 'backImage')}
                                             className="flex flex-col items-center cursor-pointer group/pick mb-4"
                                         >
-                                            <Plus size={48} className="text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-2" />
+                                            <span className="material-symbols-rounded text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-2" style={{ fontSize: '48px' }}>add</span>
                                             <span className="text-[14px] font-bold text-palette-tan/50 px-4 text-center">{t('admin.post.pick_image')} (Arka)</span>
                                         </div>
                                         <button
                                             onClick={() => onOpenUrlMode(item.id, 'backImage')}
                                             className="mt-2 text-[10px] font-black text-palette-tan/60 hover:text-palette-maroon border border-palette-tan/20 px-3 py-1.5 rounded-[3px] bg-white shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 uppercase tracking-wider"
                                         >
-                                            <Globe size={11} /> {t('admin.post.url_or_upload')}
+                                            <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>public</span> {t('admin.post.url_or_upload')}
                                         </button>
                                     </div>
                                 )}
@@ -352,7 +336,7 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
 
                             <div className="space-y-1.5">
                                 <div className="flex items-center gap-1.5 ml-1">
-                                    <Type size={12} className="text-palette-tan/50" />
+                                    <span className="material-symbols-rounded text-palette-tan/50" style={{ fontSize: '14px' }}>title</span>
                                     <label className="text-[11px] font-black text-palette-tan uppercase tracking-widest">{t('admin.post.back_title')}</label>
                                 </div>
                                 <input
@@ -366,7 +350,7 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
 
                             <div className="space-y-1.5">
                                 <div className="flex items-center gap-1.5 ml-1">
-                                    <LinkIcon size={12} className="text-palette-tan/50" />
+                                    <span className="material-symbols-rounded text-palette-tan/50" style={{ fontSize: '14px' }}>link</span>
                                     <label className="text-[11px] font-black text-palette-tan uppercase tracking-widest">{t('admin.post.back_link')}</label>
                                 </div>
                                 <input
@@ -380,7 +364,7 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
 
                             <div className="space-y-1.5">
                                 <div className="flex items-center gap-1.5 ml-1">
-                                    <FileText size={12} className="text-palette-tan/50" />
+                                    <span className="material-symbols-rounded text-palette-tan/50" style={{ fontSize: '14px' }}>description</span>
                                     <label className="text-[11px] font-black text-palette-tan uppercase tracking-widest">{t('admin.post.back_description')}</label>
                                 </div>
                                 <div className="quill-modern-wrapper compact-quill border border-palette-tan/20 rounded-[3px] overflow-hidden focus-within:border-palette-red/40 transition-all shadow-sm bg-white">
@@ -408,7 +392,7 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                 <div className="pt-8 border-t border-palette-tan/10">
                     <div className="flex items-center gap-2 mb-4">
                         <div className="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500 text-white shadow-lg shadow-emerald-500/20">
-                            <Sparkles size={14} />
+                            <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>auto_awesome</span>
                         </div>
                         <h4 className="text-[12px] font-black text-palette-maroon uppercase tracking-[0.2em]">{t('admin.post.live_preview')}</h4>
                     </div>
@@ -466,7 +450,7 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                                                     />
                                                 )}
                                                 <div className="flex items-center gap-2 text-white/70 text-[10px] font-bold">
-                                                    <RotateCw size={12} className="animate-spin-slow" />
+                                                    <span className="material-symbols-rounded animate-spin-slow" style={{ fontSize: '12px' }}>sync</span>
                                                     <span className="uppercase tracking-widest">{t('admin.post.flip_for_back')}</span>
                                                 </div>
                                             </div>
@@ -494,13 +478,13 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                                                 />
                                             )}
                                             <div className="flex items-center gap-2 bg-white text-palette-maroon px-5 py-2.5 rounded-full font-black text-[10px] uppercase tracking-[0.15em] shadow-xl hover:bg-palette-beige transition-colors">
-                                                <RotateCw size={12} className="animate-spin-slow" />
+                                                <span className="material-symbols-rounded animate-spin-slow" style={{ fontSize: '12px' }}>sync</span>
                                                 <span>{t('admin.post.click_to_flip')}</span>
                                             </div>
                                         </div>
                                     )}
-                                    <div className="absolute top-4 right-4 bg-black/40 backdrop-blur-md p-2 rounded-full border border-white/20">
-                                        <RotateCw size={16} className="text-white" />
+                                    <div className="absolute top-4 right-4 bg-black/40 backdrop-blur-md p-2 rounded-full border border-white/20 flex items-center justify-center">
+                                        <span className="material-symbols-rounded text-white" style={{ fontSize: '16px' }}>sync</span>
                                     </div>
                                 </div>
 
@@ -538,7 +522,7 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                                                     />
                                                 )}
                                                 <div className="flex items-center gap-2 text-white/70 text-[10px] font-bold">
-                                                    <RotateCw size={12} className="animate-spin-slow" />
+                                                    <span className="material-symbols-rounded animate-spin-slow" style={{ fontSize: '12px' }}>sync</span>
                                                     <span className="uppercase tracking-widest text-[9px]">{t('admin.post.go_back')}</span>
                                                 </div>
                                             </div>
@@ -566,13 +550,13 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                                                 />
                                             )}
                                             <div className="flex items-center gap-2 bg-white text-black px-5 py-2.5 rounded-full font-black text-[10px] uppercase tracking-[0.15em] shadow-xl hover:bg-blue-50 transition-colors">
-                                                <RotateCw size={12} />
+                                                <span className="material-symbols-rounded" style={{ fontSize: '12px' }}>sync</span>
                                                 <span>{t('admin.post.go_back')}</span>
                                             </div>
                                         </div>
                                     )}
-                                    <div className="absolute top-4 right-4 bg-black/40 backdrop-blur-md p-2 rounded-full border border-white/20">
-                                        <RotateCw size={16} className="text-white" />
+                                    <div className="absolute top-4 right-4 bg-black/40 backdrop-blur-md p-2 rounded-full border border-white/20 flex items-center justify-center">
+                                        <span className="material-symbols-rounded text-white" style={{ fontSize: '16px' }}>sync</span>
                                     </div>
                                 </div>
                             </div>
@@ -587,9 +571,9 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                         onClick={() => setShowOptions(!showOptions)}
                         className="text-[11px] font-black text-palette-tan/50 hover:text-palette-maroon transition-colors flex items-center gap-1.5 uppercase tracking-[0.15em]"
                     >
-                        <Settings2 size={13} className={`transition-transform duration-300 ${showOptions ? 'rotate-90' : ''}`} />
+                        <span className={`material-symbols-rounded transition-transform duration-300 ${showOptions ? 'rotate-90' : ''}`} style={{ fontSize: '16px' }}>settings</span>
                         {t('admin.post.extra_settings_alt')}
-                        <ChevronDown size={14} className={`transition-transform duration-300 ${showOptions ? 'rotate-180' : ''}`} />
+                        <span className={`material-symbols-rounded transition-transform duration-300 ${showOptions ? 'rotate-180' : ''}`} style={{ fontSize: '18px' }}>expand_more</span>
                     </button>
 
                     {showOptions && (

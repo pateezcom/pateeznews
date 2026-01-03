@@ -1,17 +1,5 @@
 
 import React, { useState, useCallback } from 'react';
-import {
-    ChevronDown,
-    Trash2,
-    Images,
-    Plus,
-    Edit3,
-    Loader2,
-    Settings2,
-    Upload,
-    X,
-    FileText
-} from 'lucide-react';
 import ReactQuill from 'react-quill-new';
 import { useDropzone } from 'react-dropzone';
 import { PostItem, QUILL_MODULES, QUILL_FORMATS } from './PostTextItem';
@@ -88,7 +76,7 @@ const PostSliderImageItem: React.FC<PostSliderImageItemProps> = ({
                                     className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
                                     title={t('common.move_up')}
                                 >
-                                    <ChevronDown size={18} className="rotate-180" />
+                                    <span className="material-symbols-rounded rotate-180" style={{ fontSize: '20px' }}>expand_more</span>
                                 </button>
                             ) : <div className="w-8 h-8" />}
 
@@ -98,7 +86,7 @@ const PostSliderImageItem: React.FC<PostSliderImageItemProps> = ({
                                     className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
                                     title={t('common.move_down')}
                                 >
-                                    <ChevronDown size={18} />
+                                    <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>expand_more</span>
                                 </button>
                             ) : <div className="w-8 h-8" />}
                         </>
@@ -113,7 +101,7 @@ const PostSliderImageItem: React.FC<PostSliderImageItemProps> = ({
                         : "text-palette-tan/10 cursor-not-allowed"
                         }`}
                 >
-                    <Trash2 size={16} />
+                    <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>delete</span>
                 </button>
             </div>
 
@@ -123,7 +111,7 @@ const PostSliderImageItem: React.FC<PostSliderImageItemProps> = ({
                 <div className="flex items-center justify-between border-b border-palette-tan/15 pb-2">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-palette-beige/20 rounded-[3px] text-palette-maroon">
-                            <Images size={18} />
+                            <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>gallery_thumbnail</span>
                         </div>
                         <h3 className="text-base font-bold text-palette-maroon">{t('admin.post.slider_block')}</h3>
                     </div>
@@ -167,7 +155,7 @@ const PostSliderImageItem: React.FC<PostSliderImageItemProps> = ({
                             ${(item.mediaUrls && item.mediaUrls.length > 0) ? 'opacity-[0.05] pointer-events-none' : 'opacity-100'}
                         `}>
                             <div className="w-16 h-16 rounded-full bg-palette-maroon/10 flex items-center justify-center text-palette-maroon">
-                                <Upload size={32} />
+                                <span className="material-symbols-rounded" style={{ fontSize: '32px' }}>upload</span>
                             </div>
                             <div className="text-center">
                                 <p className="text-base font-black text-palette-maroon uppercase tracking-widest">{t('admin.post.slider_pick')}</p>
@@ -178,7 +166,7 @@ const PostSliderImageItem: React.FC<PostSliderImageItemProps> = ({
                         {/* FOREGROUND: SCANNING/UPLOADING STATE */}
                         {uploading && (
                             <div className="absolute inset-0 z-20 bg-white/60 backdrop-blur-[2px] flex flex-col items-center justify-center gap-2">
-                                <Loader2 className="animate-spin text-palette-maroon" size={40} />
+                                <span className="material-symbols-rounded animate-spin text-palette-maroon" style={{ fontSize: '40px' }}>progress_activity</span>
                                 <span className="text-[13px] font-bold text-palette-maroon">{t('admin.post.uploading_images')}</span>
                             </div>
                         )}
@@ -195,10 +183,10 @@ const PostSliderImageItem: React.FC<PostSliderImageItemProps> = ({
                                                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center">
                                                     <button
                                                         onClick={(e) => { e.stopPropagation(); removeImage(i); }}
-                                                        className="p-2 bg-palette-red text-white rounded-[3px] hover:scale-110 transition-all shadow-lg"
+                                                        className="p-2 bg-palette-red text-white rounded-[3px] hover:scale-110 transition-all shadow-lg flex items-center justify-center"
                                                         title={t('common.delete')}
                                                     >
-                                                        <X size={16} />
+                                                        <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>close</span>
                                                     </button>
                                                 </div>
                                                 <div className="absolute bottom-1 left-1 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded-[1px] font-black uppercase tracking-tighter">
@@ -224,7 +212,7 @@ const PostSliderImageItem: React.FC<PostSliderImageItemProps> = ({
                             onClick={() => setShowDescription(!showDescription)}
                             className="text-[11px] font-black text-palette-tan/50 hover:text-palette-maroon transition-colors flex items-center gap-1 uppercase tracking-widest py-2"
                         >
-                            <ChevronDown size={14} className={`transition-transform duration-300 ${showDescription ? 'rotate-180' : ''}`} />
+                            <span className={`material-symbols-rounded transition-transform duration-300 ${showDescription ? 'rotate-180' : ''}`} style={{ fontSize: '18px' }}>expand_more</span>
                             {showDescription ? t('common.less') : t('admin.post.slider_details')}
                         </button>
                     </div>
@@ -234,7 +222,7 @@ const PostSliderImageItem: React.FC<PostSliderImageItemProps> = ({
                             {/* SOURCE INSIDE COLLAPSIBLE */}
                             <div className="space-y-1.5">
                                 <label className="text-[13px] font-black text-palette-tan ml-1 flex items-center gap-1.5 uppercase tracking-wider">
-                                    <Settings2 size={12} /> {t('admin.post.image_source')}
+                                    <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>settings</span> {t('admin.post.image_source')}
                                 </label>
                                 <input
                                     type="text"
@@ -248,7 +236,7 @@ const PostSliderImageItem: React.FC<PostSliderImageItemProps> = ({
                             {/* DESCRIPTION INSIDE COLLAPSIBLE */}
                             <div className="space-y-2">
                                 <label className="text-[13px] font-black text-palette-tan ml-1 flex items-center gap-1.5 uppercase tracking-wider">
-                                    <FileText size={12} /> {t('admin.post.image_desc')}
+                                    <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>description</span> {t('admin.post.image_desc')}
                                 </label>
                                 <div className="quill-modern-wrapper compact-quill border border-palette-tan/20 rounded-[3px] overflow-hidden focus-within:border-palette-red/40 transition-all shadow-sm bg-white min-h-[160px]">
                                     {(() => {

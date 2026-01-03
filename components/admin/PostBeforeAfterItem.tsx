@@ -1,18 +1,4 @@
 import React, { useState } from 'react';
-import {
-    ChevronDown,
-    Trash2,
-    ArrowLeftRight,
-    Plus,
-    Settings2,
-    FileText,
-    Image as LucideImage,
-    Type,
-    Globe,
-    Edit3,
-    Loader2,
-    Sparkles
-} from 'lucide-react';
 import ReactQuill from 'react-quill-new';
 import { PostItem, QUILL_MODULES, QUILL_FORMATS } from './PostTextItem';
 import { useLanguage } from '../../context/LanguageContext';
@@ -78,7 +64,7 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
                                     className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
                                     title={t('common.move_up')}
                                 >
-                                    <ChevronDown size={18} className="rotate-180" />
+                                    <span className="material-symbols-rounded rotate-180" style={{ fontSize: '20px' }}>expand_more</span>
                                 </button>
                             ) : <div className="w-8 h-8" />}
 
@@ -88,7 +74,7 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
                                     className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
                                     title={t('common.move_down')}
                                 >
-                                    <ChevronDown size={18} />
+                                    <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>expand_more</span>
                                 </button>
                             ) : <div className="w-8 h-8" />}
                         </>
@@ -104,7 +90,7 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
                         : "text-palette-tan/10 cursor-not-allowed"
                         }`}
                 >
-                    <Trash2 size={16} />
+                    <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>delete</span>
                 </button>
             </div>
 
@@ -114,7 +100,7 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
                 <div className="flex items-center justify-between border-b border-palette-tan/15 pb-3">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-[3px] flex items-center justify-center shadow-sm border border-blue-100/50">
-                            <ArrowLeftRight size={20} />
+                            <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>swap_horiz</span>
                         </div>
                         <div>
                             <h3 className="text-base font-black text-palette-maroon leading-tight">{t('admin.post.iframe_block').replace('Iframe', 'Before & After')}</h3>
@@ -167,22 +153,22 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-2">
                                             <button
                                                 onClick={() => onOpenImageEditor(item.id, 'beforeImage')}
-                                                className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-emerald-600 transition-all"
+                                                className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-emerald-600 transition-all flex items-center justify-center"
                                                 title={t('common.edit')}
                                             >
-                                                <Edit3 size={20} />
+                                                <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>edit_square</span>
                                             </button>
                                             <button
                                                 onClick={() => updateBeforeAfterData('beforeImage', '')}
-                                                className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-palette-red transition-all"
+                                                className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-palette-red transition-all flex items-center justify-center"
                                                 title={t('common.delete')}
                                             >
-                                                <Trash2 size={20} />
+                                                <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>delete</span>
                                             </button>
                                         </div>
                                         {isBeforeLoading && (
                                             <div className="absolute inset-0 flex items-center justify-center bg-white/60 pointer-events-none">
-                                                <Loader2 size={22} className="animate-spin text-palette-maroon" />
+                                                <span className="material-symbols-rounded animate-spin text-palette-maroon" style={{ fontSize: '22px' }}>progress_activity</span>
                                             </div>
                                         )}
                                     </div>
@@ -192,14 +178,14 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
                                             onClick={() => onOpenFileManager(item.id, 'beforeImage')}
                                             className="flex flex-col items-center cursor-pointer group/pick mb-4"
                                         >
-                                            <Plus size={48} className="text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-2" />
+                                            <span className="material-symbols-rounded text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-2" style={{ fontSize: '48px' }}>add</span>
                                             <span className="text-[14px] font-bold text-palette-tan/50 px-4 text-center">Önce Resmini Seç</span>
                                         </div>
                                         <button
                                             onClick={() => onOpenUrlMode(item.id, 'beforeImage')}
                                             className="mt-2 text-[10px] font-black text-palette-tan/60 hover:text-palette-maroon border border-palette-tan/20 px-3 py-1.5 rounded-[3px] bg-white shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 uppercase tracking-wider"
                                         >
-                                            <Globe size={11} /> URL VEYA YÜKLE
+                                            <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>public</span> URL VEYA YÜKLE
                                         </button>
                                     </div>
                                 )}
@@ -207,7 +193,7 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
 
                             <div className="space-y-1.5">
                                 <div className="flex items-center gap-1.5 ml-1">
-                                    <Type size={12} className="text-palette-tan/50" />
+                                    <span className="material-symbols-rounded text-palette-tan/50" style={{ fontSize: '14px' }}>title</span>
                                     <label className="text-[11px] font-black text-palette-tan uppercase tracking-widest">{t('admin.post.before_label')}</label>
                                 </div>
                                 <input
@@ -244,22 +230,22 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-2">
                                             <button
                                                 onClick={() => onOpenImageEditor(item.id, 'afterImage')}
-                                                className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-emerald-600 transition-all"
+                                                className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-emerald-600 transition-all flex items-center justify-center"
                                                 title={t('common.edit')}
                                             >
-                                                <Edit3 size={20} />
+                                                <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>edit_square</span>
                                             </button>
                                             <button
                                                 onClick={() => updateBeforeAfterData('afterImage', '')}
-                                                className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-palette-red transition-all"
+                                                className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-palette-red transition-all flex items-center justify-center"
                                                 title={t('common.delete')}
                                             >
-                                                <Trash2 size={20} />
+                                                <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>delete</span>
                                             </button>
                                         </div>
                                         {isAfterLoading && (
                                             <div className="absolute inset-0 flex items-center justify-center bg-white/60 pointer-events-none">
-                                                <Loader2 size={22} className="animate-spin text-palette-maroon" />
+                                                <span className="material-symbols-rounded animate-spin text-palette-maroon" style={{ fontSize: '22px' }}>progress_activity</span>
                                             </div>
                                         )}
                                     </div>
@@ -269,14 +255,14 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
                                             onClick={() => onOpenFileManager(item.id, 'afterImage')}
                                             className="flex flex-col items-center cursor-pointer group/pick mb-4"
                                         >
-                                            <Plus size={48} className="text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-2" />
+                                            <span className="material-symbols-rounded text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-2" style={{ fontSize: '48px' }}>add</span>
                                             <span className="text-[14px] font-bold text-palette-tan/50 px-4 text-center">Sonra Resmini Seç</span>
                                         </div>
                                         <button
                                             onClick={() => onOpenUrlMode(item.id, 'afterImage')}
                                             className="mt-2 text-[10px] font-black text-palette-tan/60 hover:text-palette-maroon border border-palette-tan/20 px-3 py-1.5 rounded-[3px] bg-white shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 uppercase tracking-wider"
                                         >
-                                            <Globe size={11} /> URL VEYA YÜKLE
+                                            <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>public</span> URL VEYA YÜKLE
                                         </button>
                                     </div>
                                 )}
@@ -284,7 +270,7 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
 
                             <div className="space-y-1.5">
                                 <div className="flex items-center gap-1.5 ml-1">
-                                    <Type size={12} className="text-palette-tan/50" />
+                                    <span className="material-symbols-rounded text-palette-tan/50" style={{ fontSize: '14px' }}>title</span>
                                     <label className="text-[11px] font-black text-palette-tan uppercase tracking-widest">{t('admin.post.after_label')}</label>
                                 </div>
                                 <input
@@ -303,7 +289,7 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
                 <div className="pt-8 border-t border-palette-tan/10">
                     <div className="flex items-center gap-2 mb-4">
                         <div className="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500 text-white shadow-lg shadow-emerald-500/20">
-                            <Sparkles size={14} />
+                            <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>auto_awesome</span>
                         </div>
                         <h4 className="text-[12px] font-black text-palette-maroon uppercase tracking-[0.2em]">{t('admin.post.live_preview')}</h4>
                     </div>
@@ -330,7 +316,7 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
                                 />
                             ) : (
                                 <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-300">
-                                    <LucideImage size={64} />
+                                    <span className="material-symbols-rounded" style={{ fontSize: '64px' }}>image</span>
                                 </div>
                             )}
 
@@ -353,7 +339,7 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
                                 style={{ left: `${sliderPosition}%` }}
                             >
                                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.4)] border-4 border-white/20">
-                                    <ArrowLeftRight size={18} className="text-blue-600" />
+                                    <span className="material-symbols-rounded text-blue-600" style={{ fontSize: '18px' }}>swap_horiz</span>
                                 </div>
                             </div>
 
@@ -401,9 +387,9 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
                         onClick={() => setShowOptions(!showOptions)}
                         className="text-[11px] font-black text-palette-tan/50 hover:text-palette-maroon transition-colors flex items-center gap-1.5 uppercase tracking-[0.15em]"
                     >
-                        <Settings2 size={13} className={`transition-transform duration-300 ${showOptions ? 'rotate-90' : ''}`} />
+                        <span className={`material-symbols-rounded transition-transform duration-300 ${showOptions ? 'rotate-90' : ''}`} style={{ fontSize: '16px' }}>settings</span>
                         {t('admin.post.extra_settings_alt')}
-                        <ChevronDown size={14} className={`transition-transform duration-300 ${showOptions ? 'rotate-180' : ''}`} />
+                        <span className={`material-symbols-rounded transition-transform duration-300 ${showOptions ? 'rotate-180' : ''}`} style={{ fontSize: '18px' }}>expand_more</span>
                     </button>
 
                     {showOptions && (

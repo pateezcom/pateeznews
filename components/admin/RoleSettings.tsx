@@ -1,25 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import {
-  Shield,
-  Check,
-  Lock,
-  Users,
-  LayoutDashboard,
-  Settings,
-  Globe,
-  Save,
-  ShieldCheck,
-  Fingerprint,
-  CheckCircle2,
-  Plus,
-  X,
-  ArrowRight,
-  ShieldAlert,
-  ListChecks,
-  Loader2
-} from 'lucide-react';
 import { Role, Permission } from '../../types';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -146,10 +127,10 @@ const RoleSettings: React.FC = () => {
 
   const getGroupIcon = (group: string) => {
     switch (group) {
-      case 'sidebar': return <LayoutDashboard size={18} />;
-      case 'content': return <Globe size={18} />;
-      case 'system': return <Settings size={18} />;
-      default: return <Shield size={18} />;
+      case 'sidebar': return <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>dashboard</span>;
+      case 'content': return <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>public</span>;
+      case 'system': return <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>settings</span>;
+      default: return <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>shield</span>;
     }
   };
 
@@ -177,7 +158,7 @@ const RoleSettings: React.FC = () => {
           onClick={() => setShowRoleFormModal(true)}
           className="h-10 px-8 bg-palette-red text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-primary-600 transition-all shadow-lg active:scale-95 flex items-center gap-2"
         >
-          <Plus size={16} strokeWidth={3} />
+          <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>add</span>
           <span>{t('roles.add_new')}</span>
         </button>
       </div>
@@ -191,11 +172,11 @@ const RoleSettings: React.FC = () => {
           >
             <div className="flex items-start justify-between mb-6">
               <div className={`w-12 h-12 rounded-[3px] flex items-center justify-center transition-all duration-500 shadow-inner ${role.name === 'admin' ? 'bg-palette-red text-white' : 'bg-palette-beige text-palette-tan group-hover:bg-palette-tan group-hover:text-white'}`}>
-                <Fingerprint size={24} strokeWidth={2.5} />
+                <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>fingerprint</span>
               </div>
               <div className="flex flex-col items-end">
                 <div className="bg-palette-beige/50 border border-palette-tan/20 px-2.5 py-1 rounded-[3px] flex items-center gap-2">
-                  <Users size={12} className="text-palette-tan/40" />
+                  <span className="material-symbols-rounded text-palette-tan/40" style={{ fontSize: '12px' }}>group</span>
                   <span className="text-sm font-black text-palette-tan leading-none">
                     {memberCounts[role.name] || 0}
                   </span>
@@ -215,7 +196,7 @@ const RoleSettings: React.FC = () => {
 
             <div className="space-y-2 mb-8 bg-palette-beige/20 p-4 rounded-[3px] border border-palette-tan/20">
               <div className="flex items-center gap-1.5 mb-2">
-                <ListChecks size={12} className="text-palette-red" />
+                <span className="material-symbols-rounded text-palette-red" style={{ fontSize: '12px' }}>fact_check</span>
                 <span className="text-[13px] font-black text-palette-tan/60 tracking-widest">{t('roles.perm_summary')}</span>
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -237,11 +218,11 @@ const RoleSettings: React.FC = () => {
             <div className="flex items-center justify-between pt-5 border-t border-palette-tan/20">
               <div className="flex items-center gap-2 group-hover:translate-x-1 transition-transform">
                 <span className="text-[13px] font-black text-palette-tan/30 tracking-wider">{t('roles.manage')}</span>
-                <ArrowRight size={14} className="text-palette-tan/20" />
+                <span className="material-symbols-rounded text-palette-tan/20" style={{ fontSize: '14px' }}>arrow_forward</span>
               </div>
               {role.name === 'admin' && (
                 <div className="flex items-center gap-1.5 px-2.5 py-1 bg-palette-maroon/5 text-palette-maroon rounded-[3px] py-1 bg-palette-maroon/5 text-[13px] font-bold">
-                  <Lock size={12} />
+                  <span className="material-symbols-rounded" style={{ fontSize: '12px' }}>lock</span>
                   {t('roles.locked')}
                 </div>
               )}
@@ -258,20 +239,20 @@ const RoleSettings: React.FC = () => {
             <div className="px-10 py-7 border-b border-palette-tan/20 flex items-center justify-between bg-palette-beige/10">
               <div className="flex items-center gap-5">
                 <div className="w-12 h-12 bg-palette-tan rounded-[3px] flex items-center justify-center text-white shadow-xl shadow-palette-tan/20">
-                  <ShieldCheck size={24} />
+                  <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>verified_user</span>
                 </div>
                 <div>
                   <h3 className="text-[22px] font-black text-palette-maroon leading-none mb-1">{selectedRole.label} {t('roles.perms_for')}</h3>
                   <p className="text-[13px] font-bold text-palette-tan/40 tracking-widest">{t('roles.perms_desc')}</p>
                 </div>
               </div>
-              <button onClick={() => setShowPermModal(false)} className="w-10 h-10 flex items-center justify-center bg-palette-beige/50 rounded-[3px] hover:bg-palette-red hover:text-white transition-all"><X size={20} /></button>
+              <button onClick={() => setShowPermModal(false)} className="w-10 h-10 flex items-center justify-center bg-palette-beige/50 rounded-[3px] hover:bg-palette-red hover:text-white transition-all"><span className="material-symbols-rounded" style={{ fontSize: '20px' }}>close</span></button>
             </div>
 
             <div className="flex-1 overflow-y-auto p-10 no-scrollbar space-y-10">
               {selectedRole.name === 'admin' && (
                 <div className="bg-palette-red/5 border border-palette-red/10 p-5 rounded-[3px] flex items-start gap-4">
-                  <ShieldAlert className="text-palette-red" size={20} />
+                  <span className="material-symbols-rounded text-palette-red" style={{ fontSize: '20px' }}>report</span>
                   <div>
                     <h4 className="text-[14px] font-black text-palette-maroon mb-1 tracking-wider">{t('common.error')}</h4>
                     <p className="text-palette-red/80 text-[13px] font-bold leading-relaxed">{t('roles.admin_notice')}</p>
@@ -304,7 +285,7 @@ const RoleSettings: React.FC = () => {
                               </div>
                               <div className={`relative w-10 h-5 rounded-[3px] transition-all duration-500 p-0.5 flex items-center ${isActive ? 'bg-palette-tan' : 'bg-palette-beige'}`}>
                                 <div className={`w-3.5 h-3.5 bg-white rounded-[3px] shadow-lg transition-all transform ${isActive ? 'translate-x-5' : 'translate-x-0'} flex items-center justify-center`}>
-                                  {isActive && <Check size={8} strokeWidth={5} className="text-palette-tan" />}
+                                  {isActive && <span className="material-symbols-rounded text-palette-tan" style={{ fontSize: '8px', fontWeight: '900' }}>check</span>}
                                 </div>
                               </div>
                             </div>
@@ -322,13 +303,13 @@ const RoleSettings: React.FC = () => {
                 {rolePermissions.length} {t('roles.perms_active')}
               </div>
               <div className="flex items-center gap-3">
-                {success && <div className="flex items-center gap-1 text-emerald-600 text-[12px] font-black tracking-wider animate-in fade-in zoom-in"><CheckCircle2 size={14} /> {t('common.updated')}</div>}
+                {success && <div className="flex items-center gap-1 text-emerald-600 text-[12px] font-black tracking-wider animate-in fade-in zoom-in"><span className="material-symbols-rounded" style={{ fontSize: '14px' }}>check_circle</span> {t('common.updated')}</div>}
                 <button
                   onClick={handleSavePermissions}
                   disabled={saving || selectedRole.name === 'admin'}
                   className="flex items-center gap-2 px-8 py-3 bg-palette-tan text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-maroon transition-all shadow-xl shadow-palette-tan/20 active:scale-95 disabled:opacity-40"
                 >
-                  {saving ? <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-[3px] animate-spin" /> : <Save size={16} />}
+                  {saving ? <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-[3px] animate-spin" /> : <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>save</span>}
                   <span>{saving ? t('common.processing') : t('roles.apply_changes')}</span>
                 </button>
               </div>
@@ -345,11 +326,11 @@ const RoleSettings: React.FC = () => {
             <div className="px-8 py-7 border-b border-palette-tan/20 bg-palette-beige/10 flex items-center justify-between">
               <h3 className="text-[20px] font-black text-palette-maroon tracking-tight flex items-center gap-3">
                 <div className="w-9 h-9 bg-palette-red rounded-[3px] flex items-center justify-center text-white shadow-lg shadow-palette-red/20">
-                  <Plus size={20} strokeWidth={3} />
+                  <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>add</span>
                 </div>
                 Yeni Rol Tanımı
               </h3>
-              <button onClick={() => setShowRoleFormModal(false)} className="p-1.5 text-palette-tan/40 hover:text-palette-red transition-colors"><X size={20} /></button>
+              <button onClick={() => setShowRoleFormModal(false)} className="p-1.5 text-palette-tan/40 hover:text-palette-red transition-colors"><span className="material-symbols-rounded" style={{ fontSize: '20px' }}>close</span></button>
             </div>
 
             <div className="p-8 space-y-6">
@@ -392,7 +373,7 @@ const RoleSettings: React.FC = () => {
                 disabled={saving || !roleForm.name || !roleForm.label}
                 className="flex items-center gap-2 px-8 py-3 bg-palette-tan text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-maroon shadow-xl active:scale-95 disabled:opacity-40"
               >
-                {saving ? <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-[3px] animate-spin" /> : <CheckCircle2 size={16} />}
+                {saving ? <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-[3px] animate-spin" /> : <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>check_circle</span>}
                 <span>{saving ? t('common.processing') : t('roles.form.submit')}</span>
               </button>
             </div>
@@ -406,7 +387,7 @@ const RoleSettings: React.FC = () => {
           <div className="absolute inset-0 bg-palette-maroon/20 backdrop-blur-[2px] animate-in fade-in" onClick={() => setStatusModal({ ...statusModal, show: false })} />
           <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-xs overflow-hidden animate-in slide-in-from-bottom-4 border border-palette-tan/20 p-8 text-center">
             <div className={`w-16 h-16 rounded-[3px] flex items-center justify-center mx-auto mb-6 ${statusModal.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
-              {statusModal.type === 'error' ? <X size={28} strokeWidth={3} /> : <CheckCircle2 size={28} strokeWidth={3} />}
+              {statusModal.type === 'error' ? <span className="material-symbols-rounded" style={{ fontSize: '28px' }}>close</span> : <span className="material-symbols-rounded" style={{ fontSize: '28px' }}>check_circle</span>}
             </div>
             <p className="text-base font-black text-palette-maroon mb-8 leading-relaxed">{statusModal.message}</p>
             <button

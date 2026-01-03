@@ -1,20 +1,4 @@
 import React, { useState } from 'react';
-import {
-    ChevronDown,
-    Trash2,
-    Award,
-    Plus,
-    Settings2,
-    Image as LucideImage,
-    Globe,
-    Edit3,
-    Check,
-    X,
-    BarChart3,
-    TrendingUp,
-    Star,
-    FileText
-} from 'lucide-react';
 import ReactQuill from 'react-quill-new';
 import { PostItem, QUILL_MODULES, QUILL_FORMATS } from './PostTextItem';
 import { useLanguage } from '../../context/LanguageContext';
@@ -135,7 +119,7 @@ const PostReviewItem: React.FC<PostReviewItemProps> = ({
                                     onClick={() => onMoveUp?.(index)}
                                     className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
                                 >
-                                    <ChevronDown size={18} className="rotate-180" />
+                                    <span className="material-symbols-rounded rotate-180" style={{ fontSize: '20px' }}>expand_more</span>
                                 </button>
                             ) : <div className="w-8 h-8" />}
 
@@ -144,7 +128,7 @@ const PostReviewItem: React.FC<PostReviewItemProps> = ({
                                     onClick={() => onMoveDown?.(index)}
                                     className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
                                 >
-                                    <ChevronDown size={18} />
+                                    <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>expand_more</span>
                                 </button>
                             ) : <div className="w-8 h-8" />}
                         </>
@@ -159,7 +143,7 @@ const PostReviewItem: React.FC<PostReviewItemProps> = ({
                         : "text-palette-tan/10 cursor-not-allowed"
                         }`}
                 >
-                    <Trash2 size={16} />
+                    <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>delete</span>
                 </button>
             </div>
 
@@ -169,7 +153,7 @@ const PostReviewItem: React.FC<PostReviewItemProps> = ({
                 <div className="flex items-center justify-between border-b border-palette-tan/15 pb-3">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-[3px] flex items-center justify-center shadow-sm border border-emerald-100/50">
-                            <Award size={20} />
+                            <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>award</span>
                         </div>
                         <div>
                             <h3 className="text-base font-black text-palette-maroon leading-tight">{t('admin.post.review_block')}</h3>
@@ -201,7 +185,7 @@ const PostReviewItem: React.FC<PostReviewItemProps> = ({
                         <label className="text-[13px] font-black text-palette-tan ml-1 text-center block">Genel Skor</label>
                         <div className="h-10 bg-palette-maroon text-white rounded-[3px] flex items-center justify-center gap-1.5 shadow-lg shadow-palette-maroon/20 border border-palette-maroon relative overflow-hidden group/score">
                             <div className="absolute inset-x-0 bottom-0 h-1 bg-white/20 origin-left transition-transform duration-1000 scale-x-[var(--score-width)]" style={{ '--score-width': `${reviewData.score / 100}` } as any} />
-                            <Star size={14} className="text-palette-yellow animate-pulse" />
+                            <span className="material-symbols-rounded text-palette-yellow animate-pulse" style={{ fontSize: '14px', fontVariationSettings: '"FILL" 1' }}>star</span>
                             <span className="text-xl font-black leading-none">{reviewData.score}</span>
                             <span className="text-[10px] font-bold opacity-60">/100</span>
                         </div>
@@ -223,15 +207,15 @@ const PostReviewItem: React.FC<PostReviewItemProps> = ({
                                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-2">
                                         <button
                                             onClick={() => onOpenImageEditor(item.id, 'reviewData.productImage')}
-                                            className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-emerald-600 transition-all shadow-xl hover:scale-110"
+                                            className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-emerald-600 transition-all shadow-xl hover:scale-110 flex items-center justify-center"
                                         >
-                                            <Edit3 size={20} />
+                                            <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>edit_square</span>
                                         </button>
                                         <button
                                             onClick={() => updateReviewField('productImage', '')}
-                                            className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-palette-red transition-all shadow-xl hover:scale-110"
+                                            className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-palette-red transition-all shadow-xl hover:scale-110 flex items-center justify-center"
                                         >
-                                            <Trash2 size={20} />
+                                            <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>delete</span>
                                         </button>
                                     </div>
                                 </div>
@@ -241,14 +225,14 @@ const PostReviewItem: React.FC<PostReviewItemProps> = ({
                                         onClick={() => onOpenFileManager(item.id, 'reviewData.productImage')}
                                         className="flex flex-col items-center cursor-pointer group/pick mb-4 hover:scale-105 transition-transform"
                                     >
-                                        <Plus size={48} className="text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-2" />
+                                        <span className="material-symbols-rounded text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-2" style={{ fontSize: '48px' }}>add</span>
                                         <span className="text-[14px] font-bold text-palette-tan/50 px-4 text-center">{t('admin.post.pick_image_alt')}</span>
                                     </div>
                                     <button
                                         onClick={() => onOpenUrlMode(item.id, 'reviewData.productImage')}
                                         className="mt-2 text-[10px] font-black text-palette-tan/60 hover:text-palette-maroon border border-palette-tan/20 px-3 py-1.5 rounded-[3px] bg-white shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 uppercase tracking-wider"
                                     >
-                                        <Globe size={11} /> URL VEYA YÜKLE
+                                        <span className="material-symbols-rounded" style={{ fontSize: '11px' }}>public</span> URL VEYA YÜKLE
                                     </button>
                                 </div>
                             )}
@@ -259,7 +243,7 @@ const PostReviewItem: React.FC<PostReviewItemProps> = ({
                     <div className="md:col-span-8 h-full flex flex-col">
                         <div className="space-y-2 group/editor flex-1 flex flex-col">
                             <label className="text-[13px] font-black text-palette-tan ml-1 uppercase tracking-wider flex items-center gap-2">
-                                <FileText size={14} className="text-palette-maroon" /> {t('admin.post.verdict_label')}
+                                <span className="material-symbols-rounded text-palette-maroon" style={{ fontSize: '14px' }}>description</span> {t('admin.post.verdict_label')}
                             </label>
                             <div className="quill-modern-wrapper compact-quill border border-palette-tan/20 rounded-[3px] overflow-hidden focus-within:border-palette-red/40 transition-all shadow-sm bg-white flex-1 min-h-[240px]">
                                 {(() => {
@@ -286,14 +270,14 @@ const PostReviewItem: React.FC<PostReviewItemProps> = ({
                     {/* PROS */}
                     <div className="space-y-3 bg-emerald-50/20 p-5 rounded-[3px] border border-emerald-100 shadow-sm relative overflow-hidden group/pros">
                         <div className="absolute top-0 right-0 p-4 opacity-5 group-hover/pros:opacity-10 transition-opacity">
-                            <Check size={80} strokeWidth={3} />
+                            <span className="material-symbols-rounded" style={{ fontSize: '80px' }}>check</span>
                         </div>
                         <div className="flex items-center justify-between mb-2 relative z-10">
                             <div className="flex items-center gap-2">
-                                <div className="bg-emerald-500 p-1 rounded-full text-white shadow-lg shadow-emerald-500/20"><Check size={12} strokeWidth={4} /></div>
+                                <div className="bg-emerald-500 p-1 rounded-full text-white shadow-lg shadow-emerald-500/20 flex items-center justify-center"><span className="material-symbols-rounded" style={{ fontSize: '12px' }}>check</span></div>
                                 <h4 className="text-emerald-900 font-black text-xs uppercase tracking-widest">{t('admin.post.pros')}</h4>
                             </div>
-                            <button onClick={() => addList('pros')} className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-all shadow-sm"><Plus size={16} /></button>
+                            <button onClick={() => addList('pros')} className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-all shadow-sm"><span className="material-symbols-rounded" style={{ fontSize: '16px' }}>add</span></button>
                         </div>
                         <div className="space-y-2 relative z-10">
                             {reviewData.pros.map((pro, idx) => (
@@ -305,7 +289,7 @@ const PostReviewItem: React.FC<PostReviewItemProps> = ({
                                         className="flex-1 h-9 bg-white/80 border border-emerald-200 rounded-[3px] px-3 text-xs font-bold text-emerald-900 outline-none focus:border-emerald-500 shadow-inner"
                                         placeholder={t('admin.post.add_pro')}
                                     />
-                                    <button onClick={() => removeList('pros', idx)} className="text-rose-300 hover:text-rose-600 px-1 transition-colors"><X size={14} /></button>
+                                    <button onClick={() => removeList('pros', idx)} className="text-rose-300 hover:text-rose-600 px-1 transition-colors flex items-center justify-center"><span className="material-symbols-rounded" style={{ fontSize: '14px' }}>close</span></button>
                                 </div>
                             ))}
                         </div>
@@ -314,14 +298,14 @@ const PostReviewItem: React.FC<PostReviewItemProps> = ({
                     {/* CONS */}
                     <div className="space-y-3 bg-rose-50/20 p-5 rounded-[3px] border border-rose-100 shadow-sm relative overflow-hidden group/cons">
                         <div className="absolute top-0 right-0 p-4 opacity-5 group-hover/cons:opacity-10 transition-opacity">
-                            <X size={80} strokeWidth={3} />
+                            <span className="material-symbols-rounded" style={{ fontSize: '80px' }}>close</span>
                         </div>
                         <div className="flex items-center justify-between mb-2 relative z-10">
                             <div className="flex items-center gap-2">
-                                <div className="bg-rose-500 p-1 rounded-full text-white shadow-lg shadow-rose-500/20"><X size={12} strokeWidth={4} /></div>
+                                <div className="bg-rose-500 p-1 rounded-full text-white shadow-lg shadow-rose-500/20 flex items-center justify-center"><span className="material-symbols-rounded" style={{ fontSize: '12px' }}>close</span></div>
                                 <h4 className="text-rose-900 font-black text-xs uppercase tracking-widest">Eksiler</h4>
                             </div>
-                            <button onClick={() => addList('cons')} className="w-6 h-6 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all shadow-sm"><Plus size={16} /></button>
+                            <button onClick={() => addList('cons')} className="w-6 h-6 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all shadow-sm"><span className="material-symbols-rounded" style={{ fontSize: '16px' }}>add</span></button>
                         </div>
                         <div className="space-y-2 relative z-10">
                             {reviewData.cons.map((con, idx) => (
@@ -333,7 +317,7 @@ const PostReviewItem: React.FC<PostReviewItemProps> = ({
                                         className="flex-1 h-9 bg-white/80 border border-rose-200 rounded-[3px] px-3 text-xs font-bold text-rose-900 outline-none focus:border-rose-500 shadow-inner"
                                         placeholder="Bir eksi ekleyin..."
                                     />
-                                    <button onClick={() => removeList('cons', idx)} className="text-rose-300 hover:text-rose-600 px-1 transition-colors"><X size={14} /></button>
+                                    <button onClick={() => removeList('cons', idx)} className="text-rose-300 hover:text-rose-600 px-1 transition-colors flex items-center justify-center"><span className="material-symbols-rounded" style={{ fontSize: '14px' }}>close</span></button>
                                 </div>
                             ))}
                         </div>
@@ -341,11 +325,11 @@ const PostReviewItem: React.FC<PostReviewItemProps> = ({
                 </div>
 
                 {/* 5. BREAKDOWN */}
-                <div className="space-y-5 pt-6 border-t border-palette-tan/10 bg-palette-beige/5 -mx-5 px-5 pb-5">
+                <div className="space-y-5 pt-6 border-t border-palette-tan/10 bg-palette-beige/5 -mx-5 px-5 pb-5 flex flex-col">
                     <div className="flex items-center justify-between">
                         <div>
                             <h4 className="font-black text-palette-maroon text-[12px] uppercase tracking-widest flex items-center gap-2">
-                                <BarChart3 size={16} className="text-blue-500" /> {t('admin.post.detailed_scoring')}
+                                <span className="material-symbols-rounded text-blue-500" style={{ fontSize: '16px' }}>bar_chart</span> {t('admin.post.detailed_scoring')}
                             </h4>
                             <p className="text-[10px] font-bold text-palette-tan/50 mt-1 italic">{t('admin.post.score_help')}</p>
                         </div>
@@ -353,7 +337,7 @@ const PostReviewItem: React.FC<PostReviewItemProps> = ({
                             onClick={addBreakdown}
                             className="text-[10px] font-black text-blue-600 hover:text-white uppercase tracking-widest flex items-center gap-1.5 bg-blue-50 hover:bg-blue-600 px-3 py-1.5 rounded-[3px] transition-all border border-blue-200 shadow-sm"
                         >
-                            <Plus size={14} /> Kriter Ekle
+                            <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>add</span> Kriter Ekle
                         </button>
                     </div>
 
@@ -389,7 +373,7 @@ const PostReviewItem: React.FC<PostReviewItemProps> = ({
                                             className="flex-1 bg-transparent border-none text-[13px] font-black text-palette-maroon outline-none placeholder:text-palette-tan/30"
                                             placeholder={t('admin.post.criterion_placeholder')}
                                         />
-                                        <button onClick={() => removeBreakdown(idx)} className="opacity-0 group-hover/item:opacity-100 transition-opacity text-rose-300 hover:text-rose-600 p-1"><X size={14} /></button>
+                                        <button onClick={() => removeBreakdown(idx)} className="opacity-0 group-hover/item:opacity-100 transition-opacity text-rose-300 hover:text-rose-600 p-1 flex items-center justify-center"><span className="material-symbols-rounded" style={{ fontSize: '14px' }}>close</span></button>
                                     </div>
 
                                     <div className="flex items-center gap-4">
@@ -435,16 +419,16 @@ const PostReviewItem: React.FC<PostReviewItemProps> = ({
                         onClick={() => setShowOptions(!showOptions)}
                         className="text-[11px] font-black text-palette-tan/50 hover:text-palette-maroon transition-colors flex items-center gap-1.5 uppercase tracking-[0.15em] p-1 rounded hover:bg-palette-beige/20"
                     >
-                        <Settings2 size={13} className={`transition-transform duration-300 ${showOptions ? 'rotate-90' : ''}`} />
+                        <span className={`material-symbols-rounded transition-transform duration-300 ${showOptions ? 'rotate-90' : ''}`} style={{ fontSize: '13px' }}>settings</span>
                         Ek Ayarlar
-                        <ChevronDown size={14} className={`transition-transform duration-300 ${showOptions ? 'rotate-180' : ''}`} />
+                        <span className={`material-symbols-rounded transition-transform duration-300 ${showOptions ? 'rotate-180' : ''}`} style={{ fontSize: '14px' }}>expand_more</span>
                     </button>
 
                     {showOptions && (
                         <div className="animate-in slide-in-from-top-2 duration-300 w-full pt-2">
                             <div className="space-y-1.5">
                                 <label className="text-[13px] font-black text-palette-tan ml-1 flex items-center gap-1.5">
-                                    <Settings2 size={12} /> {t('admin.post.image_source')}
+                                    <span className="material-symbols-rounded" style={{ fontSize: '12px' }}>settings</span> {t('admin.post.image_source')}
                                 </label>
                                 <input
                                     type="text"

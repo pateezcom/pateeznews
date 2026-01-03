@@ -4,27 +4,6 @@ import { supabase } from '../../lib/supabase';
 import { useLanguage } from '../../context/LanguageContext';
 import { StoryItem } from '../../types';
 import WebStoryEditor from './WebStoryEditor';
-import {
-    Zap,
-    Search,
-    Plus,
-    CheckCircle2,
-    X,
-    Save,
-    Loader2,
-    Eye,
-    Calendar,
-    Image as ImageIcon,
-    Video,
-    Trash2,
-    Edit3,
-    MoreVertical,
-    AlertTriangle,
-    Clock,
-    ExternalLink,
-    ChevronDown,
-    Layout
-} from 'lucide-react';
 
 const StoryManagement: React.FC = () => {
     const { t } = useLanguage();
@@ -223,7 +202,7 @@ const StoryManagement: React.FC = () => {
 
                 <div className="flex items-center gap-3">
                     <div className="flex items-center gap-3 px-4 py-2 bg-palette-beige/40 border border-palette-tan/20 rounded-[3px] shadow-sm w-full max-w-md focus-within:ring-4 focus-within:ring-palette-tan/5 focus-within:border-palette-tan focus-within:bg-white transition-all group">
-                        <Search size={16} className="text-palette-tan/30 group-focus-within:text-palette-tan transition-colors" />
+                        <span className="material-symbols-rounded text-palette-tan/30 group-focus-within:text-palette-tan transition-colors" style={{ fontSize: '16px' }}>search</span>
                         <input
                             type="text"
                             placeholder={t('stories.search_placeholder')}
@@ -237,7 +216,7 @@ const StoryManagement: React.FC = () => {
                         onClick={handleOpenAdd}
                         className="h-10 px-10 bg-palette-red text-white rounded-[3px] font-black text-[11px] tracking-widest hover:bg-primary-600 transition-all shadow-lg active:scale-95 flex items-center gap-2 whitespace-nowrap"
                     >
-                        <Plus size={16} strokeWidth={3} />
+                        <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>add</span>
                         <span>{t('stories.add_new')}</span>
                     </button>
                 </div>
@@ -245,7 +224,7 @@ const StoryManagement: React.FC = () => {
 
             {errorMsg && (
                 <div className="mb-6 p-4 bg-palette-red/5 border border-palette-red/20 rounded-[3px] flex items-center gap-4 text-palette-red">
-                    <AlertTriangle size={20} />
+                    <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>warning</span>
                     <div className="text-xs font-bold tracking-wider">{t('common.error')}: {errorMsg}</div>
                 </div>
             )}
@@ -272,14 +251,14 @@ const StoryManagement: React.FC = () => {
                                             ) : (
                                                 <img src={story.mediaUrl} className="w-full h-full object-cover" />
                                             )}
-                                            <div className="absolute top-1 right-1 bg-white/80 p-0.5 rounded-[3px] shadow-sm">
-                                                {story.mediaType === 'video' ? <Video size={10} className="text-palette-maroon" /> : <ImageIcon size={10} className="text-palette-maroon" />}
+                                            <div className="absolute top-1 right-1 bg-white/80 p-0.5 rounded-[3px] shadow-sm flex items-center justify-center">
+                                                {story.mediaType === 'video' ? <span className="material-symbols-rounded text-palette-maroon" style={{ fontSize: '10px' }}>videocam</span> : <span className="material-symbols-rounded text-palette-maroon" style={{ fontSize: '10px' }}>image</span>}
                                             </div>
                                         </div>
                                         <div>
                                             <h4 className="text-sm font-black text-palette-maroon leading-none mb-1 max-w-[300px] truncate">{story.title}</h4>
                                             <p className="text-[10px] text-palette-tan/50 font-bold tracking-widest flex items-center gap-1">
-                                                <Clock size={10} /> {story.createdAt ? new Date(story.createdAt).toLocaleDateString('tr-TR') : '-'}
+                                                <span className="material-symbols-rounded" style={{ fontSize: '10px' }}>schedule</span> {story.createdAt ? new Date(story.createdAt).toLocaleDateString('tr-TR') : '-'}
                                                 {story.sourceName && <span> • {story.sourceName}</span>}
                                             </p>
                                         </div>
@@ -287,7 +266,7 @@ const StoryManagement: React.FC = () => {
                                 </td>
                                 <td className="px-8 py-5">
                                     <div className="flex items-center gap-2 text-palette-maroon font-black text-sm">
-                                        <Eye size={16} className="text-palette-tan/30" />
+                                        <span className="material-symbols-rounded text-palette-tan/30" style={{ fontSize: '16px' }}>visibility</span>
                                         {story.viewCount?.toLocaleString()}
                                     </div>
                                 </td>
@@ -295,7 +274,7 @@ const StoryManagement: React.FC = () => {
                                     <div className="text-[11px] font-bold text-palette-tan">
                                         {story.expiresAt ? (
                                             <div className="flex items-center gap-1">
-                                                <Calendar size={12} className="text-palette-tan/30" />
+                                                <span className="material-symbols-rounded text-palette-tan/30" style={{ fontSize: '12px' }}>calendar_today</span>
                                                 {new Date(story.expiresAt).toLocaleDateString('tr-TR')}
                                             </div>
                                         ) : (
@@ -312,9 +291,9 @@ const StoryManagement: React.FC = () => {
                                 <td className="px-8 py-5 text-right relative overflow-visible">
                                     <button
                                         onClick={(e) => { e.stopPropagation(); setOpenDropdownId(openDropdownId === story.id ? null : story.id); }}
-                                        className={`p-2 rounded-[3px] transition-all active:scale-90 shadow-sm ${openDropdownId === story.id ? 'bg-palette-maroon text-white' : 'bg-palette-beige/50 text-palette-tan/40 hover:bg-palette-tan/80 hover:text-white'}`}
+                                        className={`p-2 rounded-[3px] transition-all active:scale-90 shadow-sm flex items-center justify-center ${openDropdownId === story.id ? 'bg-palette-maroon text-white' : 'bg-palette-beige/50 text-palette-tan/40 hover:bg-palette-tan/80 hover:text-white'}`}
                                     >
-                                        <MoreVertical size={16} />
+                                        <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>more_vert</span>
                                     </button>
 
                                     {openDropdownId === story.id && (
@@ -323,21 +302,21 @@ const StoryManagement: React.FC = () => {
                                                 onClick={() => handleOpenEdit(story)}
                                                 className="w-full flex items-center gap-3 px-4 py-2.5 text-[11px] font-bold text-palette-tan hover:bg-palette-beige/50 hover:text-palette-maroon transition-colors text-left"
                                             >
-                                                <Edit3 size={14} className="text-palette-tan/30" />
+                                                <span className="material-symbols-rounded text-palette-tan/30" style={{ fontSize: '14px' }}>edit_square</span>
                                                 {t('common.edit')}
                                             </button>
                                             <button
                                                 onClick={() => { window.open(`/admin/hikaye-editor/${story.id}`, '_blank'); setOpenDropdownId(null); }}
                                                 className="w-full flex items-center gap-3 px-4 py-2.5 text-[11px] font-bold text-palette-maroon hover:bg-palette-beige/50 transition-colors text-left"
                                             >
-                                                <Layout size={14} className="text-palette-red" />
+                                                <span className="material-symbols-rounded text-palette-red" style={{ fontSize: '14px' }}>view_quilt</span>
                                                 {t('stories.table.actions.editor')}
                                             </button>
                                             <button
                                                 onClick={() => { window.open(story.mediaUrl, '_blank'); setOpenDropdownId(null); }}
                                                 className="w-full flex items-center gap-3 px-4 py-2.5 text-[11px] font-bold text-palette-tan hover:bg-palette-beige/50 hover:text-palette-maroon transition-colors text-left"
                                             >
-                                                <ExternalLink size={14} className="text-palette-tan/30" />
+                                                <span className="material-symbols-rounded text-palette-tan/30" style={{ fontSize: '14px' }}>open_in_new</span>
                                                 {t('stories.actions.view_media')}
                                             </button>
                                             <div className="h-px bg-palette-tan/10 mx-4 my-1"></div>
@@ -345,7 +324,7 @@ const StoryManagement: React.FC = () => {
                                                 onClick={() => handleDeleteStory(story)}
                                                 className="w-full flex items-center gap-3 px-4 py-2.5 text-[11px] font-bold text-palette-red hover:bg-palette-red/5 transition-colors text-left"
                                             >
-                                                <Trash2 size={14} />
+                                                <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>delete</span>
                                                 {t('common.delete')}
                                             </button>
                                         </div>
@@ -358,7 +337,7 @@ const StoryManagement: React.FC = () => {
 
                 {filteredStories.length === 0 && (
                     <div className="p-20 text-center text-palette-tan/30">
-                        <Zap size={40} className="mx-auto mb-4 opacity-20" />
+                        <span className="material-symbols-rounded mx-auto mb-4 opacity-20" style={{ fontSize: '40px' }}>bolt</span>
                         <p className="text-[11px] font-black tracking-widest">{t('stories.empty_state')}</p>
                     </div>
                 )}
@@ -371,18 +350,18 @@ const StoryManagement: React.FC = () => {
                         <div className="px-8 py-6 border-b border-palette-tan/15 flex items-center justify-between bg-palette-beige/10">
                             <h3 className="text-lg font-black text-palette-maroon tracking-tight flex items-center gap-3">
                                 <div className="w-8 h-8 bg-palette-red rounded-[3px] flex items-center justify-center text-white shadow-lg shadow-palette-red/20">
-                                    <Plus size={18} strokeWidth={3} />
+                                    <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>add</span>
                                 </div>
                                 {storyToEdit ? t('stories.form.edit_title') : t('stories.form.title')}
                             </h3>
-                            <button onClick={() => setShowAddModal(false)} className="p-1 text-palette-tan/40 hover:text-palette-red transition-colors"><X size={20} /></button>
+                            <button onClick={() => setShowAddModal(false)} className="p-1 text-palette-tan/40 hover:text-palette-red transition-colors flex items-center justify-center"><span className="material-symbols-rounded" style={{ fontSize: '20px' }}>close</span></button>
                         </div>
 
                         <form onSubmit={handleSubmit} className="p-8 space-y-5">
                             <div className="space-y-1.5">
                                 <label className="text-[11px] font-black text-palette-tan/50 ml-1">{t('stories.form.story_title')}</label>
                                 <div className="relative group">
-                                    <Zap className={iconClasses} size={14} />
+                                    <span className="material-symbols-rounded absolute left-4 top-1/2 -translate-y-1/2 text-palette-tan/40 group-focus-within:text-palette-tan transition-colors" style={{ fontSize: '14px' }}>bolt</span>
                                     <input
                                         type="text"
                                         required
@@ -396,7 +375,7 @@ const StoryManagement: React.FC = () => {
                             <div className="space-y-1.5">
                                 <label className="text-[11px] font-black text-palette-tan/50 ml-1">{t('stories.form.media_url')}</label>
                                 <div className="relative group">
-                                    <ImageIcon className={iconClasses} size={14} />
+                                    <span className="material-symbols-rounded absolute left-4 top-1/2 -translate-y-1/2 text-palette-tan/40 group-focus-within:text-palette-tan transition-colors" style={{ fontSize: '14px' }}>image</span>
                                     <input
                                         type="url"
                                         required
@@ -419,13 +398,13 @@ const StoryManagement: React.FC = () => {
                                             <option value="image">{t('admin.post.asset_label')} (Image)</option>
                                             <option value="video">{t('admin.post.video_panel')} (MP4)</option>
                                         </select>
-                                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-palette-tan/30" size={16} />
+                                        <span className="material-symbols-rounded absolute right-4 top-1/2 -translate-y-1/2 text-palette-tan/30" style={{ fontSize: '16px' }}>expand_more</span>
                                     </div>
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="text-[11px] font-black text-palette-tan/50 ml-1">{t('stories.form.source_name')}</label>
                                     <div className="relative group">
-                                        <ExternalLink className={iconClasses} size={14} />
+                                        <span className="material-symbols-rounded absolute left-4 top-1/2 -translate-y-1/2 text-palette-tan/40 group-focus-within:text-palette-tan transition-colors" style={{ fontSize: '14px' }}>open_in_new</span>
                                         <input
                                             type="text"
                                             value={formData.sourceName}
@@ -439,7 +418,7 @@ const StoryManagement: React.FC = () => {
                             <div className="space-y-1.5">
                                 <label className="text-[11px] font-black text-palette-tan/50 ml-1">{t('stories.form.expires_at')}</label>
                                 <div className="relative group">
-                                    <Calendar className={iconClasses} size={14} />
+                                    <span className="material-symbols-rounded absolute left-4 top-1/2 -translate-y-1/2 text-palette-tan/40 group-focus-within:text-palette-tan transition-colors" style={{ fontSize: '14px' }}>calendar_today</span>
                                     <input
                                         type="datetime-local"
                                         value={formData.expiresAt as string}
@@ -469,7 +448,7 @@ const StoryManagement: React.FC = () => {
                                     disabled={saving}
                                     className="w-full h-12 bg-palette-tan text-white rounded-[3px] font-black text-[11px] tracking-widest hover:bg-palette-maroon shadow-xl active:scale-95 flex items-center justify-center gap-3 transition-all"
                                 >
-                                    {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                                    {saving ? <span className="material-symbols-rounded animate-spin" style={{ fontSize: '16px' }}>progress_activity</span> : <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>save</span>}
                                     <span>{storyToEdit ? t('stories.form.save_btn') : t('stories.form.add_btn')}</span>
                                 </button>
                             </div>
@@ -483,7 +462,7 @@ const StoryManagement: React.FC = () => {
                     <div className="absolute inset-0 bg-palette-maroon/40 backdrop-blur-sm animate-in fade-in" onClick={() => !saving && setShowDeleteModal(false)} />
                     <div className="relative bg-white rounded-[3px] shadow-[0_20px_70px_rgba(0,0,0,0.2)] w-full max-w-sm overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 p-8 text-center">
                         <div className="w-20 h-20 bg-red-50 text-palette-red rounded-[3px] flex items-center justify-center mx-auto mb-6 shadow-inner">
-                            <Trash2 size={32} />
+                            <span className="material-symbols-rounded" style={{ fontSize: '32px' }}>delete</span>
                         </div>
                         <h3 className="text-xl font-black text-palette-maroon tracking-tight mb-3">{t('stories.delete_title')}</h3>
                         <p className="text-xs font-bold text-palette-tan/60 leading-relaxed mb-8">
@@ -496,7 +475,7 @@ const StoryManagement: React.FC = () => {
                                 disabled={saving}
                                 className="w-full h-12 bg-palette-red text-white rounded-[3px] font-black text-[12px] tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-palette-red/20 flex items-center justify-center gap-2"
                             >
-                                {saving ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                                {saving ? <span className="material-symbols-rounded animate-spin" style={{ fontSize: '16px' }}>progress_activity</span> : <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>delete</span>}
                                 {t('common.delete_kalici')}
                             </button>
                             <button
@@ -511,13 +490,12 @@ const StoryManagement: React.FC = () => {
                 </div>
             )}
 
-            {/* STATUS MODAL */}
             {statusModal.show && (
                 <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-palette-maroon/20 backdrop-blur-[2px] animate-in fade-in" onClick={() => setStatusModal({ ...statusModal, show: false })} />
                     <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-xs overflow-hidden animate-in slide-in-from-bottom-4 border border-palette-tan/15 p-8 text-center">
                         <div className={`w-16 h-16 rounded-[3px] flex items-center justify-center mx-auto mb-6 ${statusModal.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
-                            {statusModal.type === 'error' ? <X size={28} strokeWidth={3} /> : <CheckCircle2 size={28} strokeWidth={3} />}
+                            {statusModal.type === 'error' ? <span className="material-symbols-rounded" style={{ fontSize: '28px' }}>close</span> : <span className="material-symbols-rounded" style={{ fontSize: '28px' }}>check_circle</span>}
                         </div>
                         <p className="text-sm font-black text-palette-maroon mb-8 leading-relaxed">{statusModal.message}</p>
                         <button

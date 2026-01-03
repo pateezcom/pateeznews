@@ -1,20 +1,5 @@
 
 import React, { useState } from 'react';
-import {
-    ChevronDown,
-    Trash2,
-    FileText,
-    Plus,
-    Loader2,
-    Settings2,
-    Download,
-    File,
-    FileCode,
-    FileSpreadsheet,
-    FileBox,
-    ExternalLink,
-    Paperclip
-} from 'lucide-react';
 import ReactQuill from 'react-quill-new';
 import { PostItem, QUILL_MODULES, QUILL_FORMATS } from './PostTextItem';
 import { useLanguage } from '../../context/LanguageContext';
@@ -34,12 +19,12 @@ interface PostFileItemProps {
 
 const getFileIcon = (fileName: string) => {
     const ext = fileName?.split('.').pop()?.toLowerCase() || '';
-    if (['pdf'].includes(ext)) return <FileText className="text-red-500" size={40} />;
-    if (['doc', 'docx'].includes(ext)) return <FileBox className="text-blue-500" size={40} />;
-    if (['xls', 'xlsx'].includes(ext)) return <FileSpreadsheet className="text-emerald-500" size={40} />;
-    if (['ppt', 'pptx'].includes(ext)) return <FileBox className="text-orange-500" size={40} />;
-    if (['txt', 'md'].includes(ext)) return <FileCode className="text-slate-500" size={40} />;
-    return <File className="text-palette-tan" size={40} />;
+    if (['pdf'].includes(ext)) return <span className="material-symbols-rounded text-red-500" style={{ fontSize: '40px' }}>description</span>;
+    if (['doc', 'docx'].includes(ext)) return <span className="material-symbols-rounded text-blue-500" style={{ fontSize: '40px' }}>text_snippet</span>;
+    if (['xls', 'xlsx'].includes(ext)) return <span className="material-symbols-rounded text-emerald-500" style={{ fontSize: '40px' }}>table_chart</span>;
+    if (['ppt', 'pptx'].includes(ext)) return <span className="material-symbols-rounded text-orange-500" style={{ fontSize: '40px' }}>present_to_all</span>;
+    if (['txt', 'md'].includes(ext)) return <span className="material-symbols-rounded text-slate-500" style={{ fontSize: '40px' }}>article</span>;
+    return <span className="material-symbols-rounded text-palette-tan" style={{ fontSize: '40px' }}>draft</span>;
 };
 
 const PostFileItem: React.FC<PostFileItemProps> = ({
@@ -71,7 +56,7 @@ const PostFileItem: React.FC<PostFileItemProps> = ({
                                     onClick={() => onMoveUp?.(index)}
                                     className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
                                 >
-                                    <ChevronDown size={18} className="rotate-180" />
+                                    <span className="material-symbols-rounded rotate-180" style={{ fontSize: '20px' }}>expand_more</span>
                                 </button>
                             ) : <div className="w-8 h-8" />}
                             {index < totalItems - 1 ? (
@@ -79,7 +64,7 @@ const PostFileItem: React.FC<PostFileItemProps> = ({
                                     onClick={() => onMoveDown?.(index)}
                                     className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
                                 >
-                                    <ChevronDown size={18} />
+                                    <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>expand_more</span>
                                 </button>
                             ) : <div className="w-8 h-8" />}
                         </>
@@ -90,7 +75,7 @@ const PostFileItem: React.FC<PostFileItemProps> = ({
                     disabled={!isDeletable}
                     className={`w-8 h-8 flex items-center justify-center rounded-[3px] transition-all ${isDeletable ? "text-palette-tan/30 hover:text-white hover:bg-palette-red" : "text-palette-tan/10"}`}
                 >
-                    <Trash2 size={16} />
+                    <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>delete</span>
                 </button>
             </div>
 
@@ -99,7 +84,7 @@ const PostFileItem: React.FC<PostFileItemProps> = ({
                 <div className="flex items-center justify-between border-b border-palette-tan/15 pb-2">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-palette-beige/20 rounded-[3px] text-palette-maroon">
-                            <Paperclip size={18} />
+                            <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>attach_file</span>
                         </div>
                         <h3 className="text-base font-bold text-palette-maroon">{t('admin.post.file_block')}</h3>
                     </div>
@@ -134,7 +119,7 @@ const PostFileItem: React.FC<PostFileItemProps> = ({
                                         <div className="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center border border-palette-tan/10 relative group-hover:scale-105 transition-transform">
                                             {getFileIcon(fileName)}
                                             <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-palette-maroon text-white flex items-center justify-center shadow-lg border-2 border-white">
-                                                <Download size={14} />
+                                                <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>download</span>
                                             </div>
                                         </div>
                                         <div className="text-center space-y-1 w-full px-2">
@@ -152,13 +137,13 @@ const PostFileItem: React.FC<PostFileItemProps> = ({
                                                 rel="noopener noreferrer"
                                                 className="flex-1 h-9 flex items-center justify-center gap-2 bg-white border border-palette-tan/20 text-palette-maroon rounded-[3px] text-[10px] font-black tracking-widest hover:bg-palette-maroon hover:text-white transition-all shadow-sm"
                                             >
-                                                <ExternalLink size={12} /> {t('common.view')}
+                                                <span className="material-symbols-rounded" style={{ fontSize: '12px' }}>open_in_new</span> {t('common.view')}
                                             </a>
                                             <button
                                                 onClick={() => onUpdate(item.id, 'mediaUrl', '')}
                                                 className="w-9 h-9 flex items-center justify-center bg-palette-red/10 text-palette-red rounded-[3px] hover:bg-palette-red hover:text-white transition-all group/del"
                                             >
-                                                <Trash2 size={16} />
+                                                <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>delete</span>
                                             </button>
                                         </div>
                                     </div>
@@ -166,7 +151,7 @@ const PostFileItem: React.FC<PostFileItemProps> = ({
                                     <div className="flex flex-col items-center justify-center py-6">
                                         <div onClick={() => onOpenFileManager(item.id)} className="flex flex-col items-center cursor-pointer group/pick">
                                             <div className="w-14 h-14 rounded-full bg-palette-maroon/5 flex items-center justify-center mb-3 group-hover/pick:bg-palette-maroon/10 transition-all border border-transparent group-hover/pick:border-palette-maroon/10">
-                                                <Plus size={28} className="text-palette-tan/40 group-hover/pick:text-palette-maroon transition-all" />
+                                                <span className="material-symbols-rounded text-palette-tan/40 group-hover/pick:text-palette-maroon transition-all" style={{ fontSize: '28px' }}>add</span>
                                             </div>
                                             <span className="text-[13px] font-bold text-palette-tan/50 text-center uppercase tracking-widest">{t('admin.post.pick_file')}</span>
                                             <div className="mt-4 flex flex-wrap justify-center gap-1 opacity-40 grayscale group-hover/pick:grayscale-0 group-hover/pick:opacity-100 transition-all">
@@ -208,13 +193,13 @@ const PostFileItem: React.FC<PostFileItemProps> = ({
                             onClick={() => setShowOptions(!showOptions)}
                             className="text-[11px] font-black text-palette-tan/50 hover:text-palette-maroon transition-colors flex items-center gap-1 uppercase tracking-widest"
                         >
-                            <ChevronDown size={14} className={`transition-transform duration-300 ${showOptions ? 'rotate-180' : ''}`} />
+                            <span className={`material-symbols-rounded transition-transform duration-300 ${showOptions ? 'rotate-180' : ''}`} style={{ fontSize: '18px' }}>expand_more</span>
                             {showOptions ? t('common.less') : t('admin.post.extra_settings')}
                         </button>
                         {showOptions && (
                             <div className="mt-3 animate-in slide-in-from-top-2 duration-300">
                                 <label className="text-[11px] font-black text-palette-tan ml-1 flex items-center gap-1.5 uppercase opacity-60 mb-1.5">
-                                    <Settings2 size={12} /> Dosya Kaynağı
+                                    <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>settings</span> Dosya Kaynağı
                                 </label>
                                 <input
                                     type="text"

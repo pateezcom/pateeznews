@@ -1,15 +1,5 @@
 
 import React, { useState } from 'react';
-import {
-    ChevronDown,
-    Trash2,
-    Image as LucideImage,
-    Plus,
-    Globe,
-    Edit3,
-    Loader2,
-    Settings2
-} from 'lucide-react';
 import ReactQuill from 'react-quill-new';
 import { PostItem, QUILL_MODULES, QUILL_FORMATS } from './PostTextItem';
 import { useLanguage } from '../../context/LanguageContext';
@@ -60,7 +50,7 @@ const PostImageItem: React.FC<PostImageItemProps> = ({
                                     className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
                                     title={t('common.move_up')}
                                 >
-                                    <ChevronDown size={18} className="rotate-180" />
+                                    <span className="material-symbols-rounded rotate-180" style={{ fontSize: '20px' }}>expand_more</span>
                                 </button>
                             ) : <div className="w-8 h-8" />}
 
@@ -70,7 +60,7 @@ const PostImageItem: React.FC<PostImageItemProps> = ({
                                     className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
                                     title={t('common.move_down')}
                                 >
-                                    <ChevronDown size={18} />
+                                    <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>expand_more</span>
                                 </button>
                             ) : <div className="w-8 h-8" />}
                         </>
@@ -86,7 +76,7 @@ const PostImageItem: React.FC<PostImageItemProps> = ({
                         : "text-palette-tan/10 cursor-not-allowed"
                         }`}
                 >
-                    <Trash2 size={16} />
+                    <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>delete</span>
                 </button>
             </div>
 
@@ -96,7 +86,7 @@ const PostImageItem: React.FC<PostImageItemProps> = ({
                 <div className="flex items-center justify-between border-b border-palette-tan/15 pb-2">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-palette-beige/20 rounded-[3px] text-palette-maroon">
-                            <LucideImage size={18} />
+                            <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>image</span>
                         </div>
                         <h3 className="text-base font-bold text-palette-maroon">{t('admin.post.image_block')}</h3>
                     </div>
@@ -142,19 +132,19 @@ const PostImageItem: React.FC<PostImageItemProps> = ({
                                                 className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-emerald-600 transition-all"
                                                 title={t('common.edit')}
                                             >
-                                                <Edit3 size={20} />
+                                                <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>edit</span>
                                             </button>
                                             <button
                                                 onClick={() => onUpdate(item.id, 'mediaUrl', '')}
                                                 className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-palette-red transition-all"
                                                 title={t('common.delete')}
                                             >
-                                                <Trash2 size={20} />
+                                                <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>delete</span>
                                             </button>
                                         </div>
                                         {isImageLoading && (
                                             <div className="absolute inset-0 flex items-center justify-center bg-white/60 pointer-events-none">
-                                                <Loader2 size={22} className="animate-spin text-palette-maroon" />
+                                                <span className="material-symbols-rounded animate-spin text-palette-maroon" style={{ fontSize: '22px' }}>progress_activity</span>
                                             </div>
                                         )}
                                     </div>
@@ -164,14 +154,14 @@ const PostImageItem: React.FC<PostImageItemProps> = ({
                                             onClick={() => onOpenFileManager(item.id)}
                                             className="flex flex-col items-center cursor-pointer group/pick mb-4"
                                         >
-                                            <Plus size={48} className="text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-2" />
+                                            <span className="material-symbols-rounded text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-2" style={{ fontSize: '48px' }}>add</span>
                                             <span className="text-[14px] font-bold text-palette-tan/50 px-4 text-center">{t('admin.post.pick_image')}</span>
                                         </div>
                                         <button
                                             onClick={() => onOpenUrlMode(item.id)}
                                             className="mt-2 text-[10px] font-black text-palette-tan/60 hover:text-palette-maroon border border-palette-tan/20 px-3 py-1.5 rounded-[3px] bg-white shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 uppercase tracking-wider"
                                         >
-                                            <Globe size={11} /> {t('admin.post.url_or_upload')}
+                                            <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>public</span> {t('admin.post.url_or_upload')}
                                         </button>
                                     </div>
                                 )}
@@ -210,7 +200,7 @@ const PostImageItem: React.FC<PostImageItemProps> = ({
                                 onClick={() => setShowOptions(!showOptions)}
                                 className="text-[11px] font-black text-palette-tan/50 hover:text-palette-maroon transition-colors flex items-center gap-1 uppercase tracking-widest"
                             >
-                                <ChevronDown size={14} className={`transition-transform duration-300 ${showOptions ? 'rotate-180' : ''}`} />
+                                <span className={`material-symbols-rounded transition-transform duration-300 ${showOptions ? 'rotate-180' : ''}`} style={{ fontSize: '18px' }}>expand_more</span>
                                 {showOptions ? t('common.less') : t('admin.post.extra_settings')}
                             </button>
                         </div>
@@ -219,7 +209,7 @@ const PostImageItem: React.FC<PostImageItemProps> = ({
                             <div className="animate-in slide-in-from-top-2 duration-300 w-full">
                                 <div className="space-y-1.5">
                                     <label className="text-[13px] font-black text-palette-tan ml-1 flex items-center gap-1.5">
-                                        <Settings2 size={12} /> {t('admin.post.image_source')}
+                                        <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>settings</span> {t('admin.post.image_source')}
                                     </label>
                                     <input
                                         type="text"

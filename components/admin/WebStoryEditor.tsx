@@ -7,7 +7,6 @@ import {
 import { elementTypes } from '@googleforcreators/element-library';
 import { registerElementType } from '@googleforcreators/elements';
 import { DATA_VERSION } from '@googleforcreators/migration';
-import { X, Save, Loader2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { StoryItem } from '../../types';
 import { useLanguage } from '../../context/LanguageContext';
@@ -84,8 +83,8 @@ const WebStoryEditor: React.FC<WebStoryEditorProps> = ({ story, onClose, onSaveS
             {/* Custom Header with Close Button */}
             <div className="h-16 border-b border-palette-tan/15 flex items-center justify-between px-6 bg-white shrink-0">
                 <div className="flex items-center gap-4">
-                    <div className="p-2 bg-palette-red text-white rounded-[3px] shadow-lg">
-                        <Save size={20} />
+                    <div className="p-2 bg-palette-red text-white rounded-[3px] shadow-lg flex items-center justify-center">
+                        <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>save</span>
                     </div>
                     <div>
                         <h2 className="text-[20px] font-black text-palette-maroon leading-none">Buzz <span className="text-palette-red">Creative</span></h2>
@@ -97,7 +96,7 @@ const WebStoryEditor: React.FC<WebStoryEditorProps> = ({ story, onClose, onSaveS
                     onClick={onClose}
                     className="flex items-center gap-2 px-4 py-2 bg-palette-beige/30 hover:bg-palette-red hover:text-white text-palette-tan rounded-[3px] transition-all font-black text-[13px] tracking-widest group"
                 >
-                    <X size={16} className="group-hover:rotate-90 transition-transform" />
+                    <span className="material-symbols-rounded group-hover:rotate-90 transition-transform" style={{ fontSize: '16px' }}>close</span>
                     Kapat
                 </button>
             </div>

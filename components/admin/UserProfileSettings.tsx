@@ -1,33 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import {
-  User,
-  Mail,
-  Link2,
-  Facebook,
-  Twitter,
-  Instagram,
-  Youtube,
-  Linkedin,
-  Globe,
-  Save,
-  Loader2,
-  CheckCircle2,
-  Camera,
-  BadgeDollarSign,
-  Eye,
-  Smartphone,
-  AtSign,
-  Briefcase,
-  MessageCircle,
-  Send,
-  Gamepad2,
-  Tv2,
-  Image as ImageIcon,
-  ArrowLeft,
-  X
-} from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
 interface UserProfileSettingsProps {
@@ -111,7 +84,7 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({ userId, onSuc
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center h-[400px] gap-4">
-      <Loader2 className="animate-spin text-palette-red" size={32} />
+      <span className="material-symbols-rounded animate-spin text-palette-red" style={{ fontSize: '32px' }}>progress_activity</span>
       <span className="text-[13px] font-black tracking-widest text-palette-tan/40">{t('admin.post.loading_profile')}</span>
     </div>
   );
@@ -128,9 +101,9 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({ userId, onSuc
           {onBack && (
             <button
               onClick={onBack}
-              className="p-3 bg-white border border-palette-tan/15 rounded-[3px] text-palette-tan hover:bg-palette-tan hover:text-white transition-all shadow-sm active:scale-90"
+              className="p-3 bg-white border border-palette-tan/15 rounded-[3px] text-palette-tan hover:bg-palette-tan hover:text-white transition-all shadow-sm active:scale-90 flex items-center justify-center"
             >
-              <ArrowLeft size={18} />
+              <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>arrow_back</span>
             </button>
           )}
           <div className="relative group">
@@ -138,7 +111,7 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({ userId, onSuc
               <img src={profile.avatar_url || `https://picsum.photos/seed/${profile.id}/200`} className="w-full h-full object-cover" />
             </div>
             <button className="absolute -bottom-1.5 -right-1.5 w-7 h-7 bg-palette-red text-white rounded-[3px] flex items-center justify-center shadow-lg z-20 border-2 border-white hover:scale-110 transition-all">
-              <Camera size={14} />
+              <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>photo_camera</span>
             </button>
           </div>
           <div>
@@ -148,13 +121,13 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({ userId, onSuc
         </div>
 
         <div className="flex items-center gap-3">
-          {success && <div className="flex items-center gap-1.5 text-emerald-600 text-[12px] font-black tracking-widest animate-in zoom-in"><CheckCircle2 size={14} /> {t('profile.success')}</div>}
+          {success && <div className="flex items-center gap-1.5 text-emerald-600 text-[12px] font-black tracking-widest animate-in zoom-in"><span className="material-symbols-rounded" style={{ fontSize: '14px' }}>check_circle</span> {t('profile.success')}</div>}
           <button
             onClick={handleSave}
             disabled={saving}
             className="h-10 px-6 bg-palette-tan text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-maroon transition-all shadow-lg active:scale-95 disabled:opacity-50 flex items-center gap-2"
           >
-            {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+            {saving ? <span className="material-symbols-rounded animate-spin" style={{ fontSize: '14px' }}>progress_activity</span> : <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>save</span>}
             <span>{t('profile.save_btn')}</span>
           </button>
         </div>
@@ -168,7 +141,7 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({ userId, onSuc
           {/* BASIC INFO */}
           <div className="bg-white p-6 rounded-[3px] border border-palette-tan/15 shadow-sm">
             <div className="flex items-center gap-2 mb-6 border-b border-palette-tan/15 pb-4">
-              <User size={16} className="text-palette-red" />
+              <span className="material-symbols-rounded text-palette-red" style={{ fontSize: '16px' }}>person</span>
               <h3 className="text-[13px] font-black text-palette-tan/60 tracking-wider">{t('profile.section.basic')}</h3>
             </div>
 
@@ -176,7 +149,7 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({ userId, onSuc
               <div className="space-y-1.5">
                 <label className="text-[12px] font-black text-palette-tan/50 ml-1">{t('profile.full_name')}</label>
                 <div className="relative group">
-                  <User className={iconClasses} size={16} />
+                  <span className="material-symbols-rounded absolute left-4 top-1/2 -translate-y-1/2 text-palette-tan/40 group-focus-within:text-palette-tan transition-colors" style={{ fontSize: '16px' }}>person</span>
                   <input
                     type="text"
                     value={profile.full_name}
@@ -189,7 +162,7 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({ userId, onSuc
               <div className="space-y-1.5">
                 <label className="text-[12px] font-black text-palette-tan/50 ml-1">{t('profile.username')}</label>
                 <div className="relative group">
-                  <AtSign className={iconClasses} size={16} />
+                  <span className="material-symbols-rounded absolute left-4 top-1/2 -translate-y-1/2 text-palette-tan/40 group-focus-within:text-palette-tan transition-colors" style={{ fontSize: '16px' }}>alternate_email</span>
                   <input
                     type="text"
                     value={profile.username}
@@ -202,7 +175,7 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({ userId, onSuc
               <div className="space-y-1.5">
                 <label className="text-[12px] font-black text-palette-tan/50 ml-1">{t('profile.email')}</label>
                 <div className="relative group opacity-60">
-                  <Mail className={iconClasses} size={16} />
+                  <span className="material-symbols-rounded absolute left-4 top-1/2 -translate-y-1/2 text-palette-tan/40 group-focus-within:text-palette-tan transition-colors" style={{ fontSize: '16px' }}>mail</span>
                   <input
                     type="email"
                     readOnly
@@ -215,7 +188,7 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({ userId, onSuc
               <div className="space-y-1.5">
                 <label className="text-[12px] font-black text-palette-tan/50 ml-1">{t('profile.slug')}</label>
                 <div className="relative group">
-                  <Link2 className={iconClasses} size={16} />
+                  <span className="material-symbols-rounded absolute left-4 top-1/2 -translate-y-1/2 text-palette-tan/40 group-focus-within:text-palette-tan transition-colors" style={{ fontSize: '16px' }}>link</span>
                   <input
                     type="text"
                     value={profile.slug || ''}
@@ -230,29 +203,29 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({ userId, onSuc
           {/* SOCIAL LINKS */}
           <div className="bg-white p-6 rounded-[3px] border border-palette-tan/15 shadow-sm">
             <div className="flex items-center gap-2 mb-6 border-b border-palette-tan/15 pb-4">
-              <Smartphone size={16} className="text-palette-red" />
+              <span className="material-symbols-rounded text-palette-red" style={{ fontSize: '16px' }}>smartphone</span>
               <h3 className="text-[13px] font-black text-palette-tan/60 tracking-widest">{t('profile.section.social')}</h3>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
               {[
-                { id: 'facebook', icon: Facebook, label: t('social.facebook') },
-                { id: 'twitter', icon: Twitter, label: t('social.twitter') },
-                { id: 'instagram', icon: Instagram, label: t('social.instagram') },
-                { id: 'tiktok', icon: Smartphone, label: t('social.tiktok') },
-                { id: 'whatsapp', icon: MessageCircle, label: t('social.whatsapp') },
-                { id: 'youtube', icon: Youtube, label: t('social.youtube') },
-                { id: 'discord', icon: Gamepad2, label: t('social.discord') },
-                { id: 'telegram', icon: Send, label: t('social.telegram') },
-                { id: 'pinterest', icon: ImageIcon, label: t('social.pinterest') },
-                { id: 'linkedin', icon: Linkedin, label: t('social.linkedin') },
-                { id: 'twitch', icon: Tv2, label: t('social.twitch') },
-                { id: 'vk', icon: User, label: t('social.vk') },
-                { id: 'website', icon: Globe, label: t('social.website') },
+                { id: 'facebook', icon: 'facebook', label: t('social.facebook') },
+                { id: 'twitter', icon: 'public', label: t('social.twitter') },
+                { id: 'instagram', icon: 'photo_camera', label: t('social.instagram') },
+                { id: 'tiktok', icon: 'smartphone', label: t('social.tiktok') },
+                { id: 'whatsapp', icon: 'chat', label: t('social.whatsapp') },
+                { id: 'youtube', icon: 'video_library', label: t('social.youtube') },
+                { id: 'discord', icon: 'sports_esports', label: t('social.discord') },
+                { id: 'telegram', icon: 'send', label: t('social.telegram') },
+                { id: 'pinterest', icon: 'image', label: t('social.pinterest') },
+                { id: 'linkedin', icon: 'business', label: t('social.linkedin') },
+                { id: 'twitch', icon: 'tv', label: t('social.twitch') },
+                { id: 'vk', icon: 'person', label: t('social.vk') },
+                { id: 'website', icon: 'public', label: t('social.website') },
               ].map((social) => (
                 <div key={social.id} className="space-y-1 group">
                   <div className="relative">
-                    <social.icon className={iconClasses} size={16} />
+                    <span className="material-symbols-rounded absolute left-4 top-1/2 -translate-y-1/2 text-palette-tan/40 group-focus-within:text-palette-tan transition-colors" style={{ fontSize: '16px' }}>{social.icon}</span>
                     <input
                       type="text"
                       value={profile.social_links?.[social.id] || ''}
@@ -278,7 +251,7 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({ userId, onSuc
             <div className="space-y-5">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 bg-white/5 rounded-[3px] flex items-center justify-center text-palette-red border border-white/20">
-                  <BadgeDollarSign size={18} />
+                  <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>payments</span>
                 </div>
                 <div>
                   <p className="text-[12px] font-black text-white/30 tracking-widest">{t('profile.balance')}</p>
@@ -288,7 +261,7 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({ userId, onSuc
 
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 bg-white/5 rounded-[3px] flex items-center justify-center text-blue-400 border border-white/20">
-                  <Eye size={18} />
+                  <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>visibility</span>
                 </div>
                 <div>
                   <p className="text-[12px] font-black text-white/30 tracking-widest">{t('profile.views')}</p>
@@ -301,7 +274,7 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({ userId, onSuc
           {/* ABOUT ME */}
           <div className="bg-white p-6 rounded-[3px] border border-palette-tan/15 shadow-sm group">
             <div className="flex items-center gap-2 mb-4">
-              <Briefcase size={16} className="text-palette-red" />
+              <span className="material-symbols-rounded text-palette-red" style={{ fontSize: '16px' }}>work</span>
               <h3 className="text-[13px] font-black text-palette-tan/60 tracking-wider">{t('profile.section.about')}</h3>
             </div>
             <textarea
@@ -323,7 +296,7 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({ userId, onSuc
           <div className="absolute inset-0 bg-palette-maroon/20 backdrop-blur-[2px] animate-in fade-in" onClick={() => setStatusModal({ ...statusModal, show: false })} />
           <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-xs overflow-hidden animate-in slide-in-from-bottom-4 border border-palette-tan/15 p-8 text-center">
             <div className={`w-16 h-16 rounded-[3px] flex items-center justify-center mx-auto mb-6 ${statusModal.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
-              {statusModal.type === 'error' ? <X size={28} strokeWidth={3} /> : <CheckCircle2 size={28} strokeWidth={3} />}
+              {statusModal.type === 'error' ? <span className="material-symbols-rounded" style={{ fontSize: '28px' }}>close</span> : <span className="material-symbols-rounded" style={{ fontSize: '28px' }}>check_circle</span>}
             </div>
             <p className="text-base font-black text-palette-maroon mb-8 leading-relaxed">{statusModal.message}</p>
             <button

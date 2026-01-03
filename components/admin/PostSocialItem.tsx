@@ -1,16 +1,4 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import {
-    ChevronDown,
-    Trash2,
-    Share2,
-    Plus,
-    Edit3,
-    Settings2,
-    FileText,
-    Globe,
-    ExternalLink
-} from 'lucide-react';
 import ReactQuill from 'react-quill-new';
 import { PostItem, QUILL_MODULES, QUILL_FORMATS } from './PostTextItem';
 import { useLanguage } from '../../context/LanguageContext';
@@ -106,7 +94,7 @@ const PostSocialItem: React.FC<PostSocialItemProps> = ({
             }
 
             return `<div class="p-6 bg-palette-beige/5 border border-palette-tan/10 rounded-[3px] flex flex-col items-center gap-3 text-center">
-                <ExternalLink size={24} className="text-palette-maroon/20" />
+                <span className="material-symbols-rounded text-palette-maroon/20" style={{ fontSize: '24px' }}>open_in_new</span>
                 <p className="text-[12px] font-bold text-palette-maroon/60 truncate max-w-full">${processed}</p>
                 <a href="${processed}" target="_blank" class="px-4 py-2 bg-palette-maroon text-white text-[10px] font-black uppercase tracking-widest rounded-[3px] hover:opacity-90 transition-all">
                     BAĞLANTIYI AÇ
@@ -139,7 +127,7 @@ const PostSocialItem: React.FC<PostSocialItemProps> = ({
                                     className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
                                     title={t('common.move_up')}
                                 >
-                                    <ChevronDown size={18} className="rotate-180" />
+                                    <span className="material-symbols-rounded rotate-180" style={{ fontSize: '20px' }}>expand_more</span>
                                 </button>
                             ) : <div className="w-8 h-8" />}
 
@@ -149,7 +137,7 @@ const PostSocialItem: React.FC<PostSocialItemProps> = ({
                                     className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
                                     title={t('common.move_down')}
                                 >
-                                    <ChevronDown size={18} />
+                                    <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>expand_more</span>
                                 </button>
                             ) : <div className="w-8 h-8" />}
                         </>
@@ -165,7 +153,7 @@ const PostSocialItem: React.FC<PostSocialItemProps> = ({
                         : "text-palette-tan/10 cursor-not-allowed"
                         }`}
                 >
-                    <Trash2 size={16} />
+                    <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>delete</span>
                 </button>
             </div>
 
@@ -175,7 +163,7 @@ const PostSocialItem: React.FC<PostSocialItemProps> = ({
                 <div className="flex items-center justify-between border-b border-palette-tan/15 pb-2">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-palette-beige/20 rounded-[3px] text-palette-maroon">
-                            <Share2 size={18} />
+                            <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>share</span>
                         </div>
                         <h3 className="text-base font-bold text-palette-maroon">{t('admin.post.social_block')}</h3>
                     </div>
@@ -227,7 +215,7 @@ const PostSocialItem: React.FC<PostSocialItemProps> = ({
                                     />
                                 ) : (
                                     <div className="flex flex-col items-center text-palette-tan/20">
-                                        <Globe size={48} className="mb-2" />
+                                        <span className="material-symbols-rounded mb-2" style={{ fontSize: '48px' }}>public</span>
                                         <span className="text-[10px] font-black tracking-widest uppercase">{t('admin.post.social_preview')}</span>
                                     </div>
                                 )}
@@ -243,7 +231,7 @@ const PostSocialItem: React.FC<PostSocialItemProps> = ({
                                 onClick={() => setShowOptions(!showOptions)}
                                 className="text-[11px] font-black text-palette-tan/50 hover:text-palette-maroon transition-colors flex items-center gap-1 uppercase tracking-widest"
                             >
-                                <ChevronDown size={14} className={`transition-transform duration-300 ${showOptions ? 'rotate-180' : ''}`} />
+                                <span className={`material-symbols-rounded transition-transform duration-300 ${showOptions ? 'rotate-180' : ''}`} style={{ fontSize: '18px' }}>expand_more</span>
                                 {showOptions ? t('common.less') : t('admin.post.extra_settings')}
                             </button>
                         </div>
@@ -252,7 +240,7 @@ const PostSocialItem: React.FC<PostSocialItemProps> = ({
                             <div className="animate-in slide-in-from-top-2 duration-300 w-full space-y-4">
                                 <div className="space-y-1.5">
                                     <label className="text-[13px] font-black text-palette-tan ml-1 flex items-center gap-1.5 uppercase tracking-wider">
-                                        <Settings2 size={12} /> {t('admin.post.source')}
+                                        <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>settings</span> {t('admin.post.source')}
                                     </label>
                                     <input
                                         type="text"
@@ -265,7 +253,7 @@ const PostSocialItem: React.FC<PostSocialItemProps> = ({
 
                                 <div className="space-y-2">
                                     <label className="text-[13px] font-black text-palette-tan ml-1 flex items-center gap-1.5 uppercase tracking-wider">
-                                        <FileText size={12} /> {t('admin.post.content_label')}
+                                        <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>description</span> {t('admin.post.content_label')}
                                     </label>
                                     <div className="quill-modern-wrapper compact-quill border border-palette-tan/20 rounded-[3px] overflow-hidden focus-within:border-palette-red/40 transition-all shadow-sm bg-white min-h-[160px]">
                                         {(() => {

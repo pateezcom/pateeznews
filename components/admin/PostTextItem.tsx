@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import ReactQuill from 'react-quill-new';
-import { ChevronDown, Trash2, FileText, Sparkles, Plus } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
 export interface PostItem {
@@ -46,6 +45,37 @@ export interface PostItem {
     }[];
     isImagePoll?: boolean;
     pollColumns?: 2 | 3;
+    quizData?: {
+        quizType: 'personality' | 'trivia' | 'checklist';
+        results: {
+            id: string;
+            title: string;
+            image?: string;
+            description: string;
+            minScore?: number;
+            maxScore?: number;
+            answerCount?: number;
+        }[];
+        questions: {
+            id: string;
+            title: string;
+            image?: string;
+            description: string;
+            showOnCover: boolean;
+            layout: 'list' | 'grid' | 'grid2' | 'grid3';
+            answers: {
+                id: string;
+                text: string;
+                image?: string;
+                resultId?: string;
+                isCorrect?: boolean;
+            }[];
+        }[];
+        questionSorting: 'asc' | 'desc' | 'hidden';
+        allowMultiple?: boolean;
+        showResults?: boolean;
+        endDate?: string;
+    };
 }
 
 export const QUILL_MODULES = {
@@ -107,7 +137,7 @@ const PostTextItem: React.FC<PostTextItemProps> = ({
                                     className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
                                     title={t('common.move_up')}
                                 >
-                                    <ChevronDown size={18} className="rotate-180" />
+                                    <span className="material-symbols-rounded rotate-180" style={{ fontSize: '20px' }}>expand_more</span>
                                 </button>
                             ) : <div className="w-8 h-8" />}
 
@@ -117,7 +147,7 @@ const PostTextItem: React.FC<PostTextItemProps> = ({
                                     className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
                                     title={t('common.move_down')}
                                 >
-                                    <ChevronDown size={18} />
+                                    <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>expand_more</span>
                                 </button>
                             ) : <div className="w-8 h-8" />}
                         </>
@@ -133,7 +163,7 @@ const PostTextItem: React.FC<PostTextItemProps> = ({
                         : "text-palette-tan/10 cursor-not-allowed"
                         }`}
                 >
-                    <Trash2 size={16} />
+                    <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>delete</span>
                 </button>
             </div>
 
@@ -143,7 +173,7 @@ const PostTextItem: React.FC<PostTextItemProps> = ({
                 <div className="flex items-center justify-between border-b border-palette-tan/15 pb-2">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-palette-beige/20 rounded-[3px] text-palette-maroon">
-                            <FileText size={18} />
+                            <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>description</span>
                         </div>
                         <h3 className="text-base font-bold text-palette-maroon">{t('admin.post.text_block')}</h3>
                     </div>
@@ -174,7 +204,7 @@ const PostTextItem: React.FC<PostTextItemProps> = ({
                         <div className="flex items-center justify-between px-1">
                             <label className="text-[13px] font-black text-palette-tan">{t('admin.post.content_label')}</label>
                             <div className="flex items-center gap-2 text-palette-tan/30 group-focus-within/editor:text-palette-red/40 transition-colors">
-                                <Sparkles size={12} />
+                                <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>auto_awesome</span>
                                 <span className="text-[12px] font-bold">{t('admin.post.ai_support')}</span>
                             </div>
                         </div>
@@ -203,7 +233,7 @@ const PostTextItem: React.FC<PostTextItemProps> = ({
                             onClick={() => setShowSource(!showSource)}
                             className="text-[11px] font-black text-palette-tan/50 hover:text-palette-maroon transition-colors flex items-center gap-1 uppercase tracking-widest"
                         >
-                            <ChevronDown size={14} className={`transition-transform duration-300 ${showSource ? 'rotate-180' : ''}`} />
+                            <span className={`material-symbols-rounded transition-transform duration-300 ${showSource ? 'rotate-180' : ''}`} style={{ fontSize: '18px' }}>expand_more</span>
                             {showSource ? t('common.less') : t('admin.post.extra_settings')}
                         </button>
                     </div>

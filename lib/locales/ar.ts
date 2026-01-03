@@ -287,7 +287,7 @@ export default {
   "nav_settings.form.label": "اسم العرض",
   "nav_settings.form.type": "نوع العنصر",
   "nav_settings.form.value": "الهدف / القيمة",
-  "nav_settings.form.icon": "اسم الأيقونة (Lucide)",
+  "nav_settings.form.icon": "اسم الأيقونة (Material Symbols)",
   "nav_settings.form.add_btn": "إضافة للقائمة",
   "nav_settings.form.save_btn": "تحديث",
   "nav_settings.create_default_btn": "إنشاء القوائم الافتراضية",

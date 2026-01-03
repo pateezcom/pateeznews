@@ -1,21 +1,4 @@
 import React, { useState } from 'react';
-import {
-    ChevronDown,
-    Trash2,
-    BarChart3,
-    Plus,
-    Settings2,
-    Image as LucideImage,
-    Globe,
-    Edit3,
-    Users,
-    LayoutGrid,
-    Layout,
-    List,
-    X,
-    TrendingUp,
-    GripVertical
-} from 'lucide-react';
 import ReactQuill from 'react-quill-new';
 import { PostItem, QUILL_MODULES, QUILL_FORMATS } from './PostTextItem';
 import { useLanguage } from '../../context/LanguageContext';
@@ -132,7 +115,7 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                                     onClick={() => onMoveUp?.(index)}
                                     className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
                                 >
-                                    <ChevronDown size={18} className="rotate-180" />
+                                    <span className="material-symbols-rounded rotate-180" style={{ fontSize: '20px' }}>expand_more</span>
                                 </button>
                             ) : <div className="w-8 h-8" />}
 
@@ -141,7 +124,7 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                                     onClick={() => onMoveDown?.(index)}
                                     className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
                                 >
-                                    <ChevronDown size={18} />
+                                    <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>expand_more</span>
                                 </button>
                             ) : <div className="w-8 h-8" />}
                         </>
@@ -156,7 +139,7 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                         : "text-palette-tan/10 cursor-not-allowed"
                         }`}
                 >
-                    <Trash2 size={16} />
+                    <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>delete</span>
                 </button>
             </div>
 
@@ -165,8 +148,8 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                 {/* 1. BLOCK HEADER */}
                 <div className="flex items-center justify-between border-b border-palette-tan/15 pb-3">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-[3px] flex items-center justify-center shadow-sm border border-indigo-100/50">
-                            <BarChart3 size={20} />
+                        <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-[3px] flex items-center justify-center shadow-sm border border-indigo-100/50 flex">
+                            <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>bar_chart</span>
                         </div>
                         <div>
                             <h3 className="text-base font-black text-palette-maroon leading-tight">Anket Bloğu</h3>
@@ -211,15 +194,15 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-2">
                                             <button
                                                 onClick={() => onOpenImageEditor(item.id, 'mediaUrl')}
-                                                className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-emerald-600 transition-all"
+                                                className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-emerald-600 transition-all flex items-center justify-center"
                                             >
-                                                <Edit3 size={20} />
+                                                <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>edit_square</span>
                                             </button>
                                             <button
                                                 onClick={() => onUpdate(item.id, 'mediaUrl', '')}
-                                                className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-palette-red transition-all"
+                                                className="p-3 bg-white/10 backdrop-blur-md rounded-[3px] text-white hover:bg-palette-red transition-all flex items-center justify-center"
                                             >
-                                                <Trash2 size={20} />
+                                                <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>delete</span>
                                             </button>
                                         </div>
                                     </div>
@@ -229,14 +212,14 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                                             onClick={() => onOpenFileManager(item.id, 'mediaUrl')}
                                             className="flex flex-col items-center cursor-pointer group/pick mb-4"
                                         >
-                                            <Plus size={48} className="text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-2" />
+                                            <span className="material-symbols-rounded text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-2" style={{ fontSize: '48px' }}>add</span>
                                             <span className="text-[14px] font-bold text-palette-tan/50 px-4 text-center">Görsel Seç / Yükle</span>
                                         </div>
                                         <button
                                             onClick={() => onOpenUrlMode(item.id, 'mediaUrl')}
                                             className="mt-2 text-[10px] font-black text-palette-tan/60 hover:text-palette-maroon border border-palette-tan/20 px-3 py-1.5 rounded-[3px] bg-white shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 uppercase tracking-wider"
                                         >
-                                            <Globe size={11} /> URL VEYA YÜKLE
+                                            <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>public</span> URL VEYA YÜKLE
                                         </button>
                                     </div>
                                 )}
@@ -281,7 +264,7 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                                     className={`w-14 h-11 flex items-center justify-center transition-all ${isImagePoll && pollColumns === 2 ? 'bg-white text-palette-maroon shadow-md border border-palette-tan/20 rounded-[3px]' : 'text-palette-tan/40 hover:text-palette-maroon/60'}`}
                                     title="2'li Resim Izgarası"
                                 >
-                                    <Layout size={24} />
+                                    <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>grid_view</span>
                                 </button>
                                 <button
                                     type="button"
@@ -292,7 +275,7 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                                     className={`w-14 h-11 flex items-center justify-center transition-all ${isImagePoll && pollColumns === 3 ? 'bg-white text-palette-maroon shadow-md border border-palette-tan/20 rounded-[3px]' : 'text-palette-tan/40 hover:text-palette-maroon/60'}`}
                                     title="3'lü Resim Izgarası"
                                 >
-                                    <LayoutGrid size={24} />
+                                    <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>view_module</span>
                                 </button>
                                 <button
                                     type="button"
@@ -302,7 +285,7 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                                     className={`w-14 h-11 flex items-center justify-center transition-all ${!isImagePoll ? 'bg-white text-palette-maroon shadow-md border border-palette-tan/20 rounded-[3px]' : 'text-palette-tan/40 hover:text-palette-maroon/60'}`}
                                     title="Liste Görünümü"
                                 >
-                                    <List size={24} />
+                                    <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>list</span>
                                 </button>
                             </div>
                         </div>
@@ -324,7 +307,7 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                                     >
                                         {/* Drag Handle */}
                                         <div className="absolute top-2 left-2 z-30 opacity-0 group-hover/card:opacity-100 transition-opacity cursor-grab active:cursor-grabbing text-palette-tan/40">
-                                            <GripVertical size={16} />
+                                            <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>drag_indicator</span>
                                         </div>
 
                                         {/* Remove Button */}
@@ -332,7 +315,7 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                                             onClick={() => handleRemoveOption(option.id)}
                                             className="absolute -top-2 -right-2 w-6 h-6 bg-palette-red text-white rounded-full flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-all z-20 shadow-lg hover:rotate-90"
                                         >
-                                            <X size={14} />
+                                            <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>close</span>
                                         </button>
 
                                         {isImagePoll ? (
@@ -344,15 +327,15 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                                                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center gap-2">
                                                                 <button
                                                                     onClick={() => onOpenImageEditor(item.id, 'options', option.id)}
-                                                                    className="p-2 bg-white/20 backdrop-blur-md rounded-[3px] text-white hover:bg-emerald-600 transition-all"
+                                                                    className="p-2 bg-white/20 backdrop-blur-md rounded-[3px] text-white hover:bg-emerald-600 transition-all flex items-center justify-center"
                                                                 >
-                                                                    <Edit3 size={18} />
+                                                                    <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>edit_square</span>
                                                                 </button>
                                                                 <button
                                                                     onClick={() => handleUpdateOption(option.id, 'image', '')}
-                                                                    className="p-2 bg-white/20 backdrop-blur-md rounded-[3px] text-white hover:bg-palette-red transition-all"
+                                                                    className="p-2 bg-white/20 backdrop-blur-md rounded-[3px] text-white hover:bg-palette-red transition-all flex items-center justify-center"
                                                                 >
-                                                                    <Trash2 size={18} />
+                                                                    <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>delete</span>
                                                                 </button>
                                                             </div>
                                                         </div>
@@ -362,14 +345,14 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                                                                 onClick={() => onOpenFileManager(item.id, 'options', option.id)}
                                                                 className="flex flex-col items-center cursor-pointer group/pick mb-3"
                                                             >
-                                                                <Plus size={32} className="text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-1" />
+                                                                <span className="material-symbols-rounded text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-1" style={{ fontSize: '32px' }}>add</span>
                                                                 <span className="text-[11px] font-bold text-palette-tan/50 leading-tight">Görsel Seç / Yükle</span>
                                                             </div>
                                                             <button
                                                                 onClick={() => onOpenUrlMode(item.id, 'options', option.id)}
                                                                 className="mt-1 text-[9px] font-black text-palette-tan/60 hover:text-palette-maroon border border-palette-tan/20 px-3 py-1.5 rounded-[3px] bg-white shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 uppercase tracking-wider"
                                                             >
-                                                                <Globe size={11} /> URL VEYA YÜKLE
+                                                                <span className="material-symbols-rounded" style={{ fontSize: '12px' }}>public</span> URL VEYA YÜKLE
                                                             </button>
                                                         </div>
                                                     )}
@@ -387,7 +370,7 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                                                     </div>
                                                     <div className="flex items-center gap-2 pt-2 border-t border-palette-tan/5">
                                                         <div className="flex items-center gap-1.5 bg-palette-beige/5 px-2 py-1 rounded-[2px] border border-palette-tan/10">
-                                                            <Users size={12} className="text-palette-tan/40" />
+                                                            <span className="material-symbols-rounded text-palette-tan/40" style={{ fontSize: '12px' }}>group</span>
                                                             <input
                                                                 type="number"
                                                                 value={option.votes}
@@ -410,7 +393,7 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                                                 />
                                                 <div className="flex items-center gap-2 shrink-0">
                                                     <div className="flex items-center gap-2 bg-palette-beige/5 px-3 py-1.5 rounded-[2px] border border-palette-tan/10">
-                                                        <Users size={14} className="text-palette-tan/40" />
+                                                        <span className="material-symbols-rounded text-palette-tan/40" style={{ fontSize: '14px' }}>group</span>
                                                         <input
                                                             type="number"
                                                             value={option.votes}
@@ -431,7 +414,7 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                                     onClick={handleAddOption}
                                     className="flex items-center gap-2 px-6 py-2 bg-white border border-palette-tan/30 text-palette-tan hover:text-palette-maroon hover:border-palette-maroon hover:shadow-md rounded-[3px] transition-all group/add shadow-sm"
                                 >
-                                    <Plus size={16} className="group-hover/add:rotate-90 transition-transform duration-300" />
+                                    <span className="material-symbols-rounded group-hover/add:rotate-90 transition-transform duration-300" style={{ fontSize: '18px' }}>add</span>
                                     <span className="text-[11px] font-black uppercase tracking-[0.15em]">Cevap Ekle</span>
                                 </button>
                             </div>
@@ -445,16 +428,16 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                             onClick={() => setShowOptions(!showOptions)}
                             className="text-[11px] font-black text-palette-tan/50 hover:text-palette-maroon transition-colors flex items-center gap-1.5 uppercase tracking-[0.15em] p-1 rounded hover:bg-palette-beige/20"
                         >
-                            <Settings2 size={13} className={`transition-transform duration-300 ${showOptions ? 'rotate-90' : ''}`} />
+                            <span className={`material-symbols-rounded transition-transform duration-300 ${showOptions ? 'rotate-90' : ''}`} style={{ fontSize: '16px' }}>settings</span>
                             Ek Ayarlar
-                            <ChevronDown size={14} className={`transition-transform duration-300 ${showOptions ? 'rotate-180' : ''}`} />
+                            <span className={`material-symbols-rounded transition-transform duration-300 ${showOptions ? 'rotate-180' : ''}`} style={{ fontSize: '18px' }}>expand_more</span>
                         </button>
 
                         {showOptions && (
                             <div className="animate-in slide-in-from-top-2 duration-300 w-full pt-2">
                                 <div className="space-y-1.5">
                                     <label className="text-[13px] font-black text-palette-tan ml-1 flex items-center gap-1.5">
-                                        <Settings2 size={12} /> {t('admin.post.image_source')}
+                                        <span className="material-symbols-rounded" style={{ fontSize: '12px' }}>settings</span> {t('admin.post.image_source')}
                                     </label>
                                     <input
                                         type="text"

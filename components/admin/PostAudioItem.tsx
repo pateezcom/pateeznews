@@ -1,19 +1,5 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import {
-    ChevronDown,
-    Trash2,
-    Music,
-    Plus,
-    Globe,
-    Loader2,
-    Settings2,
-    Play,
-    Pause,
-    Volume2,
-    VolumeX,
-    Mic
-} from 'lucide-react';
 import ReactQuill from 'react-quill-new';
 import { PostItem, QUILL_MODULES, QUILL_FORMATS } from './PostTextItem';
 import { useLanguage } from '../../context/LanguageContext';
@@ -138,7 +124,7 @@ const PostAudioItem: React.FC<PostAudioItemProps> = ({
                                     onClick={() => onMoveUp?.(index)}
                                     className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
                                 >
-                                    <ChevronDown size={18} className="rotate-180" />
+                                    <span className="material-symbols-rounded rotate-180" style={{ fontSize: '20px' }}>expand_more</span>
                                 </button>
                             ) : <div className="w-8 h-8" />}
                             {index < totalItems - 1 ? (
@@ -146,7 +132,7 @@ const PostAudioItem: React.FC<PostAudioItemProps> = ({
                                     onClick={() => onMoveDown?.(index)}
                                     className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
                                 >
-                                    <ChevronDown size={18} />
+                                    <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>expand_more</span>
                                 </button>
                             ) : <div className="w-8 h-8" />}
                         </>
@@ -157,7 +143,7 @@ const PostAudioItem: React.FC<PostAudioItemProps> = ({
                     disabled={!isDeletable}
                     className={`w-8 h-8 flex items-center justify-center rounded-[3px] transition-all ${isDeletable ? "text-palette-tan/30 hover:text-white hover:bg-palette-red" : "text-palette-tan/10"}`}
                 >
-                    <Trash2 size={16} />
+                    <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>delete</span>
                 </button>
             </div>
 
@@ -166,7 +152,7 @@ const PostAudioItem: React.FC<PostAudioItemProps> = ({
                 <div className="flex items-center justify-between border-b border-palette-tan/15 pb-2">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-palette-beige/20 rounded-[3px] text-palette-maroon">
-                            <Mic size={18} />
+                            <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>mic</span>
                         </div>
                         <h3 className="text-base font-bold text-palette-maroon">{t('admin.post.audio_block')}</h3>
                     </div>
@@ -215,14 +201,14 @@ const PostAudioItem: React.FC<PostAudioItemProps> = ({
                                                         />
                                                         <button onClick={togglePlay} className="absolute inset-0 flex items-center justify-center group/play">
                                                             <div className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white scale-100 group-hover/play:scale-110 transition-all">
-                                                                <Play size={32} fill="currentColor" className="ml-1" />
+                                                                <span className="material-symbols-rounded" style={{ fontSize: '32px' }}>play_arrow</span>
                                                             </div>
                                                         </button>
                                                     </div>
                                                 )}
                                                 <div className="absolute top-3 right-3 flex gap-2">
-                                                    <button onClick={() => { onUpdate(item.id, 'mediaUrl', ''); setIsPlaying(false); }} className="p-2 bg-palette-red/80 hover:bg-palette-red rounded-[3px] text-white transition-all shadow-lg">
-                                                        <Trash2 size={14} />
+                                                    <button onClick={() => { onUpdate(item.id, 'mediaUrl', ''); setIsPlaying(false); }} className="p-2 bg-palette-red/80 hover:bg-palette-red rounded-[3px] text-white transition-all shadow-lg flex items-center justify-center">
+                                                        <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>delete</span>
                                                     </button>
                                                 </div>
                                             </div>
@@ -242,7 +228,7 @@ const PostAudioItem: React.FC<PostAudioItemProps> = ({
                                                         onClick={togglePlay}
                                                         className="w-12 h-12 rounded-full bg-palette-maroon text-white flex items-center justify-center hover:bg-palette-red transition-all shadow-md active:scale-90"
                                                     >
-                                                        {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="ml-1" />}
+                                                        {isPlaying ? <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>pause</span> : <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>play_arrow</span>}
                                                     </button>
                                                     <div className="flex-1 space-y-1">
                                                         <div className="flex justify-between text-[10px] font-black text-palette-tan uppercase tracking-widest">
@@ -258,18 +244,18 @@ const PostAudioItem: React.FC<PostAudioItemProps> = ({
                                                             className="w-full h-1.5 bg-palette-beige rounded-full appearance-none cursor-pointer accent-palette-maroon"
                                                         />
                                                     </div>
-                                                    <button onClick={toggleMute} className="text-palette-tan/60 hover:text-palette-maroon transition-colors">
-                                                        {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                                                    <button onClick={toggleMute} className="text-palette-tan/60 hover:text-palette-maroon transition-colors flex items-center justify-center">
+                                                        {isMuted ? <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>volume_off</span> : <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>volume_up</span>}
                                                     </button>
-                                                    <button onClick={() => onUpdate(item.id, 'mediaUrl', '')} className="text-palette-tan/20 hover:text-palette-red transition-colors">
-                                                        <Trash2 size={18} />
+                                                    <button onClick={() => onUpdate(item.id, 'mediaUrl', '')} className="text-palette-tan/20 hover:text-palette-red transition-colors flex items-center justify-center">
+                                                        <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>delete</span>
                                                     </button>
                                                 </div>
                                             </div>
                                         )}
                                         {ytInfo?.isMusic && (
                                             <div className="flex items-center justify-center gap-2 text-[10px] font-black text-palette-tan/40 uppercase tracking-widest">
-                                                <Music size={12} /> {t('admin.post.youtube_music_help')}
+                                                <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>music_note</span> {t('admin.post.youtube_music_help')}
                                             </div>
                                         )}
                                     </div>
@@ -277,7 +263,7 @@ const PostAudioItem: React.FC<PostAudioItemProps> = ({
                                     <div className="flex flex-col items-center justify-center py-6">
                                         <div onClick={() => onOpenFileManager(item.id)} className="flex flex-col items-center cursor-pointer group/pick mb-4">
                                             <div className="w-14 h-14 rounded-full bg-palette-maroon/5 flex items-center justify-center mb-3 group-hover/pick:bg-palette-maroon/10 transition-all">
-                                                <Plus size={28} className="text-palette-tan/40 group-hover/pick:text-palette-maroon transition-all" />
+                                                <span className="material-symbols-rounded text-palette-tan/40 group-hover/pick:text-palette-maroon transition-all" style={{ fontSize: '28px' }}>add</span>
                                             </div>
                                             <span className="text-[13px] font-bold text-palette-tan/50 text-center">{t('admin.post.pick_audio')}</span>
                                         </div>
@@ -285,7 +271,7 @@ const PostAudioItem: React.FC<PostAudioItemProps> = ({
                                             onClick={() => onOpenUrlMode(item.id)}
                                             className="text-[10px] font-black text-palette-tan/60 hover:text-palette-maroon border border-palette-tan/20 px-3 py-1.5 rounded-[3px] bg-white shadow-sm transition-all flex items-center gap-1.5 uppercase tracking-widest"
                                         >
-                                            <Globe size={11} /> {t('admin.post.add_video_url')}
+                                            <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>public</span> {t('admin.post.add_video_url')}
                                         </button>
                                     </div>
                                 )}
@@ -320,13 +306,13 @@ const PostAudioItem: React.FC<PostAudioItemProps> = ({
                             onClick={() => setShowOptions(!showOptions)}
                             className="text-[11px] font-black text-palette-tan/50 hover:text-palette-maroon transition-colors flex items-center gap-1 uppercase tracking-widest"
                         >
-                            <ChevronDown size={14} className={`transition-transform duration-300 ${showOptions ? 'rotate-180' : ''}`} />
+                            <span className={`material-symbols-rounded transition-transform duration-300 ${showOptions ? 'rotate-180' : ''}`} style={{ fontSize: '18px' }}>expand_more</span>
                             {showOptions ? t('common.less') : t('admin.post.extra_settings')}
                         </button>
                         {showOptions && (
                             <div className="mt-3 animate-in slide-in-from-top-2 duration-300">
                                 <label className="text-[11px] font-black text-palette-tan ml-1 flex items-center gap-1.5 uppercase opacity-60 mb-1.5">
-                                    <Settings2 size={12} /> {t('admin.post.image_source')}
+                                    <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>settings</span> {t('admin.post.image_source')}
                                 </label>
                                 <input
                                     type="text"

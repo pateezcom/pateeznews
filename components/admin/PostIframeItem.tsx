@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { ChevronDown, Trash2, Globe, Code, Settings2 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { PostItem } from './PostTextItem';
 
@@ -41,7 +40,7 @@ const PostIframeItem: React.FC<PostIframeItemProps> = ({
                                     onClick={() => onMoveUp?.(index)}
                                     className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
                                 >
-                                    <ChevronDown size={18} className="rotate-180" />
+                                    <span className="material-symbols-rounded rotate-180" style={{ fontSize: '20px' }}>expand_more</span>
                                 </button>
                             ) : <div className="w-8 h-8" />}
 
@@ -50,7 +49,7 @@ const PostIframeItem: React.FC<PostIframeItemProps> = ({
                                     onClick={() => onMoveDown?.(index)}
                                     className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/40 hover:text-palette-maroon hover:bg-white hover:shadow-sm transition-all active:scale-90"
                                 >
-                                    <ChevronDown size={18} />
+                                    <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>expand_more</span>
                                 </button>
                             ) : <div className="w-8 h-8" />}
                         </>
@@ -65,7 +64,7 @@ const PostIframeItem: React.FC<PostIframeItemProps> = ({
                         : "text-palette-tan/10 cursor-not-allowed"
                         }`}
                 >
-                    <Trash2 size={16} />
+                    <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>delete</span>
                 </button>
             </div>
 
@@ -75,7 +74,7 @@ const PostIframeItem: React.FC<PostIframeItemProps> = ({
                 <div className="flex items-center justify-between border-b border-palette-tan/15 pb-3">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-[3px] flex items-center justify-center shadow-sm border border-indigo-100/50">
-                            <Code size={20} />
+                            <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>code</span>
                         </div>
                         <div>
                             <h3 className="text-base font-black text-palette-maroon leading-tight">{t('admin.post.iframe_block')}</h3>
@@ -106,7 +105,7 @@ const PostIframeItem: React.FC<PostIframeItemProps> = ({
                 {/* 3. IFRAME CODE AREA */}
                 <div className="space-y-2">
                     <label className="text-[13px] font-black text-palette-tan ml-1 uppercase tracking-wider flex items-center gap-2">
-                        <Globe size={14} className="text-indigo-600" /> {t('admin.post.iframe_label')}
+                        <span className="material-symbols-rounded text-indigo-600" style={{ fontSize: '14px' }}>public</span> {t('admin.post.iframe_label')}
                     </label>
                     <div className="relative group/textarea">
                         <textarea
@@ -116,7 +115,7 @@ const PostIframeItem: React.FC<PostIframeItemProps> = ({
                             placeholder='<iframe src="..." width="100%" height="400"></iframe>'
                         />
                         <div className="absolute top-2 right-2 opacity-20 group-focus-within/textarea:opacity-40 transition-opacity">
-                            <Code size={16} />
+                            <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>code</span>
                         </div>
                     </div>
                     <p className="text-[10px] font-bold text-palette-tan/40 italic ml-1">
@@ -142,16 +141,16 @@ const PostIframeItem: React.FC<PostIframeItemProps> = ({
                         onClick={() => setShowOptions(!showOptions)}
                         className="text-[11px] font-black text-palette-tan/50 hover:text-palette-maroon transition-colors flex items-center gap-1.5 uppercase tracking-[0.15em] p-1 rounded hover:bg-palette-beige/20"
                     >
-                        <Settings2 size={13} className={`transition-transform duration-300 ${showOptions ? 'rotate-90' : ''}`} />
+                        <span className={`material-symbols-rounded transition-transform duration-300 ${showOptions ? 'rotate-90' : ''}`} style={{ fontSize: '16px' }}>settings</span>
                         {t('admin.post.extra_settings_alt')}
-                        <ChevronDown size={14} className={`transition-transform duration-300 ${showOptions ? 'rotate-180' : ''}`} />
+                        <span className={`material-symbols-rounded transition-transform duration-300 ${showOptions ? 'rotate-180' : ''}`} style={{ fontSize: '18px' }}>expand_more</span>
                     </button>
 
                     {showOptions && (
                         <div className="animate-in slide-in-from-top-2 duration-300 w-full pt-2">
                             <div className="space-y-1.5">
                                 <label className="text-[13px] font-black text-palette-tan ml-1 flex items-center gap-1.5 uppercase tracking-wider">
-                                    <Settings2 size={12} /> {t('admin.post.image_source')}
+                                    <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>settings</span> {t('admin.post.image_source')}
                                 </label>
                                 <input
                                     type="text"

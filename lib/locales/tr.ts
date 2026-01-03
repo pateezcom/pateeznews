@@ -299,7 +299,7 @@ export default {
   "nav_settings.form.label": "Görünen Ad",
   "nav_settings.form.type": "Öğe Türü",
   "nav_settings.form.value": "Hedef / Değer",
-  "nav_settings.form.icon": "İkon Adı (Lucide)",
+  "nav_settings.form.icon": "İkon Adı (Material Symbols)",
   "nav_settings.form.add_btn": "Menüye Ekle",
   "nav_settings.form.save_btn": "Güncelle",
   "nav_settings.create_default_btn": "Varsayılan Menüleri Oluştur",

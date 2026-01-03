@@ -97,21 +97,27 @@ const App: React.FC = () => {
 
   const fetchNavigation = useCallback(async () => {
     try {
-      const { data: menuData } = await supabase.from('navigation_menus').select('id').eq('code', 'sidebar_main').maybeSingle();
-      if (menuData) {
-        const { data: itemsData } = await supabase
-          .from('navigation_items')
-          .select('*')
-          .eq('menu_id', menuData.id)
-          .order('order_index');
-        if (itemsData) {
-          setNavigationItems(itemsData);
-          return itemsData;
-        }
+      // Fetch all navigation items for the current language with menu codes (Single Query Join)
+      const { data: itemsData, error } = await supabase
+        .from('navigation_items')
+        .select(`
+          *,
+          navigation_menus!inner(code)
+        `)
+        .eq('language_code', currentLang.code)
+        .order('order_index');
+
+      if (error) throw error;
+
+      if (itemsData) {
+        setNavigationItems(itemsData);
+        return itemsData;
       }
-    } catch (e) { }
+    } catch (e) {
+      console.error("Error fetching navigation items:", e);
+    }
     return [];
-  }, []);
+  }, [currentLang.code]);
 
   const syncStateFromUrl = useCallback(() => {
     const segments = window.location.pathname.split('/').filter(Boolean);
@@ -192,7 +198,7 @@ const App: React.FC = () => {
       subscription.unsubscribe();
       window.onpopstate = null;
     };
-  }, [fetchNews, fetchNavigation, syncStateFromUrl, updateUrl]);
+  }, [fetchNews, fetchNavigation, syncStateFromUrl, updateUrl, currentLang.code]);
 
   const handleBack = () => {
     setView('feed');
@@ -265,12 +271,20 @@ const App: React.FC = () => {
       {!isAppReady && <MainLoading />}
 
       <div className={`min-h-screen bg-gray-50 text-gray-900 transition-opacity duration-500 ${isAppReady ? 'opacity-100' : 'opacity-0'}`} dir={currentLang.direction}>
-        <Navbar onHomeClick={handleBack} onProfileClick={handleProfileClick} isLoggedIn={!!session} />
+        <Navbar
+          onHomeClick={handleBack}
+          onProfileClick={handleProfileClick}
+          isLoggedIn={!!session}
+          navItems={navigationItems} // Pass navigationItems as a prop
+        />
 
         <main className="max-w-[1280px] mx-auto pt-[80px] flex justify-center items-start gap-8 px-4">
           {activeView !== 'detail' && activeView !== 'edit_publisher_profile' && (
             <aside className="hidden lg:block w-[260px] flex-shrink-0 sticky top-[80px] h-[calc(100vh-80px)] overflow-y-auto pb-8 no-scrollbar">
-              <Sidebar items={navigationItems} onCategoryItemClick={handleBack} />
+              <Sidebar
+                items={navigationItems.filter(item => (item as any).navigation_menus?.code === 'sidebar_main')}
+                onCategoryItemClick={handleBack}
+              />
             </aside>
           )}
 

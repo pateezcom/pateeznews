@@ -1,40 +1,38 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Menu, Globe, ChevronDown, X } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { NavigationItem } from '../types';
 
 interface NavbarProps {
   onHomeClick?: () => void;
   onProfileClick?: () => void;
   isLoggedIn?: boolean;
+  navItems?: NavigationItem[];
 }
 
-const Navbar: React.FC<NavbarProps> = ({ onHomeClick, onProfileClick, isLoggedIn }) => {
+const Navbar: React.FC<NavbarProps> = ({ onHomeClick, onProfileClick, isLoggedIn, navItems = [] }) => {
   const { currentLang, availableLanguages, setLanguage, t } = useLanguage();
   const [showLangMenu, setShowLangMenu] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const langMenuRef = useRef<HTMLDivElement>(null);
 
-  // Click outside listener for language menu
+  const headerItems = React.useMemo(() =>
+    navItems.filter(item => item.type === 'header'),
+    [navItems]
+  );
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (langMenuRef.current && !langMenuRef.current.contains(event.target as Node)) {
         setShowLangMenu(false);
       }
     };
-
-    if (showLangMenu) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    if (showLangMenu) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showLangMenu]);
 
   return (
     <header className="fixed top-0 left-0 w-full z-[100]">
-      {/* MAIN NAVBAR */}
       <div className="h-[72px] bg-white/80 backdrop-blur-2xl border-b border-palette-beige/20 shadow-sm relative z-[101]">
         <div className="max-w-[1280px] mx-auto h-full flex items-center px-4">
 
@@ -55,33 +53,34 @@ const Navbar: React.FC<NavbarProps> = ({ onHomeClick, onProfileClick, isLoggedIn
 
           {/* NAV */}
           <nav className="hidden lg:flex items-center gap-8 h-full px-10 flex-1">
-            {[
-              { icon: 'home', label: t('nav.home'), active: true, onClick: onHomeClick },
-              { icon: 'newspaper', label: t('nav.agenda'), active: false },
-              { icon: 'smart_display', label: t('nav.buzztv'), active: false },
-              { icon: 'auto_awesome', label: t('nav.special'), active: false },
-            ].map((item) => (
+            <button
+              onClick={onHomeClick}
+              className="relative h-full flex items-center gap-2.5 px-1 text-[12px] font-bold tracking-widest transition-all group text-palette-red"
+            >
+              <span className="material-symbols-rounded transition-all duration-500 scale-110"
+                style={{ fontSize: '22px', fontVariationSettings: "'FILL' 1, 'wght' 500" }}>
+                home
+              </span>
+              <span>{t('nav.home')}</span>
+            </button>
+
+            {headerItems.map((item) => (
               <button
-                key={item.label}
-                onClick={item.onClick}
-                className={`relative h-full flex items-center gap-2.5 px-1 text-[12px] font-bold tracking-widest transition-all group ${item.active
-                  ? 'text-palette-red'
-                  : 'text-palette-tan/60 hover:text-palette-red'
-                  }`}
+                key={item.id}
+                className="relative h-full flex items-center gap-2.5 px-1 text-[12px] font-bold tracking-widest transition-all group text-palette-tan/60 hover:text-palette-red"
               >
-                <span className={`material-symbols-rounded transition-all duration-500 ${item.active ? 'scale-110' : 'group-hover:-translate-y-0.5 opacity-60 group-hover:opacity-100'}`}
-                  style={{ fontSize: '22px', fontVariationSettings: item.active ? "'FILL' 1, 'wght' 500" : "'FILL' 0, 'wght' 400" }}>
-                  {item.icon}
-                </span>
+                {item.icon && (
+                  <span className="material-symbols-rounded transition-all duration-500 group-hover:-translate-y-0.5 opacity-60 group-hover:opacity-100"
+                    style={{ fontSize: '22px', fontVariationSettings: "'FILL' 0, 'wght' 400" }}>
+                    {item.icon.toLowerCase()}
+                  </span>
+                )}
                 <span>{item.label}</span>
               </button>
             ))}
           </nav>
 
-          {/* RIGHT ACTIONS - COMPACT SPACING */}
           <div className="flex items-center gap-1 ml-auto z-20">
-
-            {/* SEARCH TOGGLE BUTTON */}
             <button
               onClick={() => setIsSearchOpen(!isSearchOpen)}
               className={`w-10 h-10 flex items-center justify-center rounded-xl transition-colors duration-100 ${isSearchOpen
@@ -94,11 +93,10 @@ const Navbar: React.FC<NavbarProps> = ({ onHomeClick, onProfileClick, isLoggedIn
               </span>
             </button>
 
-            {/* Lang */}
             <div className="relative" ref={langMenuRef}>
               <button onClick={() => setShowLangMenu(!showLangMenu)} className="h-10 flex items-center gap-0.5 px-2 rounded-xl text-palette-tan hover:bg-palette-beige/10 transition-colors font-bold text-[10px] uppercase">
-                <Globe size={18} />
-                <ChevronDown size={12} className={`transition-transform duration-200 ${showLangMenu ? 'rotate-180' : ''}`} />
+                <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>public</span>
+                <span className={`material-symbols-rounded transition-transform duration-200 ${showLangMenu ? 'rotate-180' : ''}`} style={{ fontSize: '16px' }}>expand_more</span>
               </button>
               {showLangMenu && (
                 <div className="absolute top-full right-0 mt-2 w-40 bg-white rounded-2xl shadow-2xl border border-palette-beige/10 py-1 overflow-hidden animate-in">
@@ -113,7 +111,6 @@ const Navbar: React.FC<NavbarProps> = ({ onHomeClick, onProfileClick, isLoggedIn
               )}
             </div>
 
-            {/* Profile / Login */}
             <button
               onClick={onProfileClick}
               className={`flex items-center gap-1.5 py-1.5 px-2 rounded-xl transition-all duration-200 group/profile active:scale-95 ${isLoggedIn
@@ -139,13 +136,13 @@ const Navbar: React.FC<NavbarProps> = ({ onHomeClick, onProfileClick, isLoggedIn
             </button>
 
             <button className="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-palette-beige/10 text-gray-900 ml-1">
-              <Menu size={20} />
+              <span className="material-symbols-rounded" style={{ fontSize: '22px' }}>menu</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* INSTANT SEARCH BAR (0-50ms transition) */}
+      {/* SEARCH BAR */}
       <div
         className={`absolute top-[72px] left-0 w-full bg-white border-b border-palette-beige shadow-2xl transition-all duration-75 ease-linear overflow-hidden z-[100] ${isSearchOpen ? 'max-h-[80px] opacity-100 py-3.5' : 'max-h-0 opacity-0 py-0'
           }`}
@@ -168,14 +165,13 @@ const Navbar: React.FC<NavbarProps> = ({ onHomeClick, onProfileClick, isLoggedIn
                 onClick={() => setIsSearchOpen(false)}
                 className="p-1 text-palette-tan/30 hover:text-palette-red"
               >
-                <X size={18} />
+                <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>close</span>
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* BACKDROP FOR SEARCH */}
       {isSearchOpen && (
         <div
           onClick={() => setIsSearchOpen(false)}

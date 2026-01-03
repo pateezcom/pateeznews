@@ -300,7 +300,7 @@ export default {
   "nav_settings.form.label": "Display Label",
   "nav_settings.form.type": "Item Type",
   "nav_settings.form.value": "Target / Value",
-  "nav_settings.form.icon": "Icon Name (Lucide)",
+  "nav_settings.form.icon": "Icon Name (Material Symbols)",
   "nav_settings.form.add_btn": "Add to Menu",
   "nav_settings.form.save_btn": "Update",
   "nav_settings.create_default_btn": "Create Default Menus",
