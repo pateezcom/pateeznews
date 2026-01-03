@@ -44,6 +44,7 @@ export default {
   "admin.sidebar.navigation": "القوائم والفئات",
   "admin.sidebar.navigation_alt": "إعدادات القوائم والفئات",
   "admin.sidebar.posts": "إضافة خبر",
+  "admin.sidebar.news_list": "الأخبار",
   "admin.sidebar.stories": "القصص",
   "admin.user.super_admin": "مدير النظام",
   "admin.header.search": "بحث...",

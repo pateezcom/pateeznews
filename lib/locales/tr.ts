@@ -44,6 +44,7 @@ export default {
   "admin.sidebar.navigation": "Menü & Kategori",
   "admin.sidebar.navigation_alt": "Menü & Kategori Ayarları",
   "admin.sidebar.posts": "Haber Ekle",
+  "admin.sidebar.news_list": "Haberler",
   "admin.sidebar.stories": "Hikayeler",
   "admin.header.search": "Arama yap...",
   "admin.header.my_account": "Hesabım",

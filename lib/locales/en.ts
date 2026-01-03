@@ -44,6 +44,7 @@ export default {
   "admin.sidebar.navigation": "Menu & Categories",
   "admin.sidebar.navigation_alt": "Menu & Category Settings",
   "admin.sidebar.posts": "Add News",
+  "admin.sidebar.news_list": "News List",
   "admin.sidebar.stories": "Stories",
   "admin.user.super_admin": "S. Admin",
   "admin.header.search": "Search...",

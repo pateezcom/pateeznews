@@ -1,9 +1,0 @@
-{
-  "name": "Buzz Haber En son",
-  "description": "Sosyal medya yerleşim mantığına sahip, dinamik ve eğlenceli bir haber platformu.",
-  "requestFramePermissions": [
-    "camera",
-    "microphone",
-    "geolocation"
-  ]
-}

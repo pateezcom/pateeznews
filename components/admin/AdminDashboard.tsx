@@ -9,6 +9,7 @@ const UserProfileSettings = React.lazy(() => import('./UserProfileSettings'));
 const NavigationSettings = React.lazy(() => import('./NavigationSettings'));
 const StoryManagement = React.lazy(() => import('./StoryManagement'));
 const PostManagement = React.lazy(() => import('./PostManagement'));
+const PostList = React.lazy(() => import('./PostList'));
 import { useLanguage } from '../../context/LanguageContext';
 
 interface AdminDashboardProps {
@@ -40,7 +41,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
 
   const menuItems = useMemo(() => [
     { id: 'overview', label: t('admin.sidebar.overview'), icon: 'dashboard', perm: 'view_overview', group: t('admin.management') },
-    { id: 'posts', label: t('admin.sidebar.posts'), icon: 'description', perm: 'manage_content', group: t('admin.management') },
+    { id: 'posts', label: t('admin.sidebar.posts'), icon: 'add_circle', perm: 'manage_content', group: t('admin.management') },
+    { id: 'news_list', label: t('admin.sidebar.news_list'), icon: 'description', perm: 'manage_content', group: t('admin.management') },
     { id: 'stories', label: t('admin.sidebar.stories'), icon: 'bolt', perm: 'manage_content', group: t('admin.management') },
     { id: 'users', label: t('admin.sidebar.users'), icon: 'group', perm: 'manage_users', group: t('admin.system') },
     { id: 'navigation', label: t('admin.sidebar.navigation'), icon: 'account_tree', perm: 'manage_navigation', group: t('admin.system') },
@@ -179,6 +181,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
           switch (activeTab) {
             case 'users': return <UserManagement onEditUser={handleEditUser} />;
             case 'posts': return <PostManagement />;
+            case 'news_list': return <PostList />;
             case 'stories': return <StoryManagement />;
             case 'navigation': return <NavigationSettings />;
             case 'languages': return <LanguageSettings />;
