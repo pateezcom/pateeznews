@@ -2436,8 +2436,8 @@ const PostManagement: React.FC = () => {
                                 const currentData = targetItem.beforeAfterData || {
                                     beforeImage: '',
                                     afterImage: '',
-                                    beforeLabel: 'ÖNCE',
-                                    afterLabel: 'SONRA'
+                                    beforeLabel: t('common.before'),
+                                    afterLabel: t('common.after')
                                 };
                                 handleUpdateItem(activeMediaTarget, 'beforeAfterData', {
                                     ...currentData,

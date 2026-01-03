@@ -42,8 +42,8 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
         const currentData = item.beforeAfterData || {
             beforeImage: '',
             afterImage: '',
-            beforeLabel: 'ÖNCE',
-            afterLabel: 'SONRA'
+            beforeLabel: t('common.before'),
+            afterLabel: t('common.after')
         };
         onUpdate(item.id, 'beforeAfterData', {
             ...currentData,
@@ -103,7 +103,7 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
                             <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>swap_horiz</span>
                         </div>
                         <div>
-                            <h3 className="text-base font-black text-palette-maroon leading-tight">{t('admin.post.iframe_block').replace('Iframe', 'Before & After')}</h3>
+                            <h3 className="text-base font-black text-palette-maroon leading-tight">{t('admin.post.before_after_block')}</h3>
                             <p className="text-[11px] font-bold text-palette-tan/50 tracking-wide">{t('admin.post.before_after_desc')}</p>
                         </div>
                     </div>
@@ -179,13 +179,13 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
                                             className="flex flex-col items-center cursor-pointer group/pick mb-4"
                                         >
                                             <span className="material-symbols-rounded text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-2" style={{ fontSize: '48px' }}>add</span>
-                                            <span className="text-[14px] font-bold text-palette-tan/50 px-4 text-center">Önce Resmini Seç</span>
+                                            <span className="text-[14px] font-bold text-palette-tan/50 px-4 text-center">{t('admin.post.select_before_image')}</span>
                                         </div>
                                         <button
                                             onClick={() => onOpenUrlMode(item.id, 'beforeImage')}
                                             className="mt-2 text-[10px] font-black text-palette-tan/60 hover:text-palette-maroon border border-palette-tan/20 px-3 py-1.5 rounded-[3px] bg-white shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 uppercase tracking-wider"
                                         >
-                                            <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>public</span> URL VEYA YÜKLE
+                                            <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>public</span> {t('admin.post.url_or_upload')}
                                         </button>
                                     </div>
                                 )}
@@ -201,7 +201,7 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
                                     value={item.beforeAfterData?.beforeLabel || ''}
                                     onChange={(e) => updateBeforeAfterData('beforeLabel', e.target.value)}
                                     className="w-full h-10 bg-white border border-palette-tan/20 rounded-[3px] px-4 text-sm font-bold text-palette-maroon outline-none focus:border-palette-red transition-all shadow-sm"
-                                    placeholder="Örn: ÖNCE"
+                                    placeholder={t('admin.post.before_label_placeholder')}
                                 />
                             </div>
                         </div>
@@ -256,13 +256,13 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
                                             className="flex flex-col items-center cursor-pointer group/pick mb-4"
                                         >
                                             <span className="material-symbols-rounded text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-2" style={{ fontSize: '48px' }}>add</span>
-                                            <span className="text-[14px] font-bold text-palette-tan/50 px-4 text-center">Sonra Resmini Seç</span>
+                                            <span className="text-[14px] font-bold text-palette-tan/50 px-4 text-center">{t('admin.post.select_after_image')}</span>
                                         </div>
                                         <button
                                             onClick={() => onOpenUrlMode(item.id, 'afterImage')}
                                             className="mt-2 text-[10px] font-black text-palette-tan/60 hover:text-palette-maroon border border-palette-tan/20 px-3 py-1.5 rounded-[3px] bg-white shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 uppercase tracking-wider"
                                         >
-                                            <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>public</span> URL VEYA YÜKLE
+                                            <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>public</span> {t('admin.post.url_or_upload')}
                                         </button>
                                     </div>
                                 )}
@@ -278,7 +278,7 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
                                     value={item.beforeAfterData?.afterLabel || ''}
                                     onChange={(e) => updateBeforeAfterData('afterLabel', e.target.value)}
                                     className="w-full h-10 bg-white border border-palette-tan/20 rounded-[3px] px-4 text-sm font-bold text-palette-maroon outline-none focus:border-palette-red transition-all shadow-sm"
-                                    placeholder="Örn: SONRA"
+                                    placeholder={t('admin.post.after_label_placeholder')}
                                 />
                             </div>
                         </div>
@@ -358,7 +358,7 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
                                 <div className="bg-black/40 backdrop-blur-md text-white px-4 py-2 rounded-lg border border-white/20 shadow-lg flex items-center gap-2">
                                     <div className="w-2 h-2 rounded-full bg-white/50"></div>
                                     <span className="text-[11px] font-black uppercase tracking-widest leading-none mt-0.5">
-                                        {item.beforeAfterData?.beforeLabel || 'ÖNCE'}
+                                        {item.beforeAfterData?.beforeLabel || t('common.before')}
                                     </span>
                                 </div>
                             </div>
@@ -366,7 +366,7 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
                             <div className="absolute bottom-6 right-6 z-10 pointer-events-none transition-opacity duration-300" style={{ opacity: sliderPosition > 90 ? 0 : 1 }}>
                                 <div className="bg-white/40 backdrop-blur-md text-white px-4 py-2 rounded-lg border border-white/30 shadow-lg flex items-center gap-2">
                                     <span className="text-[11px] font-black uppercase tracking-widest leading-none mt-0.5 text-black">
-                                        {item.beforeAfterData?.afterLabel || 'SONRA'}
+                                        {item.beforeAfterData?.afterLabel || t('common.after')}
                                     </span>
                                     <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
                                 </div>
@@ -417,7 +417,7 @@ const PostBeforeAfterItem: React.FC<PostBeforeAfterItemProps> = ({
                                                 onChange={(content: string) => onUpdate(item.id, 'description', content)}
                                                 modules={QUILL_MODULES}
                                                 formats={QUILL_FORMATS}
-                                                placeholder="Bu blok hakkında kısa bir bilgi..."
+                                                placeholder={t('admin.post.block_info_help')}
                                                 className="modern-quill-editor"
                                             />
                                         );

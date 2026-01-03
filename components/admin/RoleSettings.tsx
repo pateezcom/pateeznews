@@ -68,7 +68,7 @@ const RoleSettings: React.FC = () => {
       setRoles(sortedRoles);
       setPermissions(permData || []);
     } catch (err: any) {
-      setError("Veri yüklenirken hata oluştu.");
+      setError(t('admin.error_loading_data'));
     } finally {
       setLoading(false);
     }
@@ -188,11 +188,10 @@ const RoleSettings: React.FC = () => {
             <div className="space-y-1 mb-4">
               <h3 className="text-[20px] font-black text-palette-maroon group-hover:text-palette-red transition-colors leading-none">{role.label}</h3>
               <p className="text-[12px] text-palette-tan/40 font-bold tracking-widest">@{role.name}</p>
+              <p className="text-[13px] text-palette-tan font-medium leading-relaxed mt-1 line-clamp-2 italic">
+                {role.description || t('roles.no_desc')}
+              </p>
             </div>
-
-            <p className="text-sm text-palette-tan/50 font-medium leading-relaxed line-clamp-2 mb-6 h-8">
-              {role.description || t('roles.no_desc')}
-            </p>
 
             <div className="space-y-2 mb-8 bg-palette-beige/20 p-4 rounded-[3px] border border-palette-tan/20">
               <div className="flex items-center gap-1.5 mb-2">
@@ -216,13 +215,17 @@ const RoleSettings: React.FC = () => {
             </div>
 
             <div className="flex items-center justify-between pt-5 border-t border-palette-tan/20">
-              <div className="flex items-center gap-2 group-hover:translate-x-1 transition-transform">
-                <span className="text-[13px] font-black text-palette-tan/30 tracking-wider">{t('roles.manage')}</span>
-                <span className="material-symbols-rounded text-palette-tan/20" style={{ fontSize: '14px' }}>arrow_forward</span>
-              </div>
-              {role.name === 'admin' && (
-                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-palette-maroon/5 text-palette-maroon rounded-[3px] py-1 bg-palette-maroon/5 text-[13px] font-bold">
-                  <span className="material-symbols-rounded" style={{ fontSize: '12px' }}>lock</span>
+              {role.name !== 'admin' ? (
+                <button
+                  onClick={() => openPermissionModal(role)}
+                  className="h-9 px-4 bg-palette-beige/20 text-palette-tan hover:bg-palette-maroon hover:text-white rounded-[3px] text-[12px] font-black uppercase tracking-wider transition-all flex items-center gap-2"
+                >
+                  <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>settings</span>
+                  {t('roles.manage')}
+                </button>
+              ) : (
+                <div className="h-9 px-4 bg-red-50 text-palette-red/50 rounded-[3px] text-[12px] font-black uppercase tracking-wider flex items-center gap-2 border border-red-100/50">
+                  <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>lock</span>
                   {t('roles.locked')}
                 </div>
               )}
@@ -299,20 +302,19 @@ const RoleSettings: React.FC = () => {
             </div>
 
             <div className="px-10 py-7 border-t border-palette-tan/20 bg-palette-beige/10 flex items-center justify-between">
-              <div className="text-[12px] font-bold text-palette-tan/40 tracking-widest">
-                {rolePermissions.length} {t('roles.perms_active')}
+              <div className="flex items-center gap-3 bg-palette-beige/10 px-4 py-2 rounded-[3px] border border-palette-tan/10">
+                <span className="text-[13px] font-black text-palette-maroon tracking-tight">
+                  {rolePermissions.length} {t('roles.perms_active')}
+                </span>
               </div>
-              <div className="flex items-center gap-3">
-                {success && <div className="flex items-center gap-1 text-emerald-600 text-[12px] font-black tracking-wider animate-in fade-in zoom-in"><span className="material-symbols-rounded" style={{ fontSize: '14px' }}>check_circle</span> {t('common.updated')}</div>}
-                <button
-                  onClick={handleSavePermissions}
-                  disabled={saving || selectedRole.name === 'admin'}
-                  className="flex items-center gap-2 px-8 py-3 bg-palette-tan text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-maroon transition-all shadow-xl shadow-palette-tan/20 active:scale-95 disabled:opacity-40"
-                >
-                  {saving ? <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-[3px] animate-spin" /> : <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>save</span>}
-                  <span>{saving ? t('common.processing') : t('roles.apply_changes')}</span>
-                </button>
-              </div>
+              <button
+                onClick={handleSavePermissions}
+                disabled={saving}
+                className="h-11 px-8 bg-palette-maroon text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-red transition-all shadow-lg shadow-palette-maroon/20 flex items-center justify-center gap-2"
+              >
+                {saving ? <span className="material-symbols-rounded animate-spin" style={{ fontSize: '18px' }}>progress_activity</span> : <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>save</span>}
+                {saving ? t('common.processing') : t('roles.apply_changes')}
+              </button>
             </div>
 
           </div>
@@ -328,7 +330,7 @@ const RoleSettings: React.FC = () => {
                 <div className="w-9 h-9 bg-palette-red rounded-[3px] flex items-center justify-center text-white shadow-lg shadow-palette-red/20">
                   <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>add</span>
                 </div>
-                Yeni Rol Tanımı
+                {t('roles.form.title_new')}
               </h3>
               <button onClick={() => setShowRoleFormModal(false)} className="p-1.5 text-palette-tan/40 hover:text-palette-red transition-colors"><span className="material-symbols-rounded" style={{ fontSize: '20px' }}>close</span></button>
             </div>
@@ -340,7 +342,7 @@ const RoleSettings: React.FC = () => {
                   type="text"
                   value={roleForm.label}
                   onChange={(e) => setRoleForm({ ...roleForm, label: e.target.value })}
-                  placeholder="Örn: Kıdemli Editör"
+                  placeholder={t('roles.form.label_placeholder')}
                   className={inputClasses}
                 />
               </div>
@@ -350,7 +352,7 @@ const RoleSettings: React.FC = () => {
                   type="text"
                   value={roleForm.name}
                   onChange={(e) => setRoleForm({ ...roleForm, name: e.target.value })}
-                  placeholder="Örn: senior_editor"
+                  placeholder={t('roles.form.name_placeholder')}
                   className={inputClasses}
                 />
               </div>

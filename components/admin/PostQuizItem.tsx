@@ -127,9 +127,9 @@ const PostQuizItem: React.FC<PostQuizItemProps> = ({
             <div className="flex justify-center mb-6">
                 <div className="flex justify-center gap-4">
                     {[
-                        { id: 'personality', label: 'Kişilik Testi', icon: 'person', activeColor: 'bg-indigo-600' },
-                        { id: 'trivia', label: 'Bilgi Yarışması', icon: 'quiz', activeColor: 'bg-emerald-600' },
-                        { id: 'checklist', label: 'Kontrol Listesi', icon: 'checklist', activeColor: 'bg-orange-600' }
+                        { id: 'personality', label: t('admin.post.quiz.type.personality'), icon: 'person', activeColor: 'bg-indigo-600' },
+                        { id: 'trivia', label: t('admin.post.quiz.type.trivia'), icon: 'quiz', activeColor: 'bg-emerald-600' },
+                        { id: 'checklist', label: t('admin.post.quiz.type.checklist'), icon: 'checklist', activeColor: 'bg-orange-600' }
                     ].map(type => (
                         <button
                             key={type.id}
@@ -183,7 +183,7 @@ const PostQuizItem: React.FC<PostQuizItemProps> = ({
                             <button
                                 onClick={() => handleRemoveResult(res.id)}
                                 className="w-8 h-8 flex items-center justify-center rounded-[3px] text-palette-tan/30 hover:text-white hover:bg-palette-red hover:shadow-md transition-all active:scale-90"
-                                title="Bu Sonucu Sil"
+                                title={t('admin.post.quiz.delete_result')}
                             >
                                 <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>delete</span>
                             </button>
@@ -195,7 +195,7 @@ const PostQuizItem: React.FC<PostQuizItemProps> = ({
                                 <div className="p-2 bg-palette-red/10 rounded-[3px] text-palette-red">
                                     <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>bolt</span>
                                 </div>
-                                <h3 className="text-base font-black text-palette-maroon">Quiz Sonucu</h3>
+                                <h3 className="text-base font-black text-palette-maroon">{t('admin.post.quiz.result_title')}</h3>
                             </div>
 
                             <div className="flex items-center gap-3">
@@ -207,7 +207,7 @@ const PostQuizItem: React.FC<PostQuizItemProps> = ({
                                     value={res.title}
                                     onChange={(e) => handleUpdateResult(res.id, 'title', e.target.value)}
                                     className="w-full h-9 bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] px-4 text-base font-bold text-palette-maroon outline-none focus:border-palette-red transition-all placeholder:text-palette-tan/20"
-                                    placeholder="Sonuç Başlığı (Örn: Sen bir dahisin!)"
+                                    placeholder={t('admin.post.quiz.result_placeholder')}
                                 />
                             </div>
 
@@ -257,7 +257,7 @@ const PostQuizItem: React.FC<PostQuizItemProps> = ({
 
                                 <div className="md:col-span-8 h-full flex flex-col">
                                     <div className="space-y-2 group/editor flex-1 flex flex-col">
-                                        <label className="text-[13px] font-black text-palette-tan ml-1 uppercase tracking-wider">Sonuç Açıklaması</label>
+                                        <label className="text-[13px] font-black text-palette-tan ml-1 uppercase tracking-wider">{t('admin.post.quiz.result_desc')}</label>
                                         <div className="quill-modern-wrapper compact-quill border border-palette-tan/20 rounded-[3px] overflow-hidden focus-within:border-palette-red/40 transition-all shadow-sm bg-white flex-1 min-h-[220px]">
                                             <Quill
                                                 theme="snow"
@@ -265,7 +265,7 @@ const PostQuizItem: React.FC<PostQuizItemProps> = ({
                                                 onChange={(val: string) => handleUpdateResult(res.id, 'description', val)}
                                                 modules={QUILL_MODULES}
                                                 formats={QUILL_FORMATS}
-                                                placeholder="Neden bu sonucu aldığını açıkla..."
+                                                placeholder={t('admin.post.quiz.result_desc_placeholder')}
                                                 className="modern-quill-editor h-full"
                                             />
                                         </div>
@@ -282,7 +282,7 @@ const PostQuizItem: React.FC<PostQuizItemProps> = ({
                     onClick={handleAddResult}
                     className="px-8 py-2.5 border-2 border-dashed border-palette-red/30 rounded-[3px] text-palette-red/60 text-[11px] font-black uppercase tracking-widest hover:bg-palette-red/5 hover:border-palette-red transition-all shadow-sm active:scale-95"
                 >
-                    + Yeni Sonuç Ekle
+                    {t('admin.post.quiz.add_result')}
                 </button>
             </div>
 
@@ -290,9 +290,9 @@ const PostQuizItem: React.FC<PostQuizItemProps> = ({
             <div className="flex justify-center mb-6">
                 <div className="inline-flex bg-white p-1 rounded-[3px] gap-1 border border-palette-tan/10 shadow-sm">
                     {[
-                        { id: 'asc', label: 'Sayısal Artan', icon: 'keyboard_double_arrow_up' },
-                        { id: 'desc', label: 'Sayısal Azalan', icon: 'tag' },
-                        { id: 'hidden', label: 'Numaraları Gizle', icon: 'visibility_off' }
+                        { id: 'asc', label: t('admin.post.sort.asc'), icon: 'keyboard_double_arrow_up' },
+                        { id: 'desc', label: t('admin.post.sort.desc'), icon: 'tag' },
+                        { id: 'hidden', label: t('admin.post.sort.hide'), icon: 'visibility_off' }
                     ].map(sort => (
                         <button
                             key={sort.id}
@@ -331,7 +331,7 @@ const PostQuizItem: React.FC<PostQuizItemProps> = ({
                                     <div className="p-2 bg-palette-red/10 rounded-[3px] text-palette-red">
                                         <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>help</span>
                                     </div>
-                                    <h3 className="text-base font-black text-palette-maroon">Sorular</h3>
+                                    <h3 className="text-base font-black text-palette-maroon">{t('admin.post.quiz.questions_title')}</h3>
                                 </div>
 
                                 <div className="space-y-4">
@@ -346,13 +346,13 @@ const PostQuizItem: React.FC<PostQuizItemProps> = ({
                                             value={q.title}
                                             onChange={(e) => handleUpdateQuestion(q.id, 'title', e.target.value)}
                                             className="w-full h-9 bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] px-4 text-base font-bold text-palette-maroon outline-none focus:border-palette-red transition-all placeholder:text-palette-tan/20"
-                                            placeholder="Sorular"
+                                            placeholder={t('admin.post.quiz.question_placeholder')}
                                         />
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
                                         <div className="md:col-span-4 space-y-2">
-                                            <label className="text-[13px] font-black text-palette-tan ml-1 uppercase tracking-wider">Soru Görseli</label>
+                                            <label className="text-[13px] font-black text-palette-tan ml-1 uppercase tracking-wider">{t('admin.post.quiz.question_image')}</label>
                                             <div className="rounded-[3px] bg-palette-beige/5 border-2 border-dashed border-palette-tan/20 flex flex-col items-center justify-center overflow-hidden transition-all relative group w-full min-h-[220px]">
                                                 {q.image ? (
                                                     <div className="relative w-full h-full flex items-center justify-center bg-palette-beige/5 min-h-[220px]">
@@ -395,7 +395,7 @@ const PostQuizItem: React.FC<PostQuizItemProps> = ({
                                         </div>
                                         <div className="md:col-span-8 h-full flex flex-col">
                                             <div className="space-y-2 group/editor flex-1 flex flex-col">
-                                                <label className="text-[13px] font-black text-palette-tan ml-1 uppercase tracking-wider">Soru Açıklaması</label>
+                                                <label className="text-[13px] font-black text-palette-tan ml-1 uppercase tracking-wider">{t('admin.post.quiz.question_desc')}</label>
                                                 <div className="quill-modern-wrapper compact-quill border border-palette-tan/20 rounded-[3px] overflow-hidden focus-within:border-palette-red/40 transition-all shadow-sm bg-white flex-1 min-h-[220px]">
                                                     <Quill
                                                         theme="snow"
@@ -403,7 +403,7 @@ const PostQuizItem: React.FC<PostQuizItemProps> = ({
                                                         onChange={(val: string) => handleUpdateQuestion(q.id, 'description', val)}
                                                         modules={QUILL_MODULES}
                                                         formats={QUILL_FORMATS}
-                                                        placeholder="Soru içeriğini yaz"
+                                                        placeholder={t('admin.post.quiz.question_desc_placeholder')}
                                                         className="modern-quill-editor h-full"
                                                     />
                                                 </div>
@@ -414,13 +414,13 @@ const PostQuizItem: React.FC<PostQuizItemProps> = ({
 
                                 {/* LAYOUT SELECTOR */}
                                 <div className="flex flex-col items-center gap-2">
-                                    <span className="text-[10px] font-black text-palette-tan/60 uppercase tracking-widest leading-none">Cevap Formatı</span>
+                                    <span className="text-[10px] font-black text-palette-tan/60 uppercase tracking-widest leading-none">{t('admin.post.poll.answer_format')}</span>
                                     <div className="flex bg-palette-tan/5 p-1 gap-1 rounded-[3px] border border-palette-tan/10 shadow-inner overflow-hidden">
                                         <button
                                             type="button"
                                             onClick={() => handleUpdateQuestion(q.id, 'layout', 'grid2')}
                                             className={`w-9 h-9 flex items-center justify-center transition-all ${q.layout === 'grid2' ? 'bg-white text-palette-maroon shadow-sm border border-palette-tan/20 rounded-[3px]' : 'text-palette-tan/40 hover:text-palette-maroon/60'}`}
-                                            title="2'li Resim Izgarası"
+                                            title={t('admin.post.poll.format_grid2')}
                                         >
                                             <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>grid_view</span>
                                         </button>
@@ -428,7 +428,7 @@ const PostQuizItem: React.FC<PostQuizItemProps> = ({
                                             type="button"
                                             onClick={() => handleUpdateQuestion(q.id, 'layout', 'grid3')}
                                             className={`w-9 h-9 flex items-center justify-center transition-all ${q.layout === 'grid3' ? 'bg-white text-palette-maroon shadow-sm border border-palette-tan/20 rounded-[3px]' : 'text-palette-tan/40 hover:text-palette-maroon/60'}`}
-                                            title="3'lü Resim Izgarası"
+                                            title={t('admin.post.poll.format_grid3')}
                                         >
                                             <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>view_module</span>
                                         </button>
@@ -436,7 +436,7 @@ const PostQuizItem: React.FC<PostQuizItemProps> = ({
                                             type="button"
                                             onClick={() => handleUpdateQuestion(q.id, 'layout', 'list')}
                                             className={`w-9 h-9 flex items-center justify-center transition-all ${q.layout === 'list' ? 'bg-white text-palette-maroon shadow-sm border border-palette-tan/20 rounded-[3px]' : 'text-palette-tan/40 hover:text-palette-maroon/60'}`}
-                                            title="Liste Görünümü"
+                                            title={t('admin.post.poll.format_list')}
                                         >
                                             <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>list</span>
                                         </button>
@@ -478,13 +478,13 @@ const PostQuizItem: React.FC<PostQuizItemProps> = ({
                                                                     className="flex flex-col items-center cursor-pointer group/pick mb-3"
                                                                 >
                                                                     <span className="material-symbols-rounded text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-1" style={{ fontSize: '32px' }}>add</span>
-                                                                    <span className="text-[11px] font-bold text-palette-tan/50 leading-tight">Görsel Seç / Yükle</span>
+                                                                    <span className="text-[11px] font-bold text-palette-tan/50 leading-tight">{t('admin.post.poll.pick_image')}</span>
                                                                 </div>
                                                                 <button
                                                                     onClick={() => onOpenUrlMode?.(item.id, `questions.${qIdx}.answers.${ansIdx}.image`)}
                                                                     className="mt-1 text-[9px] font-black text-palette-tan/60 hover:text-palette-maroon border border-palette-tan/20 px-3 py-1.5 rounded-[3px] bg-white shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 uppercase tracking-wider"
                                                                 >
-                                                                    <span className="material-symbols-rounded" style={{ fontSize: '11px' }}>public</span> URL VEYA YÜKLE
+                                                                    <span className="material-symbols-rounded" style={{ fontSize: '11px' }}>public</span> {t('admin.post.url_or_upload')}
                                                                 </button>
                                                             </div>
                                                         )}
@@ -497,7 +497,7 @@ const PostQuizItem: React.FC<PostQuizItemProps> = ({
                                                                 value={ans.text}
                                                                 onChange={(e) => handleUpdateAnswer(q.id, ans.id, 'text', e.target.value)}
                                                                 className="w-full bg-transparent border-none text-[13px] font-bold text-palette-maroon outline-none placeholder:text-palette-tan/20 p-0"
-                                                                placeholder="Cevap metni..."
+                                                                placeholder={t('admin.post.poll.answer_placeholder_short')}
                                                             />
                                                         </div>
 
@@ -507,7 +507,7 @@ const PostQuizItem: React.FC<PostQuizItemProps> = ({
                                                                 onChange={(e) => handleUpdateAnswer(q.id, ans.id, 'resultId', e.target.value)}
                                                                 className="w-full bg-palette-beige/5 border border-palette-tan/15 rounded-[3px] h-8 px-2 text-[11px] font-black text-palette-tan/60 outline-none appearance-none"
                                                             >
-                                                                <option value="">Sonuç Seç</option>
+                                                                <option value="">{t('admin.post.quiz.select_result')}</option>
                                                                 {data.results.map(r => (
                                                                     <option key={r.id} value={r.id}>{r.title || `Result ${data.results.indexOf(r) + 1}`}</option>
                                                                 ))}
@@ -522,7 +522,7 @@ const PostQuizItem: React.FC<PostQuizItemProps> = ({
                                                                 >
                                                                     {ans.isCorrect && <span className="material-symbols-rounded" style={{ fontSize: '10px' }}>check</span>}
                                                                 </button>
-                                                                <span className="text-[10px] font-black text-palette-tan/60 uppercase">Doğru Cevap</span>
+                                                                <span className="text-[10px] font-black text-palette-tan/60 uppercase">{t('admin.post.quiz.correct_answer')}</span>
                                                             </div>
                                                         )}
                                                     </div>
@@ -535,7 +535,7 @@ const PostQuizItem: React.FC<PostQuizItemProps> = ({
                                                         value={ans.text}
                                                         onChange={(e) => handleUpdateAnswer(q.id, ans.id, 'text', e.target.value)}
                                                         className="flex-1 bg-transparent border-none text-[14px] font-bold text-palette-maroon outline-none placeholder:text-palette-tan/20 h-full p-0"
-                                                        placeholder="Cevap metni buraya gelecek..."
+                                                        placeholder={t('admin.post.poll.answer_placeholder_long')}
                                                     />
 
                                                     {data.quizType === 'personality' && (
@@ -555,7 +555,7 @@ const PostQuizItem: React.FC<PostQuizItemProps> = ({
                                                         <button
                                                             onClick={() => handleUpdateAnswer(q.id, ans.id, 'isCorrect', !ans.isCorrect)}
                                                             className={`shrink-0 w-8 h-8 rounded-full border transition-all flex items-center justify-center ${ans.isCorrect ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-palette-tan/30 text-palette-tan/30'}`}
-                                                            title="Doğru Cevap"
+                                                            title={t('admin.post.quiz.correct_answer')}
                                                         >
                                                             <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>check</span>
                                                         </button>
@@ -574,7 +574,7 @@ const PostQuizItem: React.FC<PostQuizItemProps> = ({
                                         >
                                             <div className={`w-3 h-3 bg-white rounded-full transition-transform ${data.allowMultiple ? 'translate-x-5' : ''}`} />
                                         </button>
-                                        <span className="text-[11px] font-black text-palette-tan/60 uppercase">Çoklu Seçim İzin Ver</span>
+                                        <span className="text-[11px] font-black text-palette-tan/60 uppercase">{t('admin.post.quiz.allow_multiple')}</span>
                                     </label>
                                     <label className="flex items-center gap-3 cursor-pointer group/toggle">
                                         <button
@@ -583,10 +583,10 @@ const PostQuizItem: React.FC<PostQuizItemProps> = ({
                                         >
                                             <div className={`w-3 h-3 bg-white rounded-full transition-transform ${data.showResults ? 'translate-x-5' : ''}`} />
                                         </button>
-                                        <span className="text-[11px] font-black text-palette-tan/60 uppercase">Sonuçları Göster</span>
+                                        <span className="text-[11px] font-black text-palette-tan/60 uppercase">{t('admin.post.quiz.show_results')}</span>
                                     </label>
                                     <div className="flex items-center gap-3">
-                                        <span className="text-[11px] font-black text-palette-tan/60 uppercase">Bitiş Tarihi:</span>
+                                        <span className="text-[11px] font-black text-palette-tan/60 uppercase">{t('admin.post.quiz.end_date')}</span>
                                         <div className="relative">
                                             <input
                                                 type="date"
@@ -603,7 +603,7 @@ const PostQuizItem: React.FC<PostQuizItemProps> = ({
                                         onClick={() => handleAddAnswer(q.id)}
                                         className="px-6 py-2 border-2 border-dashed border-palette-red/30 rounded-[3px] text-palette-red/60 text-[11px] font-black uppercase tracking-widest hover:bg-palette-red/5 hover:border-palette-red transition-all"
                                     >
-                                        + Cevap Ekle
+                                        {t('admin.post.quiz.add_answer')}
                                     </button>
                                 </div>
                             </div>
@@ -617,7 +617,7 @@ const PostQuizItem: React.FC<PostQuizItemProps> = ({
                     onClick={handleAddQuestion}
                     className="px-8 py-2.5 border-2 border-dashed border-palette-red/30 rounded-[3px] text-palette-red/60 text-[11px] font-black uppercase tracking-widest hover:bg-palette-red/5 hover:border-palette-red transition-all shadow-sm active:scale-95"
                 >
-                    + Yeni Soru Ekle
+                    {t('admin.post.quiz.add_question')}
                 </button>
             </div>
         </div>

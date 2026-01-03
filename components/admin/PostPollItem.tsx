@@ -152,8 +152,8 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                             <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>bar_chart</span>
                         </div>
                         <div>
-                            <h3 className="text-base font-black text-palette-maroon leading-tight">Anket Bloğu</h3>
-                            <p className="text-[11px] font-bold text-palette-tan/50 tracking-wide">Etkileşimli anket sistemi</p>
+                            <h3 className="text-base font-black text-palette-maroon leading-tight">{t('admin.post.poll.block_title')}</h3>
+                            <p className="text-[11px] font-bold text-palette-tan/50 tracking-wide">{t('admin.post.poll.block_desc')}</p>
                         </div>
                     </div>
                 </div>
@@ -161,7 +161,7 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                 {/* 2. TITLE & MAIN IMAGE */}
                 <div className="space-y-4">
                     <div className="space-y-1.5 w-full">
-                        <label className="text-[13px] font-black text-palette-tan ml-1">Anket Sorusu / Başlık</label>
+                        <label className="text-[13px] font-black text-palette-tan ml-1">{t('admin.post.poll.question_title')}</label>
                         <div className="flex items-center gap-3">
                             {showBlockNumbers && (
                                 <div className="w-9 h-9 shrink-0 rounded-[3px] bg-palette-maroon text-white flex items-center justify-center text-base font-black shadow-md shadow-palette-maroon/10">
@@ -173,7 +173,7 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                                 value={item.title || ''}
                                 onChange={(e) => onUpdate(item.id, 'title', e.target.value)}
                                 className="w-full h-10 bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] px-4 text-base font-bold text-palette-maroon outline-none focus:border-palette-red transition-all shadow-inner"
-                                placeholder="Soru buraya gelecek..."
+                                placeholder={t('admin.post.poll.question_placeholder')}
                             />
                         </div>
                     </div>
@@ -182,7 +182,7 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
                         {/* LEFT: IMAGE AREA */}
                         <div className="md:col-span-4 space-y-2">
-                            <label className="text-[13px] font-black text-palette-tan ml-1 uppercase tracking-wider">Anket Ana Resmi</label>
+                            <label className="text-[13px] font-black text-palette-tan ml-1 uppercase tracking-wider">{t('admin.post.poll.main_image')}</label>
                             <div className="rounded-[3px] bg-palette-beige/5 border-2 border-dashed border-palette-tan/20 flex flex-col items-center justify-center overflow-hidden transition-all relative group w-full min-h-[220px]">
                                 {item.mediaUrl ? (
                                     <div className="relative w-full h-full flex items-center justify-center bg-palette-beige/5 min-h-[220px]">
@@ -213,7 +213,7 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                                             className="flex flex-col items-center cursor-pointer group/pick mb-4"
                                         >
                                             <span className="material-symbols-rounded text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-2" style={{ fontSize: '48px' }}>add</span>
-                                            <span className="text-[14px] font-bold text-palette-tan/50 px-4 text-center">Görsel Seç / Yükle</span>
+                                            <span className="text-[14px] font-bold text-palette-tan/50 px-4 text-center">{t('admin.post.poll.pick_image')}</span>
                                         </div>
                                         <button
                                             onClick={() => onOpenUrlMode(item.id, 'mediaUrl')}
@@ -229,7 +229,7 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                         {/* RIGHT: DESCRIPTION EDITOR */}
                         <div className="md:col-span-8 h-full flex flex-col">
                             <div className="space-y-2 group/editor flex-1 flex flex-col">
-                                <label className="text-[13px] font-black text-palette-tan ml-1 uppercase tracking-wider">Anket Açıklaması</label>
+                                <label className="text-[13px] font-black text-palette-tan ml-1 uppercase tracking-wider">{t('admin.post.poll.description')}</label>
                                 <div className="quill-modern-wrapper compact-quill border border-palette-tan/20 rounded-[3px] overflow-hidden focus-within:border-palette-red/40 transition-all shadow-sm bg-white flex-1 min-h-[220px]">
                                     {(() => {
                                         const Quill: any = ReactQuill;
@@ -240,7 +240,7 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                                                 onChange={(content: string) => onUpdate(item.id, 'description', content)}
                                                 modules={QUILL_MODULES}
                                                 formats={QUILL_FORMATS}
-                                                placeholder="Bu anket hakkında kısa bir açıklama veya not yazın..."
+                                                placeholder={t('admin.post.poll.description_placeholder')}
                                                 className="modern-quill-editor h-full"
                                             />
                                         );
@@ -253,7 +253,7 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                     {/* 3. FORMAT SELECTOR */}
                     <div className="space-y-6 pt-6 border-t border-palette-tan/15">
                         <div className="flex flex-col items-center gap-2">
-                            <span className="text-[10px] font-black text-palette-tan/60 uppercase tracking-widest leading-none">Cevap Formatı</span>
+                            <span className="text-[10px] font-black text-palette-tan/60 uppercase tracking-widest leading-none">{t('admin.post.poll.answer_format')}</span>
                             <div className="flex bg-palette-tan/5 p-1 rounded-[3px] border border-palette-tan/10 shadow-inner overflow-hidden">
                                 <button
                                     type="button"
@@ -262,7 +262,7 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                                         onUpdate(item.id, 'pollColumns', 2);
                                     }}
                                     className={`w-14 h-11 flex items-center justify-center transition-all ${isImagePoll && pollColumns === 2 ? 'bg-white text-palette-maroon shadow-md border border-palette-tan/20 rounded-[3px]' : 'text-palette-tan/40 hover:text-palette-maroon/60'}`}
-                                    title="2'li Resim Izgarası"
+                                    title={t('admin.post.poll.format_grid2')}
                                 >
                                     <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>grid_view</span>
                                 </button>
@@ -273,7 +273,7 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                                         onUpdate(item.id, 'pollColumns', 3);
                                     }}
                                     className={`w-14 h-11 flex items-center justify-center transition-all ${isImagePoll && pollColumns === 3 ? 'bg-white text-palette-maroon shadow-md border border-palette-tan/20 rounded-[3px]' : 'text-palette-tan/40 hover:text-palette-maroon/60'}`}
-                                    title="3'lü Resim Izgarası"
+                                    title={t('admin.post.poll.format_grid3')}
                                 >
                                     <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>view_module</span>
                                 </button>
@@ -283,7 +283,7 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                                         onUpdate(item.id, 'isImagePoll', false);
                                     }}
                                     className={`w-14 h-11 flex items-center justify-center transition-all ${!isImagePoll ? 'bg-white text-palette-maroon shadow-md border border-palette-tan/20 rounded-[3px]' : 'text-palette-tan/40 hover:text-palette-maroon/60'}`}
-                                    title="Liste Görünümü"
+                                    title={t('admin.post.poll.format_list')}
                                 >
                                     <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>list</span>
                                 </button>
@@ -346,13 +346,13 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                                                                 className="flex flex-col items-center cursor-pointer group/pick mb-3"
                                                             >
                                                                 <span className="material-symbols-rounded text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-1" style={{ fontSize: '32px' }}>add</span>
-                                                                <span className="text-[11px] font-bold text-palette-tan/50 leading-tight">Görsel Seç / Yükle</span>
+                                                                <span className="text-[11px] font-bold text-palette-tan/50 leading-tight">{t('admin.post.poll.pick_image')}</span>
                                                             </div>
                                                             <button
                                                                 onClick={() => onOpenUrlMode(item.id, 'options', option.id)}
                                                                 className="mt-1 text-[9px] font-black text-palette-tan/60 hover:text-palette-maroon border border-palette-tan/20 px-3 py-1.5 rounded-[3px] bg-white shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 uppercase tracking-wider"
                                                             >
-                                                                <span className="material-symbols-rounded" style={{ fontSize: '12px' }}>public</span> URL VEYA YÜKLE
+                                                                <span className="material-symbols-rounded" style={{ fontSize: '12px' }}>public</span> {t('admin.post.url_or_upload')}
                                                             </button>
                                                         </div>
                                                     )}
@@ -365,7 +365,7 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                                                             value={option.text}
                                                             onChange={(e) => handleUpdateOption(option.id, 'text', e.target.value)}
                                                             className="w-full bg-transparent border-none text-[13px] font-bold text-palette-maroon outline-none placeholder:text-palette-tan/20 p-0"
-                                                            placeholder="Cevap metni..."
+                                                            placeholder={t('admin.post.poll.answer_placeholder_short')}
                                                         />
                                                     </div>
                                                     <div className="flex items-center gap-2 pt-2 border-t border-palette-tan/5">
@@ -389,7 +389,7 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                                                     value={option.text}
                                                     onChange={(e) => handleUpdateOption(option.id, 'text', e.target.value)}
                                                     className="flex-1 bg-transparent border-none text-[14px] font-bold text-palette-maroon outline-none placeholder:text-palette-tan/20 h-full p-0"
-                                                    placeholder="Cevap metni buraya gelecek..."
+                                                    placeholder={t('admin.post.poll.answer_placeholder_long')}
                                                 />
                                                 <div className="flex items-center gap-2 shrink-0">
                                                     <div className="flex items-center gap-2 bg-palette-beige/5 px-3 py-1.5 rounded-[2px] border border-palette-tan/10">
@@ -415,7 +415,7 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                                     className="flex items-center gap-2 px-6 py-2 bg-white border border-palette-tan/30 text-palette-tan hover:text-palette-maroon hover:border-palette-maroon hover:shadow-md rounded-[3px] transition-all group/add shadow-sm"
                                 >
                                     <span className="material-symbols-rounded group-hover/add:rotate-90 transition-transform duration-300" style={{ fontSize: '18px' }}>add</span>
-                                    <span className="text-[11px] font-black uppercase tracking-[0.15em]">Cevap Ekle</span>
+                                    <span className="text-[11px] font-black uppercase tracking-[0.15em]">{t('admin.post.poll.add_answer')}</span>
                                 </button>
                             </div>
                         </div>
@@ -429,7 +429,7 @@ const PostPollItem: React.FC<PostPollItemProps> = ({
                             className="text-[11px] font-black text-palette-tan/50 hover:text-palette-maroon transition-colors flex items-center gap-1.5 uppercase tracking-[0.15em] p-1 rounded hover:bg-palette-beige/20"
                         >
                             <span className={`material-symbols-rounded transition-transform duration-300 ${showOptions ? 'rotate-90' : ''}`} style={{ fontSize: '16px' }}>settings</span>
-                            Ek Ayarlar
+                            {t('admin.post.extra_settings')}
                             <span className={`material-symbols-rounded transition-transform duration-300 ${showOptions ? 'rotate-180' : ''}`} style={{ fontSize: '18px' }}>expand_more</span>
                         </button>
 

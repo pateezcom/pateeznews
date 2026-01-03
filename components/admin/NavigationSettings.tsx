@@ -480,7 +480,7 @@ const NavigationSettings: React.FC = () => {
                   type="text"
                   value={formData.label}
                   onChange={e => setFormData({ ...formData, label: e.target.value })}
-                  placeholder="Örn: Niğde"
+                  placeholder={t('nav_settings.form.label_placeholder')}
                   className="w-full h-11 px-4 bg-palette-beige/30 border border-palette-tan/10 rounded-[3px] text-sm font-bold text-palette-maroon outline-none focus:bg-white focus:border-palette-tan focus:ring-4 focus:ring-palette-tan/5 transition-all"
                 />
               </div>
@@ -605,7 +605,7 @@ const NavigationSettings: React.FC = () => {
                 <span className="material-symbols-rounded absolute left-5 top-1/2 -translate-y-1/2 text-palette-tan/20 group-focus-within:text-palette-tan transition-colors" style={{ fontSize: '22px' }}>search</span>
                 <input
                   type="text"
-                  placeholder="İkon ismine göre ara..."
+                  placeholder={t('nav_settings.icon_search_placeholder')}
                   value={iconSearch}
                   onChange={(e) => setIconSearch(e.target.value)}
                   className="w-full h-16 pl-14 pr-6 bg-palette-beige/10 border-2 border-palette-tan/15 rounded-[3px] text-lg font-bold outline-none focus:border-palette-tan transition-all"
@@ -617,7 +617,7 @@ const NavigationSettings: React.FC = () => {
                   <label className="text-[10px] font-black text-palette-tan/40 uppercase tracking-widest ml-1 mb-1.5 block">Manuel İkon Adı</label>
                   <input
                     type="text"
-                    placeholder="Örn: Newspaper, Video, Ghost..."
+                    placeholder={t('nav_settings.icon_manual_placeholder')}
                     value={formData.icon}
                     onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
                     className="w-full h-11 px-4 bg-palette-beige/5 border border-palette-tan/10 rounded-[3px] text-sm font-bold text-palette-maroon outline-none focus:bg-white focus:border-palette-tan transition-all"
@@ -625,7 +625,7 @@ const NavigationSettings: React.FC = () => {
                 </div>
                 <div className="pt-5">
                   <a href="https://fonts.google.com/icons?icon.set=Material+Symbols" target="_blank" rel="noopener noreferrer" className="h-11 px-4 flex items-center gap-2 bg-blue-50 text-blue-600 rounded-[3px] text-[11px] font-black hover:bg-blue-600 hover:text-white transition-all border border-blue-100">
-                    <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>public</span> TÜM İKONLAR
+                    <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>public</span> {t('nav_settings.all_icons')}
                   </a>
                 </div>
               </div>

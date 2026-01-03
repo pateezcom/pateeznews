@@ -232,7 +232,7 @@ const PostReviewItem: React.FC<PostReviewItemProps> = ({
                                         onClick={() => onOpenUrlMode(item.id, 'reviewData.productImage')}
                                         className="mt-2 text-[10px] font-black text-palette-tan/60 hover:text-palette-maroon border border-palette-tan/20 px-3 py-1.5 rounded-[3px] bg-white shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 uppercase tracking-wider"
                                     >
-                                        <span className="material-symbols-rounded" style={{ fontSize: '11px' }}>public</span> URL VEYA YÜKLE
+                                        <span className="material-symbols-rounded" style={{ fontSize: '11px' }}>public</span> {t('admin.post.url_or_upload')}
                                     </button>
                                 </div>
                             )}
@@ -303,7 +303,7 @@ const PostReviewItem: React.FC<PostReviewItemProps> = ({
                         <div className="flex items-center justify-between mb-2 relative z-10">
                             <div className="flex items-center gap-2">
                                 <div className="bg-rose-500 p-1 rounded-full text-white shadow-lg shadow-rose-500/20 flex items-center justify-center"><span className="material-symbols-rounded" style={{ fontSize: '12px' }}>close</span></div>
-                                <h4 className="text-rose-900 font-black text-xs uppercase tracking-widest">Eksiler</h4>
+                                <h4 className="text-rose-900 font-black text-xs uppercase tracking-widest">{t('admin.post.cons')}</h4>
                             </div>
                             <button onClick={() => addList('cons')} className="w-6 h-6 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all shadow-sm"><span className="material-symbols-rounded" style={{ fontSize: '16px' }}>add</span></button>
                         </div>
@@ -315,7 +315,7 @@ const PostReviewItem: React.FC<PostReviewItemProps> = ({
                                         value={con}
                                         onChange={(e) => updateList('cons', idx, e.target.value)}
                                         className="flex-1 h-9 bg-white/80 border border-rose-200 rounded-[3px] px-3 text-xs font-bold text-rose-900 outline-none focus:border-rose-500 shadow-inner"
-                                        placeholder="Bir eksi ekleyin..."
+                                        placeholder={t('admin.post.add_con')}
                                     />
                                     <button onClick={() => removeList('cons', idx)} className="text-rose-300 hover:text-rose-600 px-1 transition-colors flex items-center justify-center"><span className="material-symbols-rounded" style={{ fontSize: '14px' }}>close</span></button>
                                 </div>
@@ -337,7 +337,7 @@ const PostReviewItem: React.FC<PostReviewItemProps> = ({
                             onClick={addBreakdown}
                             className="text-[10px] font-black text-blue-600 hover:text-white uppercase tracking-widest flex items-center gap-1.5 bg-blue-50 hover:bg-blue-600 px-3 py-1.5 rounded-[3px] transition-all border border-blue-200 shadow-sm"
                         >
-                            <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>add</span> Kriter Ekle
+                            <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>add</span> {t('admin.post.add_criterion')}
                         </button>
                     </div>
 

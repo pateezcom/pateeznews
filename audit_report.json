@@ -1,0 +1,2138 @@
+[
+  {
+    "key": "admin.account.settings",
+    "tr": "Hesap Ayarları",
+    "en": "Account Settings",
+    "ar": "إعدادات الحساب"
+  },
+  {
+    "key": "admin.date_format",
+    "tr": "tr-TR",
+    "en": "en-US",
+    "ar": "ar-SA"
+  },
+  {
+    "key": "admin.error.fetch_failed",
+    "tr": "Veri yüklenemedi",
+    "en": "Failed to load data",
+    "ar": "فشل تحميل البيانات"
+  },
+  {
+    "key": "admin.generic_error",
+    "tr": "İşlem hatası: {error}",
+    "en": "Process error: {error}",
+    "ar": "خطأ في العملية: {error}"
+  },
+  {
+    "key": "admin.header.my_account",
+    "tr": "Hesabım",
+    "en": "My Account",
+    "ar": "حسابي"
+  },
+  {
+    "key": "admin.header.search",
+    "tr": "Arama yap...",
+    "en": "Search...",
+    "ar": "بحث..."
+  },
+  {
+    "key": "admin.logout",
+    "tr": "Güvenli Çıkış",
+    "en": "Logout",
+    "ar": "خروج آمن"
+  },
+  {
+    "key": "admin.management",
+    "tr": "YÖNETİM",
+    "en": "MANAGEMENT",
+    "ar": "الإدارة"
+  },
+  {
+    "key": "admin.post.add_pro",
+    "tr": "Bir artı ekleyin...",
+    "en": "Add a pro...",
+    "ar": "أضف ميزة..."
+  },
+  {
+    "key": "admin.post.add_video_url",
+    "tr": "URL VEYA YOUTUBE EKLE",
+    "en": "ADD URL OR YOUTUBE",
+    "ar": "إضافة رابط أو يوتيوب"
+  },
+  {
+    "key": "admin.post.add_with_url",
+    "tr": "URL İLE EKLE",
+    "en": "ADD WITH URL",
+    "ar": "إضافة عبر رابط"
+  },
+  {
+    "key": "admin.post.add.audio",
+    "tr": "Ses Ekle",
+    "en": "Add Audio",
+    "ar": "إضافة صوت"
+  },
+  {
+    "key": "admin.post.add.before_after",
+    "tr": "Before & After Ekle",
+    "en": "Add Before & After",
+    "ar": "إضافة قبل وبعد"
+  },
+  {
+    "key": "admin.post.add.file",
+    "tr": "Dosya Ekle",
+    "en": "Add File",
+    "ar": "إضافة ملف"
+  },
+  {
+    "key": "admin.post.add.flip",
+    "tr": "Flipcard Ekle",
+    "en": "Add Flipcard",
+    "ar": "إضافة بطاقة مقلوبة"
+  },
+  {
+    "key": "admin.post.add.iframe",
+    "tr": "Iframe Ekle",
+    "en": "Add Iframe",
+    "ar": "إضافة إطار"
+  },
+  {
+    "key": "admin.post.add.image",
+    "tr": "Resim Ekle",
+    "en": "Add Image",
+    "ar": "إضافة صورة"
+  },
+  {
+    "key": "admin.post.add.poll_alt",
+    "tr": "Anket Ekle",
+    "en": "Add Poll",
+    "ar": "إضافة استطلاع"
+  },
+  {
+    "key": "admin.post.add.quote",
+    "tr": "Alıntı Ekle",
+    "en": "Add Quote",
+    "ar": "إضافة اقتباس"
+  },
+  {
+    "key": "admin.post.add.review_alt",
+    "tr": "İnceleme Ekle",
+    "en": "Add Review",
+    "ar": "إضافة مراجعة"
+  },
+  {
+    "key": "admin.post.add.slider",
+    "tr": "Slider Image Ekle",
+    "en": "Add Slider Image",
+    "ar": "إضافة شريط تمرير صور"
+  },
+  {
+    "key": "admin.post.add.social",
+    "tr": "Sosyal Medya Ekle",
+    "en": "Add Social Media",
+    "ar": "إضافة وسائل التواصل الاجتماعي"
+  },
+  {
+    "key": "admin.post.add.text",
+    "tr": "Metin Ekle",
+    "en": "Add Text",
+    "ar": "إضافة نص"
+  },
+  {
+    "key": "admin.post.add.video",
+    "tr": "Video Ekle",
+    "en": "Add Video",
+    "ar": "إضافة فيديو"
+  },
+  {
+    "key": "admin.post.add.vs",
+    "tr": "VS Ekle",
+    "en": "Add VS",
+    "ar": "إضافة مبارزة (VS)"
+  },
+  {
+    "key": "admin.post.after_label",
+    "tr": "Sonra Etiketi",
+    "en": "After Label",
+    "ar": "تسمية (بعد)"
+  },
+  {
+    "key": "admin.post.after_settings",
+    "tr": "Sonra (After) Ayarları",
+    "en": "After Settings",
+    "ar": "إعدادات (بعد)"
+  },
+  {
+    "key": "admin.post.ai_support",
+    "tr": "AI Yazım Desteği Aktif",
+    "en": "AI Writing Support Active",
+    "ar": "دعم الكتابة بالذكاء الاصطناعي نشط"
+  },
+  {
+    "key": "admin.post.asset_label",
+    "tr": "Dijital Varlık",
+    "en": "Digital Asset",
+    "ar": "أصل رقمي"
+  },
+  {
+    "key": "admin.post.audio_block",
+    "tr": "Ses İçerik Bloğu",
+    "en": "Audio Content Block",
+    "ar": "كتلة محتوى صوتي"
+  },
+  {
+    "key": "admin.post.audio_panel",
+    "tr": "Ses Paneli",
+    "en": "Audio Panel",
+    "ar": "لوحة الصوت"
+  },
+  {
+    "key": "admin.post.back_description",
+    "tr": "Arka Açıklama",
+    "en": "Back description",
+    "ar": "الوصف الخلفي"
+  },
+  {
+    "key": "admin.post.back_link",
+    "tr": "Arka Başlık Linki",
+    "en": "Back Title Link",
+    "ar": "رابط عنوان الوجه الخلفي"
+  },
+  {
+    "key": "admin.post.back_settings",
+    "tr": "Arka Taraf Ayarları",
+    "en": "Back side settings",
+    "ar": "إعدادات الوجه الخلفي"
+  },
+  {
+    "key": "admin.post.back_title",
+    "tr": "Arka Başlık",
+    "en": "Back title",
+    "ar": "العنوان الخلفي"
+  },
+  {
+    "key": "admin.post.before_after_desc",
+    "tr": "İki resmi sürgülü bir bar ile karşılaştırın",
+    "en": "Compare two images with a sliding bar",
+    "ar": "مقارنة صورتين بشريط تمرير"
+  },
+  {
+    "key": "admin.post.before_label",
+    "tr": "Önce Etiketi",
+    "en": "Before Label",
+    "ar": "تسمية (قبل)"
+  },
+  {
+    "key": "admin.post.before_settings",
+    "tr": "Önce (Before) Ayarları",
+    "en": "Before Settings",
+    "ar": "إعدادات (قبل)"
+  },
+  {
+    "key": "admin.post.block_info_help",
+    "tr": "Bu blok hakkında kısa bir bilgi...",
+    "en": "Short info about this block...",
+    "ar": "معلومات قصيرة حول هذه الكتلة..."
+  },
+  {
+    "key": "admin.post.block_title",
+    "tr": "Blok Başlığı",
+    "en": "Block Title",
+    "ar": "عنوان الكتلة"
+  },
+  {
+    "key": "admin.post.browse_files",
+    "tr": "DOSYALARA GÖZ AT",
+    "en": "BROWSE FILES",
+    "ar": "تصفح الملفات"
+  },
+  {
+    "key": "admin.post.cat_settings",
+    "tr": "Kategori Ayarları",
+    "en": "Category Settings",
+    "ar": "إعدادات القسم"
+  },
+  {
+    "key": "admin.post.click_to_flip",
+    "tr": "Tıkla & Çevir",
+    "en": "Click & Flip",
+    "ar": "انقر والقلب"
+  },
+  {
+    "key": "admin.post.compare_hint",
+    "tr": "Karşılaştırmak için kaydır",
+    "en": "Slide to compare",
+    "ar": "اسحب للمقارنة"
+  },
+  {
+    "key": "admin.post.content_info",
+    "tr": "İÇERİK BİLGİLERİ",
+    "en": "CONTENT INFORMATION",
+    "ar": "معلومات المحتوى"
+  },
+  {
+    "key": "admin.post.content_label",
+    "tr": "İçerik Metni (Zengin Metin Editörü)",
+    "en": "Content Text (Rich Text Editor)",
+    "ar": "نص المحتوى (محرر نص غني)"
+  },
+  {
+    "key": "admin.post.content_placeholder",
+    "tr": "Haberinizin Bu Bölümündeki Hikayeyi Tüm Detaylarıyla Buraya Aktarın...",
+    "en": "Transfer the story in this section of your news here with all details...",
+    "ar": "انقل القصة في هذا القسم من أخبارك هنا بكل التفاصيل..."
+  },
+  {
+    "key": "admin.post.cover",
+    "tr": "Haber Kapağı",
+    "en": "Post Cover",
+    "ar": "غلاف الخبر"
+  },
+  {
+    "key": "admin.post.criterion_placeholder",
+    "tr": "Kriter (örn: Tasarım)",
+    "en": "Criterion (e.g. Design)",
+    "ar": "المعيار (مثل التصميم)"
+  },
+  {
+    "key": "admin.post.delete_block",
+    "tr": "Bloğu Sil",
+    "en": "Delete Block",
+    "ar": "حذف الكتلة"
+  },
+  {
+    "key": "admin.post.delete_permanently",
+    "tr": "KALICI OLARAK SİL",
+    "en": "DELETE PERMANENTLY",
+    "ar": "حذف نهائي"
+  },
+  {
+    "key": "admin.post.desc_placeholder_back",
+    "tr": "Kartın arka yüzünde görünecek açıklama...",
+    "en": "Description to appear on the back of the card...",
+    "ar": "الوصف الذي سيظهر على ظهر البطاقة..."
+  },
+  {
+    "key": "admin.post.desc_placeholder_front",
+    "tr": "Kartın ön yüzünde görünecek açıklama...",
+    "en": "Description to appear on the front of the card...",
+    "ar": "الوصف الذي سيظهر على مقدمة البطاقة..."
+  },
+  {
+    "key": "admin.post.detailed_scoring",
+    "tr": "Detaylı Puanlama",
+    "en": "Detailed Scoring",
+    "ar": "تقييم مفصل"
+  },
+  {
+    "key": "admin.post.draft_btn",
+    "tr": "TASLAK",
+    "en": "DRAFT",
+    "ar": "مسودة"
+  },
+  {
+    "key": "admin.post.drag_drop_files",
+    "tr": "Dosyaları buraya sürükleyin veya",
+    "en": "Drag and drop files here or",
+    "ar": "اسحب الملفات هنا أو"
+  },
+  {
+    "key": "admin.post.drop_to_upload",
+    "tr": "Yüklemek için bırakın",
+    "en": "Drop to upload",
+    "ar": "سحب هنا للرفع"
+  },
+  {
+    "key": "admin.post.edit_title",
+    "tr": "Haberi Düzenle",
+    "en": "Edit post",
+    "ar": "تعديل الخبر"
+  },
+  {
+    "key": "admin.post.enter_to_add",
+    "tr": "Enter ile ekle...",
+    "en": "Press Enter to add...",
+    "ar": "اضغط Enter للإضافة..."
+  },
+  {
+    "key": "admin.post.example_surprise",
+    "tr": "Örn: Ve işte büyük sürpriz!",
+    "en": "E.g. And here is the big surprise!",
+    "ar": "مثال: وهنا المفاجأة الكبرى!"
+  },
+  {
+    "key": "admin.post.extra_settings",
+    "tr": "Ek Ayarlar (Kaynak vb.)",
+    "en": "Extra Settings (Source etc.)",
+    "ar": "إعدادات إضافية (المصدر إلخ)"
+  },
+  {
+    "key": "admin.post.extra_settings_alt",
+    "tr": "Ek Ayarlar",
+    "en": "Extra Settings",
+    "ar": "إعدادات إضافية"
+  },
+  {
+    "key": "admin.post.file_block",
+    "tr": "Dosya / Döküman Bloğu",
+    "en": "File / Document Block",
+    "ar": "كتلة ملف / مستند"
+  },
+  {
+    "key": "admin.post.file_panel",
+    "tr": "Dosya Paneli",
+    "en": "File Panel",
+    "ar": "لوحة الملفات"
+  },
+  {
+    "key": "admin.post.flip_desc",
+    "tr": "Üzerine gelince veya tıklayınca dönen etkileşimli kart",
+    "en": "MISSING",
+    "ar": "MISSING"
+  },
+  {
+    "key": "admin.post.flip_for_back",
+    "tr": "Arkası için dokun",
+    "en": "Tap for back",
+    "ar": "المس للوجه الخلفي"
+  },
+  {
+    "key": "admin.post.front_description",
+    "tr": "Ön Açıklama",
+    "en": "Front description",
+    "ar": "الوصف الأمامي"
+  },
+  {
+    "key": "admin.post.front_link",
+    "tr": "Ön Başlık Linki",
+    "en": "Front Title Link",
+    "ar": "رابط عنوان الوجه الأمامي"
+  },
+  {
+    "key": "admin.post.front_settings",
+    "tr": "Ön Taraf Ayarları",
+    "en": "Front side settings",
+    "ar": "إعدادات الوجه الأمامي"
+  },
+  {
+    "key": "admin.post.front_title",
+    "tr": "Ön Başlık",
+    "en": "Front title",
+    "ar": "العنوان الأمامي"
+  },
+  {
+    "key": "admin.post.get_audio",
+    "tr": "SESİ GETİR",
+    "en": "FETCH AUDIO",
+    "ar": "جلب الصوت"
+  },
+  {
+    "key": "admin.post.get_image",
+    "tr": "GÖRSELİ GETİR",
+    "en": "FETCH IMAGE",
+    "ar": "جلب الصورة"
+  },
+  {
+    "key": "admin.post.get_video",
+    "tr": "VİDEOYU GETİR",
+    "en": "FETCH VIDEO",
+    "ar": "جلب الفيديو"
+  },
+  {
+    "key": "admin.post.go_back",
+    "tr": "Geri Dön",
+    "en": "Go Back",
+    "ar": "رجوع"
+  },
+  {
+    "key": "admin.post.iframe_block",
+    "tr": "Iframe Bloğu",
+    "en": "Iframe Block",
+    "ar": "كتلة إطار (Iframe)"
+  },
+  {
+    "key": "admin.post.iframe_desc",
+    "tr": "Dış içerik veya embed kodu",
+    "en": "External content or embed code",
+    "ar": "محتوى خارجي أو رمز تضمين"
+  },
+  {
+    "key": "admin.post.iframe_help",
+    "tr": "* Buraya yapıştırılan iframe kodu ön sayfada olduğu gibi render edilecektir.",
+    "en": "* The iframe code pasted here will be rendered as it is on the front page.",
+    "ar": "* سيتم عرض رمز الإطار الملصق هنا كما هو في الصفحة الأمامية."
+  },
+  {
+    "key": "admin.post.iframe_label",
+    "tr": "Iframe / Embed Kodu",
+    "en": "Iframe / Embed Code",
+    "ar": "إطار / رمز التضمين"
+  },
+  {
+    "key": "admin.post.iframe_placeholder",
+    "tr": "Iframe için bir başlık girin...",
+    "en": "Enter a title for the iframe...",
+    "ar": "أدخل عنواناً للإطار..."
+  },
+  {
+    "key": "admin.post.image_block",
+    "tr": "Görsel Bloğu",
+    "en": "Image Block",
+    "ar": "كتلة الصورة"
+  },
+  {
+    "key": "admin.post.image_desc",
+    "tr": "Görsel Açıklaması (Zengin Metin)",
+    "en": "Image Description (Rich Text)",
+    "ar": "وصف الصورة (نص غني)"
+  },
+  {
+    "key": "admin.post.image_panel",
+    "tr": "Görsel Paneli",
+    "en": "Image Panel",
+    "ar": "لوحة الصور"
+  },
+  {
+    "key": "admin.post.image_source",
+    "tr": "Görsel Kaynağı / Künye",
+    "en": "Image Source / Credits",
+    "ar": "مصدر الصورة / الحقوق"
+  },
+  {
+    "key": "admin.post.live_preview",
+    "tr": "Canlı Önizleme",
+    "en": "MISSING",
+    "ar": "MISSING"
+  },
+  {
+    "key": "admin.post.loading_profile",
+    "tr": "Profil Verileri Yükleniyor",
+    "en": "Loading Profile Data",
+    "ar": "جاري تحميل بيانات الملف الشخصي"
+  },
+  {
+    "key": "admin.post.main_cat",
+    "tr": "ANA KATEGORİ",
+    "en": "MAIN CATEGORY",
+    "ar": "القسم الرئيسي"
+  },
+  {
+    "key": "admin.post.media_library",
+    "tr": "Medya Kütüphanesi",
+    "en": "Media Library",
+    "ar": "مكتبة الوسائط"
+  },
+  {
+    "key": "admin.post.new_title",
+    "tr": "Yeni Haber",
+    "en": "New Post",
+    "ar": "خبر جديد"
+  },
+  {
+    "key": "admin.post.not_deletable",
+    "tr": "Bu blok silinemez",
+    "en": "This block cannot be deleted",
+    "ar": "لا يمكن حذف هذه الكتلة"
+  },
+  {
+    "key": "admin.post.optional_title",
+    "tr": "Başlık (Opsiyonel)",
+    "en": "Title (Optional)",
+    "ar": "العنوان (اختياري)"
+  },
+  {
+    "key": "admin.post.panel_desc",
+    "tr": "İçerik ve SEO Entegre Panel",
+    "en": "Content and SEO Integrated Panel",
+    "ar": "لوحة متكاملة للمحتوى وتحسين محركات البحث"
+  },
+  {
+    "key": "admin.post.pick_audio",
+    "tr": "Ses Seç / Yükle",
+    "en": "Select / Upload Audio",
+    "ar": "اختيار / رفع صوت"
+  },
+  {
+    "key": "admin.post.pick_file",
+    "tr": "Dosya Seç / Yükle",
+    "en": "Select / Upload File",
+    "ar": "اختيار / رفع ملف"
+  },
+  {
+    "key": "admin.post.pick_image",
+    "tr": "Görsel Seç / Yükle",
+    "en": "Select / Upload Image",
+    "ar": "اختيار / رفع صورة"
+  },
+  {
+    "key": "admin.post.pick_image_alt",
+    "tr": "Görsel Seç",
+    "en": "Select Image",
+    "ar": "اختر صورة"
+  },
+  {
+    "key": "admin.post.pick_video",
+    "tr": "Video Seç / Yükle",
+    "en": "Select / Upload Video",
+    "ar": "اختيار / رفع فيديو"
+  },
+  {
+    "key": "admin.post.placeholder_example",
+    "tr": "Örn: Gerçeği öğrenmek için tıklayın...",
+    "en": "E.g. Click to learn the truth...",
+    "ar": "مثال: انقر لمعرفة الحقيقة..."
+  },
+  {
+    "key": "admin.post.post_lang",
+    "tr": "HABER DİLİ",
+    "en": "POST LANGUAGE",
+    "ar": "لغة الخبر"
+  },
+  {
+    "key": "admin.post.post_title",
+    "tr": "Haber Başlığı",
+    "en": "Post Title",
+    "ar": "عنوان الخبر"
+  },
+  {
+    "key": "admin.post.preview",
+    "tr": "Önizleme",
+    "en": "Preview",
+    "ar": "معاينة"
+  },
+  {
+    "key": "admin.post.processing",
+    "tr": "İşleniyor",
+    "en": "Processing",
+    "ar": "جاري المعالجة"
+  },
+  {
+    "key": "admin.post.product_name",
+    "tr": "Ürün / Konu Adı",
+    "en": "Product / Subject Name",
+    "ar": "اسم المنتج / الموضوع"
+  },
+  {
+    "key": "admin.post.product_placeholder",
+    "tr": "İncelenen ürün veya konu adı...",
+    "en": "Product or subject being reviewed...",
+    "ar": "المنتج أو الموضوع الجاري مراجعته..."
+  },
+  {
+    "key": "admin.post.pros",
+    "tr": "Artılar",
+    "en": "Pros",
+    "ar": "الإيجابيات"
+  },
+  {
+    "key": "admin.post.publish_btn",
+    "tr": "YAYINLA",
+    "en": "PUBLISH",
+    "ar": "نشر"
+  },
+  {
+    "key": "admin.post.publish_future",
+    "tr": "İLERİ TARİHLİ YAYIN",
+    "en": "SCHEDULE PUBLISH",
+    "ar": "نشر مجدول"
+  },
+  {
+    "key": "admin.post.publishing",
+    "tr": "Yayınlama",
+    "en": "Publishing",
+    "ar": "النشر"
+  },
+  {
+    "key": "admin.post.review_block",
+    "tr": "İnceleme Bloğu",
+    "en": "Review Block",
+    "ar": "كتلة المراجعة"
+  },
+  {
+    "key": "admin.post.review_desc_alt",
+    "tr": "Puanlamalı ürün inceleme sistemi",
+    "en": "Product review system with scoring",
+    "ar": "نظام مراجعة المنتجات مع التقييم"
+  },
+  {
+    "key": "admin.post.review_image",
+    "tr": "İnceleme Görseli",
+    "en": "Review Image",
+    "ar": "صورة المراجعة"
+  },
+  {
+    "key": "admin.post.schedule_btn",
+    "tr": "İLERİ TARİHLİ KAYDET",
+    "en": "SCHEDULE SAVE",
+    "ar": "حفظ مجدول"
+  },
+  {
+    "key": "admin.post.score_help",
+    "tr": "* Puanların ortalaması genel skoru belirler.",
+    "en": "* The average of the scores determines the overall score.",
+    "ar": "* متوسط الدرجات يحدد النتيجة الإجمالية."
+  },
+  {
+    "key": "admin.post.search_storage",
+    "tr": "Depolamada ara...",
+    "en": "Search storage...",
+    "ar": "البحث في التخزين..."
+  },
+  {
+    "key": "admin.post.select_cat",
+    "tr": "Kategori Seçin",
+    "en": "Select Category",
+    "ar": "اختر قسماً"
+  },
+  {
+    "key": "admin.post.select_sub_cat",
+    "tr": "Alt Kategori Seçin",
+    "en": "Select Sub Category",
+    "ar": "اختر قسماً فرعياً"
+  },
+  {
+    "key": "admin.post.selected_cat",
+    "tr": "Seçili Kategori:",
+    "en": "Selected Category:",
+    "ar": "القسم المحدد:"
+  },
+  {
+    "key": "admin.post.seo_ai",
+    "tr": "SEO & AI (Otomatik Yapılandırma)",
+    "en": "SEO & AI (Auto Configuration)",
+    "ar": "SEO & AI (تكوين تلقائي)"
+  },
+  {
+    "key": "admin.post.slider_block",
+    "tr": "Slider Görsel Bloğu",
+    "en": "Slider Image Block",
+    "ar": "كتلة صور منزلقة"
+  },
+  {
+    "key": "admin.post.slider_details",
+    "tr": "Slider Detayları (Kaynak & Açıklama)",
+    "en": "Slider Details (Source & Description)",
+    "ar": "تفاصيل المنزلق (المصدر والوصف)"
+  },
+  {
+    "key": "admin.post.slider_help",
+    "tr": "Medya Yöneticisi için Tıklayın veya Dosyaları Sürükleyin",
+    "en": "Click for Media Manager or Drag Files",
+    "ar": "انقر لمدير الوسائط أو اسحب الملفات"
+  },
+  {
+    "key": "admin.post.slider_images",
+    "tr": "Slider Görselleri",
+    "en": "Slider Images",
+    "ar": "صور المنزلق"
+  },
+  {
+    "key": "admin.post.slider_pick",
+    "tr": "Görsel Seç / Sürükle",
+    "en": "Select / Drag Image",
+    "ar": "اختيار / سحب صورة"
+  },
+  {
+    "key": "admin.post.slider_title_placeholder",
+    "tr": "Slider Başlığı (Opsiyonel)",
+    "en": "Slider Title (Optional)",
+    "ar": "عنوان المنزلق (اختياري)"
+  },
+  {
+    "key": "admin.post.social_block",
+    "tr": "Sosyal Medya Bloğu",
+    "en": "Social Media Block",
+    "ar": "كتلة وسائل التواصل الاجتماعي"
+  },
+  {
+    "key": "admin.post.social_embed_code",
+    "tr": "Embed Kodu / Paylaşım Bağlantısı",
+    "en": "Embed Code / Share Link",
+    "ar": "رمز التضمين / رابط المشاركة"
+  },
+  {
+    "key": "admin.post.social_placeholder",
+    "tr": "Twitter, Instagram, TikTok vb. embed kodunu buraya yapıştırın...",
+    "en": "Paste Twitter, Instagram, TikTok etc. embed code here...",
+    "ar": "قم بلصق رمز تضمين تويتر، إنستغرام، تيك توك وما إلى ذلك هنا..."
+  },
+  {
+    "key": "admin.post.social_preview",
+    "tr": "ÖNİZLEME",
+    "en": "PREVIEW",
+    "ar": "معاينة"
+  },
+  {
+    "key": "admin.post.sort.asc",
+    "tr": "Sayısal Artan",
+    "en": "Numeric Asc",
+    "ar": "ترتيب عددي تصاعدي"
+  },
+  {
+    "key": "admin.post.sort.desc",
+    "tr": "Sayısal Azalan",
+    "en": "Numeric Desc",
+    "ar": "ترتيب عددي تنازلي"
+  },
+  {
+    "key": "admin.post.sort.hide",
+    "tr": "Numaraları Gizle",
+    "en": "Hide Numbers",
+    "ar": "إخفاء الأرقام"
+  },
+  {
+    "key": "admin.post.source",
+    "tr": "Kaynak",
+    "en": "Source",
+    "ar": "المصدر"
+  },
+  {
+    "key": "admin.post.source_placeholder",
+    "tr": "Haber Kaynağını Belirleyin...",
+    "en": "Specify the news source...",
+    "ar": "حدد مصدر الخبر..."
+  },
+  {
+    "key": "admin.post.sub_cat",
+    "tr": "ALT KATEGORİ",
+    "en": "SUB CATEGORY",
+    "ar": "القسم الفرعي"
+  },
+  {
+    "key": "admin.post.summary",
+    "tr": "Kısa Özet (Spot)",
+    "en": "Summary (Spot)",
+    "ar": "ملخص قصير (سبوت)"
+  },
+  {
+    "key": "admin.post.summary_placeholder",
+    "tr": "Haber özeti...",
+    "en": "Post summary...",
+    "ar": "ملخص الخبر..."
+  },
+  {
+    "key": "admin.post.tab.article",
+    "tr": "MAKALE",
+    "en": "ARTICLE",
+    "ar": "مقال"
+  },
+  {
+    "key": "admin.post.tab.contents",
+    "tr": "İÇİNDEKİLER",
+    "en": "TABLE OF CONTENTS",
+    "ar": "جدول المحتويات"
+  },
+  {
+    "key": "admin.post.tab.poll",
+    "tr": "ANKET",
+    "en": "POLL",
+    "ar": "استطلاع"
+  },
+  {
+    "key": "admin.post.tab.quiz",
+    "tr": "TEST (QUIZ)",
+    "en": "QUIZ",
+    "ar": "اختبار"
+  },
+  {
+    "key": "admin.post.tab.recipe",
+    "tr": "TARİF",
+    "en": "RECIPE",
+    "ar": "وصفة"
+  },
+  {
+    "key": "admin.post.tab.video",
+    "tr": "VİDEO",
+    "en": "VIDEO",
+    "ar": "فيديو"
+  },
+  {
+    "key": "admin.post.text_block",
+    "tr": "Metin İçerik Bloğu",
+    "en": "Text Content Block",
+    "ar": "كتلة محتوى نصي"
+  },
+  {
+    "key": "admin.post.title",
+    "tr": "Başlık",
+    "en": "Title",
+    "ar": "العنوان"
+  },
+  {
+    "key": "admin.post.title_placeholder",
+    "tr": "Başlık Girin (Opsiyonel)...",
+    "en": "Enter Title (Optional)...",
+    "ar": "أدخل العنوان (اختياري)..."
+  },
+  {
+    "key": "admin.post.uploading_images",
+    "tr": "Görseller Yükleniyor...",
+    "en": "Uploading Images...",
+    "ar": "جاري رفع الصور..."
+  },
+  {
+    "key": "admin.post.url_desc_audio",
+    "tr": "Youtube Music veya doğrudan ses bağlantısını (MP3 vb.) aşağıya yapıştırın.",
+    "en": "Paste the Youtube Music or direct audio link (MP3 etc.) below.",
+    "ar": "قم بلصق رابط يوتيوب ميوزيك أو رابط صوت مباشر أدناه."
+  },
+  {
+    "key": "admin.post.url_desc_image",
+    "tr": "Eklemek istediğiniz görselin doğrudan bağlantısını aşağıya yapıştırın.",
+    "en": "Paste the direct link of the image you want to add below.",
+    "ar": "قم بلصق رابط الصورة التي تريد إضافتها أدناه."
+  },
+  {
+    "key": "admin.post.url_desc_video",
+    "tr": "Youtube (Shorts dahil) veya doğrudan video bağlantısını aşağıya yapıştırın.",
+    "en": "Paste the Youtube (including Shorts) or direct video link below.",
+    "ar": "قم بلصق رابط يوتيوب أو رابط فيديو مباشر أدناه."
+  },
+  {
+    "key": "admin.post.url_or_upload",
+    "tr": "URL VEYA YÜKLE",
+    "en": "URL OR UPLOAD",
+    "ar": "رابط أو رفع"
+  },
+  {
+    "key": "admin.post.url_title_audio",
+    "tr": "Ses / YT Music URL",
+    "en": "Audio / YT Music URL",
+    "ar": "صوت / رابط يوتيوب ميوزيك"
+  },
+  {
+    "key": "admin.post.url_title_image",
+    "tr": "Görsel URL Adresi",
+    "en": "Image URL Address",
+    "ar": "رابط الصورة"
+  },
+  {
+    "key": "admin.post.url_title_video",
+    "tr": "Video / Youtube URL",
+    "en": "Video / Youtube URL",
+    "ar": "فيديو / رابط يوتيوب"
+  },
+  {
+    "key": "admin.post.use_this",
+    "tr": "{type} KULLAN",
+    "en": "USE THIS {type}",
+    "ar": "استخدم {type}"
+  },
+  {
+    "key": "admin.post.verdict_label",
+    "tr": "Buzz Kararı (Verdict)",
+    "en": "Buzz Verdict",
+    "ar": "حكم بز (Verdict)"
+  },
+  {
+    "key": "admin.post.verdict_placeholder",
+    "tr": "Ürün hakkındaki nihai kararınızı detaylıca yazın...",
+    "en": "Write your final verdict about the product in detail...",
+    "ar": "اكتب حكمك النهائي حول المنتج بالتفصيل..."
+  },
+  {
+    "key": "admin.post.video_block",
+    "tr": "Video İçerik Bloğu",
+    "en": "Video Content Block",
+    "ar": "كتلة محتوى الفيديو"
+  },
+  {
+    "key": "admin.post.video_panel",
+    "tr": "Video Paneli",
+    "en": "Video Panel",
+    "ar": "لوحة الفيديو"
+  },
+  {
+    "key": "admin.post.youtube_music_help",
+    "tr": "YouTube Music İçeriği",
+    "en": "YouTube Music Content",
+    "ar": "محتوى يوتيوب ميوزيك"
+  },
+  {
+    "key": "admin.recent_activity",
+    "tr": "Son Hareketler",
+    "en": "Recent Activity",
+    "ar": "أحدث النشاطات"
+  },
+  {
+    "key": "admin.seed_success",
+    "tr": "Demo veriler başarıyla yüklendi.",
+    "en": "Demo data loaded successfully.",
+    "ar": "تم تحميل البيانات التجريبية بنجاح."
+  },
+  {
+    "key": "admin.sidebar.languages",
+    "tr": "Dil Ayarları",
+    "en": "Language Settings",
+    "ar": "إعدادات اللغة"
+  },
+  {
+    "key": "admin.sidebar.navigation",
+    "tr": "Menü & Kategori",
+    "en": "Menu & Categories",
+    "ar": "القوائم والفئات"
+  },
+  {
+    "key": "admin.sidebar.overview",
+    "tr": "Genel Bakış",
+    "en": "Overview",
+    "ar": "نظرة عامة"
+  },
+  {
+    "key": "admin.sidebar.posts",
+    "tr": "Haber Ekle",
+    "en": "Add News",
+    "ar": "إضافة خبر"
+  },
+  {
+    "key": "admin.sidebar.roles",
+    "tr": "Roller & İzinler",
+    "en": "Roles & Permissions",
+    "ar": "الأدوار والصلاحيات"
+  },
+  {
+    "key": "admin.sidebar.settings",
+    "tr": "Ayarlar",
+    "en": "Settings",
+    "ar": "الإعدادات"
+  },
+  {
+    "key": "admin.sidebar.stories",
+    "tr": "Hikayeler",
+    "en": "Stories",
+    "ar": "القصص"
+  },
+  {
+    "key": "admin.sidebar.users",
+    "tr": "Kullanıcı Yönetimi",
+    "en": "User Management",
+    "ar": "إدارة المستخدمين"
+  },
+  {
+    "key": "admin.stats.acceleration",
+    "tr": "İvme",
+    "en": "Acceleration",
+    "ar": "تسارع"
+  },
+  {
+    "key": "admin.stats.posts",
+    "tr": "Toplam İçerik",
+    "en": "Total Content",
+    "ar": "إجمالي المحتوى"
+  },
+  {
+    "key": "admin.stats.profiles",
+    "tr": "Aktif Yayıncılar",
+    "en": "Active Publishers",
+    "ar": "الناشرون النشطون"
+  },
+  {
+    "key": "admin.stats.seed_btn",
+    "tr": "Demo Verileri Yükle",
+    "en": "Load Demo Data",
+    "ar": "تحميل البيانات التجريبية"
+  },
+  {
+    "key": "admin.stats.setup_desc",
+    "tr": "Veritabanınız boş görünüyor. Demo içerik paketini yükleyebilirsiniz.",
+    "en": "Your database seems empty. You can load the demo content package.",
+    "ar": "تبدو قاعدة البيانات فارغة. يمكنك تحميل حزمة المحتوى التجريبي."
+  },
+  {
+    "key": "admin.stats.setup_title",
+    "tr": "Sistem Kurulumu",
+    "en": "System Setup",
+    "ar": "إعداد النظام"
+  },
+  {
+    "key": "admin.stats.views",
+    "tr": "Görüntülenme",
+    "en": "Total Views",
+    "ar": "المشاهدات"
+  },
+  {
+    "key": "admin.status.published",
+    "tr": "Yayında",
+    "en": "Published",
+    "ar": "منشور"
+  },
+  {
+    "key": "admin.system",
+    "tr": "SİSTEM",
+    "en": "SYSTEM",
+    "ar": "النظام"
+  },
+  {
+    "key": "admin.user.super_admin",
+    "tr": "S. Yönetici",
+    "en": "S. Admin",
+    "ar": "مدير النظام"
+  },
+  {
+    "key": "common.actions",
+    "tr": "İşlemler",
+    "en": "Actions",
+    "ar": "الإجراءات"
+  },
+  {
+    "key": "common.cancel",
+    "tr": "Vazgeç",
+    "en": "Cancel",
+    "ar": "إلغاء"
+  },
+  {
+    "key": "common.close",
+    "tr": "KAPAT",
+    "en": "CLOSE",
+    "ar": "إغلاق"
+  },
+  {
+    "key": "common.delete",
+    "tr": "Sil",
+    "en": "Delete",
+    "ar": "حذف"
+  },
+  {
+    "key": "common.delete_kalici",
+    "tr": "Evet, Kalıcı Olarak Sil",
+    "en": "Yes, Delete Permanently",
+    "ar": "نعم، حذف نهائي"
+  },
+  {
+    "key": "common.description",
+    "tr": "Açıklama",
+    "en": "Description",
+    "ar": "الوصف"
+  },
+  {
+    "key": "common.edit",
+    "tr": "Düzenle",
+    "en": "Edit",
+    "ar": "تعديل"
+  },
+  {
+    "key": "common.error",
+    "tr": "Hata",
+    "en": "Error",
+    "ar": "خطأ"
+  },
+  {
+    "key": "common.less",
+    "tr": "Daha Az",
+    "en": "Less",
+    "ar": "أقل"
+  },
+  {
+    "key": "common.move_down",
+    "tr": "Aşağı Taşı",
+    "en": "Move Down",
+    "ar": "تحريك للأسفل"
+  },
+  {
+    "key": "common.move_up",
+    "tr": "Yukarı Taşı",
+    "en": "Move Up",
+    "ar": "تحريك للأعلى"
+  },
+  {
+    "key": "common.not_specified",
+    "tr": "Belirtilmedi",
+    "en": "Not specified",
+    "ar": "غير محدد"
+  },
+  {
+    "key": "common.ok",
+    "tr": "Tamam",
+    "en": "OK",
+    "ar": "موافق"
+  },
+  {
+    "key": "common.processing",
+    "tr": "İşleniyor",
+    "en": "Processing",
+    "ar": "جاري المعالجة"
+  },
+  {
+    "key": "common.updated",
+    "tr": "Güncellendi",
+    "en": "Updated",
+    "ar": "تم التحديث"
+  },
+  {
+    "key": "common.view",
+    "tr": "GÖRÜNTÜLE",
+    "en": "VIEW",
+    "ar": "عرض"
+  },
+  {
+    "key": "feed.empty",
+    "tr": "Henüz içerik bulunmuyor.",
+    "en": "No content yet.",
+    "ar": "لا يوجد محتوى بعد."
+  },
+  {
+    "key": "lang.add_new",
+    "tr": "Yeni Dil Ekle",
+    "en": "Add New Language",
+    "ar": "إضافة لغة جديدة"
+  },
+  {
+    "key": "lang.btn.download",
+    "tr": "İndir",
+    "en": "Download",
+    "ar": "تحميل"
+  },
+  {
+    "key": "lang.btn.translations",
+    "tr": "Çeviriler",
+    "en": "Translations",
+    "ar": "الترجمات"
+  },
+  {
+    "key": "lang.default",
+    "tr": "Varsayılan",
+    "en": "Default",
+    "ar": "الافتراضي"
+  },
+  {
+    "key": "lang.default_alert",
+    "tr": "İŞLEM ENGELLENDİ: Varsayılan dili silemezsiniz.",
+    "en": "ACTION BLOCKED: You cannot delete the default language.",
+    "ar": "الإجراء محظور: لا يمكنك حذف اللغة الافتراضية."
+  },
+  {
+    "key": "lang.delete",
+    "tr": "Sil",
+    "en": "Delete",
+    "ar": "حذف"
+  },
+  {
+    "key": "lang.delete_confirm",
+    "tr": "\\\"{name}\\\" dilini silmek istediğinize emin misiniz?",
+    "en": "Are you sure you want to delete \\\"{name}\\\"?",
+    "ar": "هل أنت متأكد أنك تريد حذف \\\"{name}\\\"؟"
+  },
+  {
+    "key": "lang.delete_title",
+    "tr": "Dili Sil?",
+    "en": "Delete Language?",
+    "ar": "حذف اللغة؟"
+  },
+  {
+    "key": "lang.delete_warning",
+    "tr": "Bu dil için yapılan tüm çeviriler kaybolacaktır.",
+    "en": "All translations for this language will be lost.",
+    "ar": "سيتم فقدان جميع الترجمات لهذه اللغة."
+  },
+  {
+    "key": "lang.dir.ltr",
+    "tr": "Soldan Sağa",
+    "en": "Left to Right",
+    "ar": "من اليسار لليمين"
+  },
+  {
+    "key": "lang.dir.rtl",
+    "tr": "Sağdan Sola",
+    "en": "Right to Left",
+    "ar": "من اليمين لليسار"
+  },
+  {
+    "key": "lang.edit",
+    "tr": "Düzenle",
+    "en": "Edit",
+    "ar": "تعديل"
+  },
+  {
+    "key": "lang.form.add_btn",
+    "tr": "Dili Sisteme Ekle",
+    "en": "Add Language to System",
+    "ar": "إضافة للنظام"
+  },
+  {
+    "key": "lang.form.code",
+    "tr": "Kısa Kod (ISO 639-1)",
+    "en": "Short Code (ISO 639-1)",
+    "ar": "الرمز القصير (ISO)"
+  },
+  {
+    "key": "lang.form.direction",
+    "tr": "Yazım Yönü",
+    "en": "Direction",
+    "ar": "الاتجاه"
+  },
+  {
+    "key": "lang.form.name",
+    "tr": "Dil Adı",
+    "en": "Language Name",
+    "ar": "اسم اللغة"
+  },
+  {
+    "key": "lang.form.status",
+    "tr": "Yayın Durumu",
+    "en": "Status",
+    "ar": "الحالة"
+  },
+  {
+    "key": "lang.import_error",
+    "tr": "Dosya içeriği geçersiz veya bir hata oluştu.",
+    "en": "Invalid file content or an error occurred.",
+    "ar": "محتوى الملف غير صالح أو حدث خطأ."
+  },
+  {
+    "key": "lang.import.btn",
+    "tr": "Dosyayı Yükle",
+    "en": "Upload File",
+    "ar": "رفع الملف"
+  },
+  {
+    "key": "lang.import.click",
+    "tr": "veya seçmek için tıklayın (.json)",
+    "en": "or click to select (.json)",
+    "ar": "أو انقر للاختيار (.json)"
+  },
+  {
+    "key": "lang.import.drag",
+    "tr": "Dosyayı buraya sürükleyin",
+    "en": "Drag file here",
+    "ar": "اسحب الملف هنا"
+  },
+  {
+    "key": "lang.import.title",
+    "tr": "İçe Aktar",
+    "en": "Import",
+    "ar": "استيراد"
+  },
+  {
+    "key": "lang.make_default",
+    "tr": "Varsayılan Yap",
+    "en": "Set Default",
+    "ar": "تعيين كافتراضي"
+  },
+  {
+    "key": "lang.page_desc",
+    "tr": "Sistemdeki aktif dilleri yönetin ve yerelleştirme ayarlarını yapılandırın.",
+    "en": "Manage active languages and configure localization settings.",
+    "ar": "إدارة اللغات النشطة في النظام وتكوين إعدادات الترجمة."
+  },
+  {
+    "key": "lang.page_title",
+    "tr": "Dil Yönetimi",
+    "en": "Language Management",
+    "ar": "إدارة اللغات"
+  },
+  {
+    "key": "lang.protected_alert",
+    "tr": "SİSTEM UYARISI: Türkçe, İngilizce ve Arapça ana dillerdir ve silinemez.",
+    "en": "SYSTEM WARNING: Turkish, English, and Arabic are core languages and cannot be deleted.",
+    "ar": "تحذير النظام: التركية والإنجليزية والعربية هي لغات أساسية ولا يمكن حذفها."
+  },
+  {
+    "key": "lang.search_placeholder",
+    "tr": "Dil ara...",
+    "en": "Search language...",
+    "ar": "بحث عن لغة..."
+  },
+  {
+    "key": "lang.showing",
+    "tr": "Toplam {total} kayıttan {count} adet gösteriliyor",
+    "en": "Showing {count} of {total} records",
+    "ar": "عرض {count} من أصل {total}"
+  },
+  {
+    "key": "lang.status.active",
+    "tr": "Aktif",
+    "en": "Active",
+    "ar": "نشط"
+  },
+  {
+    "key": "lang.status.passive",
+    "tr": "Pasif",
+    "en": "Passive",
+    "ar": "غير نشط"
+  },
+  {
+    "key": "lang.table.actions",
+    "tr": "İŞLEMLER",
+    "en": "ACTIONS",
+    "ar": "الإجراءات"
+  },
+  {
+    "key": "lang.table.code",
+    "tr": "KOD",
+    "en": "CODE",
+    "ar": "الرمز"
+  },
+  {
+    "key": "lang.table.details",
+    "tr": "DİL DETAYLARI",
+    "en": "DETAILS",
+    "ar": "التفاصيل"
+  },
+  {
+    "key": "lang.table.status_default",
+    "tr": "DURUM / VARSAYILAN",
+    "en": "STATUS / DEFAULT",
+    "ar": "الحالة / الافتراضي"
+  },
+  {
+    "key": "lang.table.translations",
+    "tr": "ÇEVİRİ YÖNETİMİ",
+    "en": "TRANSLATIONS",
+    "ar": "إدارة الترجمة"
+  },
+  {
+    "key": "nav_settings.add_item",
+    "tr": "Öğe Ekle",
+    "en": "Add Item",
+    "ar": "إضافة عنصر"
+  },
+  {
+    "key": "nav_settings.create_default",
+    "tr": "Varsayılan Menüleri Oluştur",
+    "en": "Create Default Menus",
+    "ar": "إنشاء القوائم الافتراضية"
+  },
+  {
+    "key": "nav_settings.delete_confirm",
+    "tr": "\\\"{name}\\\" öğesini silmek istediğinize emin misiniz?",
+    "en": "Are you sure you want to delete \\\"{name}\\\"?",
+    "ar": "هل أنت متأكد أنك تريد حذف \\\"{name}\\\"؟"
+  },
+  {
+    "key": "nav_settings.delete_title",
+    "tr": "Öğeyi Sil?",
+    "en": "Delete Item?",
+    "ar": "حذف العنصر؟"
+  },
+  {
+    "key": "nav_settings.empty",
+    "tr": "Bu menüde henüz hiç öğe yok. Yeni bir tane ekleyerek başlayın.",
+    "en": "This menu is empty. Start by adding a new item.",
+    "ar": "هذه القائمة فارغة. ابدأ بإضافة عنصر جديد."
+  },
+  {
+    "key": "nav_settings.form.add_btn",
+    "tr": "Menüye Ekle",
+    "en": "Add to Menu",
+    "ar": "إضافة للقائمة"
+  },
+  {
+    "key": "nav_settings.form.icon",
+    "tr": "İkon Adı (Material Symbols)",
+    "en": "Icon Name (Material Symbols)",
+    "ar": "اسم الأيقونة (Material Symbols)"
+  },
+  {
+    "key": "nav_settings.form.label",
+    "tr": "Görünen Ad",
+    "en": "Display Label",
+    "ar": "اسم العرض"
+  },
+  {
+    "key": "nav_settings.form.save_btn",
+    "tr": "Güncelle",
+    "en": "Update",
+    "ar": "تحديث"
+  },
+  {
+    "key": "nav_settings.form.type",
+    "tr": "Öğe Türü",
+    "en": "Item Type",
+    "ar": "نوع العنصر"
+  },
+  {
+    "key": "nav_settings.form.value",
+    "tr": "Hedef / Değer",
+    "en": "Target / Value",
+    "ar": "الهدف / القيمة"
+  },
+  {
+    "key": "nav_settings.menu_select",
+    "tr": "Düzenlenecek Menü",
+    "en": "Select Menu",
+    "ar": "اختر القائمة"
+  },
+  {
+    "key": "nav_settings.page_desc",
+    "tr": "Site menülerini, kategorileri ve şehir listelerini sürükle-bırak ile yönetin.",
+    "en": "Manage site menus, categories and city lists via drag-and-drop.",
+    "ar": "إدارة القوائم والفئات والمدن عبر السحب والإفلات."
+  },
+  {
+    "key": "nav_settings.page_title",
+    "tr": "Navigasyon Yönetimi",
+    "en": "Navigation Management",
+    "ar": "إدارة القوائم"
+  },
+  {
+    "key": "nav_settings.type.category",
+    "tr": "Kategori Filtresi",
+    "en": "Category Filter",
+    "ar": "فلتر فئة"
+  },
+  {
+    "key": "nav_settings.type.dropdown",
+    "tr": "Açılır Menü",
+    "en": "Dropdown Menu",
+    "ar": "قائمة منسدلة"
+  },
+  {
+    "key": "nav_settings.type.header",
+    "tr": "Grup Başlığı",
+    "en": "Group Header",
+    "ar": "عنوان مجموعة"
+  },
+  {
+    "key": "nav_settings.type.link",
+    "tr": "Bağlantı (Link)",
+    "en": "Link",
+    "ar": "رابط"
+  },
+  {
+    "key": "nav.home",
+    "tr": "Ana Sayfa",
+    "en": "Home",
+    "ar": "الرئيسية"
+  },
+  {
+    "key": "posts.form.keywords",
+    "tr": "Odak Anahtar Kelimeler",
+    "en": "Focus Keywords",
+    "ar": "الكلمات المفتاحية التركيزية"
+  },
+  {
+    "key": "posts.form.meta_desc",
+    "tr": "Meta Açıklama",
+    "en": "Meta Description",
+    "ar": "وصف الميتا"
+  },
+  {
+    "key": "posts.form.meta_title",
+    "tr": "Meta Başlık",
+    "en": "Meta Title",
+    "ar": "عنوان الميتا"
+  },
+  {
+    "key": "posts.form.slug",
+    "tr": "URL Uzantısı (Slug)",
+    "en": "URL Extension (Slug)",
+    "ar": "امتداد URL (Slug)"
+  },
+  {
+    "key": "profile.about_placeholder",
+    "tr": "Kendinizden kısaca bahsedin...",
+    "en": "Tell something about yourself...",
+    "ar": "أخبرنا شيئًا عن نفسك..."
+  },
+  {
+    "key": "profile.balance",
+    "tr": "CÜZDAN BAKİYESİ",
+    "en": "WALLET BALANCE",
+    "ar": "رصيد المحفظة"
+  },
+  {
+    "key": "profile.email",
+    "tr": "E-POSTA ADRESİ",
+    "en": "EMAIL ADDRESS",
+    "ar": "البريد الإلكتروني"
+  },
+  {
+    "key": "profile.full_name",
+    "tr": "AD SOYAD",
+    "en": "FULL NAME",
+    "ar": "الاسم الكامل"
+  },
+  {
+    "key": "profile.page_desc",
+    "tr": "Kişisel bilgilerinizi ve sosyal ağ bağlantılarınızı düzenleyin.",
+    "en": "Manage your personal information and social network connections.",
+    "ar": "إدارة معلوماتك الشخصية وروابط شبكات التواصل الاجتماعي الخاصة بك."
+  },
+  {
+    "key": "profile.page_title",
+    "tr": "Profil Ayarlarım",
+    "en": "My Profile Settings",
+    "ar": "إعدادات الملف الشخصي"
+  },
+  {
+    "key": "profile.save_btn",
+    "tr": "DEĞİŞİKLİKLERİ KAYDET",
+    "en": "SAVE CHANGES",
+    "ar": "حفظ التغييرات"
+  },
+  {
+    "key": "profile.section.about",
+    "tr": "HAKKIMDA",
+    "en": "ABOUT ME",
+    "ar": "نبذة عني"
+  },
+  {
+    "key": "profile.section.basic",
+    "tr": "TEMEL BİLGİLER",
+    "en": "BASIC INFORMATION",
+    "ar": "المعلومات الأساسية"
+  },
+  {
+    "key": "profile.section.social",
+    "tr": "SOSYAL HESAPLAR",
+    "en": "SOCIAL ACCOUNTS",
+    "ar": "الحسابات الاجتماعية"
+  },
+  {
+    "key": "profile.section.stats",
+    "tr": "İSTATİSTİKLER",
+    "en": "STATISTICS",
+    "ar": "الإحصائيات"
+  },
+  {
+    "key": "profile.slug",
+    "tr": "PROFİL LİNKİ (SLUG)",
+    "en": "PROFILE SLUG (URL)",
+    "ar": "رابط الملف الشخصي (Slug)"
+  },
+  {
+    "key": "profile.success",
+    "tr": "Profil başarıyla güncellendi.",
+    "en": "Profile updated successfully.",
+    "ar": "تم تحديث الملف الشخصي بنجاح."
+  },
+  {
+    "key": "profile.username",
+    "tr": "KULLANICI ADI",
+    "en": "USERNAME",
+    "ar": "اسم المستخدم"
+  },
+  {
+    "key": "profile.views",
+    "tr": "TOPLAM GÖRÜNTÜLENME",
+    "en": "TOTAL PAGEVIEWS",
+    "ar": "إجمالي المشاهدات"
+  },
+  {
+    "key": "roles.active_members",
+    "tr": "Aktif Üye",
+    "en": "Active Member",
+    "ar": "عضو نشط"
+  },
+  {
+    "key": "roles.add_new",
+    "tr": "Yeni Rol Tanımla",
+    "en": "Define New Role",
+    "ar": "تعريف دور جديد"
+  },
+  {
+    "key": "roles.admin_notice",
+    "tr": "Yönetici (admin) rolü tüm yetkilere tam erişime sahiptir ve kısıtlanamaz.",
+    "en": "The administrator (admin) role has full access to all permissions and cannot be restricted.",
+    "ar": "دور المسؤول (admin) لديه وصول كامل لجميع الصلاحيات ولا يمكن تقييده."
+  },
+  {
+    "key": "roles.apply_changes",
+    "tr": "MISSING",
+    "en": "MISSING",
+    "ar": "MISSING"
+  },
+  {
+    "key": "roles.form.desc",
+    "tr": "MISSING",
+    "en": "MISSING",
+    "ar": "MISSING"
+  },
+  {
+    "key": "roles.form.desc_placeholder",
+    "tr": "MISSING",
+    "en": "MISSING",
+    "ar": "MISSING"
+  },
+  {
+    "key": "roles.form.label",
+    "tr": "Rol Görünen Adı",
+    "en": "Role Display Name",
+    "ar": "اسم عرض الدور"
+  },
+  {
+    "key": "roles.form.name",
+    "tr": "Sistem Anahtarı (ID)",
+    "en": "System Key (ID)",
+    "ar": "مفتاح النظام (ID)"
+  },
+  {
+    "key": "roles.form.submit",
+    "tr": "Rolü Oluştur",
+    "en": "Create Role",
+    "ar": "إنشاء الدور"
+  },
+  {
+    "key": "roles.group.content",
+    "tr": "İçerik Yönetimi",
+    "en": "Content Management",
+    "ar": "إدارة المحتوى"
+  },
+  {
+    "key": "roles.group.sidebar",
+    "tr": "Menü Erişimi",
+    "en": "Menu Access",
+    "ar": "الوصول للقائمة"
+  },
+  {
+    "key": "roles.group.system",
+    "tr": "Sistem Araçları",
+    "en": "System Tools",
+    "ar": "أدوات النظام"
+  },
+  {
+    "key": "roles.locked",
+    "tr": "MISSING",
+    "en": "MISSING",
+    "ar": "MISSING"
+  },
+  {
+    "key": "roles.manage",
+    "tr": "MISSING",
+    "en": "MISSING",
+    "ar": "MISSING"
+  },
+  {
+    "key": "roles.more",
+    "tr": "MISSING",
+    "en": "MISSING",
+    "ar": "MISSING"
+  },
+  {
+    "key": "roles.no_desc",
+    "tr": "MISSING",
+    "en": "MISSING",
+    "ar": "MISSING"
+  },
+  {
+    "key": "roles.no_perms",
+    "tr": "Henüz yetki atanmamış",
+    "en": "No permissions assigned yet",
+    "ar": "لم يتم تعيين صلاحيات بعد"
+  },
+  {
+    "key": "roles.page_desc",
+    "tr": "Sistem Erişim Düzeylerini Yönetin.",
+    "en": "Manage System Access Levels.",
+    "ar": "إدارة مستويات الوصول للنظام."
+  },
+  {
+    "key": "roles.page_title",
+    "tr": "Rol & Yetki Havuzu",
+    "en": "Role & Permission Pool",
+    "ar": "مجمع الأدوار والصلاحيات"
+  },
+  {
+    "key": "roles.perm_summary",
+    "tr": "Yetki Özeti",
+    "en": "Permission Summary",
+    "ar": "ملخص الصلاحيات"
+  },
+  {
+    "key": "roles.perms_active",
+    "tr": "MISSING",
+    "en": "MISSING",
+    "ar": "MISSING"
+  },
+  {
+    "key": "roles.perms_desc",
+    "tr": "MISSING",
+    "en": "MISSING",
+    "ar": "MISSING"
+  },
+  {
+    "key": "roles.perms_for",
+    "tr": "MISSING",
+    "en": "MISSING",
+    "ar": "MISSING"
+  },
+  {
+    "key": "social.discord",
+    "tr": "Discord",
+    "en": "Discord",
+    "ar": "MISSING"
+  },
+  {
+    "key": "social.facebook",
+    "tr": "Facebook",
+    "en": "Facebook",
+    "ar": "MISSING"
+  },
+  {
+    "key": "social.instagram",
+    "tr": "Instagram",
+    "en": "Instagram",
+    "ar": "MISSING"
+  },
+  {
+    "key": "social.linkedin",
+    "tr": "LinkedIn",
+    "en": "LinkedIn",
+    "ar": "MISSING"
+  },
+  {
+    "key": "social.pinterest",
+    "tr": "Pinterest",
+    "en": "Pinterest",
+    "ar": "MISSING"
+  },
+  {
+    "key": "social.telegram",
+    "tr": "Telegram",
+    "en": "Telegram",
+    "ar": "MISSING"
+  },
+  {
+    "key": "social.tiktok",
+    "tr": "TikTok",
+    "en": "TikTok",
+    "ar": "MISSING"
+  },
+  {
+    "key": "social.twitch",
+    "tr": "Twitch",
+    "en": "Twitch",
+    "ar": "MISSING"
+  },
+  {
+    "key": "social.twitter",
+    "tr": "X (Twitter)",
+    "en": "X (Twitter)",
+    "ar": "MISSING"
+  },
+  {
+    "key": "social.vk",
+    "tr": "VKontakte (VK)",
+    "en": "VKontakte (VK)",
+    "ar": "MISSING"
+  },
+  {
+    "key": "social.website",
+    "tr": "Kişisel Web Sitesi",
+    "en": "Personal Website",
+    "ar": "MISSING"
+  },
+  {
+    "key": "social.whatsapp",
+    "tr": "WhatsApp",
+    "en": "WhatsApp",
+    "ar": "MISSING"
+  },
+  {
+    "key": "social.youtube",
+    "tr": "YouTube",
+    "en": "YouTube",
+    "ar": "MISSING"
+  },
+  {
+    "key": "stories.actions.view_media",
+    "tr": "Medyayı Gör",
+    "en": "View Media",
+    "ar": "عرض الوسائط"
+  },
+  {
+    "key": "stories.add_new",
+    "tr": "YENİ HİKAYE EKLE",
+    "en": "ADD NEW STORY",
+    "ar": "إضافة قصة جديدة"
+  },
+  {
+    "key": "stories.delete_confirm",
+    "tr": "{title} hikayesini silmek istediğinizden emin misiniz?",
+    "en": "Are you sure you want to delete the story titled \\\"{title}\\\"?",
+    "ar": "هل أنت متأكد أنك تريد حذف القصة بعنوان \\\"{title}\\\"؟"
+  },
+  {
+    "key": "stories.delete_title",
+    "tr": "Hikayeyi Sil?",
+    "en": "Delete Story?",
+    "ar": "حذف القصة؟"
+  },
+  {
+    "key": "stories.delete_warning",
+    "tr": "Bu işlem geri alınamaz ve hikaye tüm platformlardan kaldırılır.",
+    "en": "This action cannot be undone and the story will be removed from all platforms.",
+    "ar": "لا يمكن التراجع عن هذا الإجراء وسيتم إزالة القصة من جميع المنصات."
+  },
+  {
+    "key": "stories.empty_state",
+    "tr": "Hikaye bulunamadı",
+    "en": "No stories found",
+    "ar": "لم يتم العثور على قصص"
+  },
+  {
+    "key": "stories.form.add_btn",
+    "tr": "HİKAYEYİ PAYLAŞ",
+    "en": "SHARE STORY",
+    "ar": "مشاركة القصة"
+  },
+  {
+    "key": "stories.form.edit_title",
+    "tr": "Hikayeyi Düzenle",
+    "en": "Edit Story",
+    "ar": "تعديل القصة"
+  },
+  {
+    "key": "stories.form.expires_at",
+    "tr": "Bitiş Tarihi (Opsiyonel)",
+    "en": "Expiry Date (Optional)",
+    "ar": "تاريخ الانتهاء (اختياري)"
+  },
+  {
+    "key": "stories.form.is_active",
+    "tr": "Yayında",
+    "en": "Active / Live",
+    "ar": "نشط / مباشر"
+  },
+  {
+    "key": "stories.form.media_type",
+    "tr": "Medya Türü",
+    "en": "Media Type",
+    "ar": "نوع الوسائط"
+  },
+  {
+    "key": "stories.form.media_url",
+    "tr": "Medya URL (Görsel/Video)",
+    "en": "Media URL (Image/Video)",
+    "ar": "رابط الوسائط (صورة/فيديو)"
+  },
+  {
+    "key": "stories.form.save_btn",
+    "tr": "HİKAYEYİ GÜNCELLE",
+    "en": "UPDATE STORY",
+    "ar": "تحديث القصة"
+  },
+  {
+    "key": "stories.form.source_name",
+    "tr": "Kaynak Adı",
+    "en": "Source Name",
+    "ar": "اسم المصدر"
+  },
+  {
+    "key": "stories.form.story_title",
+    "tr": "Hikaye Başlığı",
+    "en": "Story Title",
+    "ar": "عنوان القصة"
+  },
+  {
+    "key": "stories.form.title",
+    "tr": "Hikaye Oluştur",
+    "en": "Create Story",
+    "ar": "إنشاء قصة"
+  },
+  {
+    "key": "stories.page_desc",
+    "tr": "Hızlı ve etkileyici hikayeler oluşturun, düzenleyin ve performanslarını takip edin.",
+    "en": "Create fast and engaging stories, edit them and track their performance.",
+    "ar": "أنشئ قصصاً سريعة وجذابة، وقم بتحريرها وتتبع أدائها."
+  },
+  {
+    "key": "stories.page_title",
+    "tr": "Hikaye Yönetimi",
+    "en": "Story Management",
+    "ar": "إدارة القصص"
+  },
+  {
+    "key": "stories.search_placeholder",
+    "tr": "Hikaye başlığı ile ara...",
+    "en": "Search by story title...",
+    "ar": "البحث عن عنوان القصة..."
+  },
+  {
+    "key": "stories.status.passive",
+    "tr": "Pasif",
+    "en": "Passive",
+    "ar": "غير نشط"
+  },
+  {
+    "key": "stories.table.actions.editor",
+    "tr": "GELİŞMİŞ EDİTÖR",
+    "en": "ADVANCED EDITOR",
+    "ar": "محرر متقدم"
+  },
+  {
+    "key": "stories.table.expires",
+    "tr": "Bitiş Tarihi",
+    "en": "Expiry Date",
+    "ar": "تاريخ الانتهاء"
+  },
+  {
+    "key": "stories.table.status",
+    "tr": "Durum",
+    "en": "Status",
+    "ar": "الحالة"
+  },
+  {
+    "key": "stories.table.title",
+    "tr": "Hikaye Detayı",
+    "en": "Story Detail",
+    "ar": "تفاصيل القصة"
+  },
+  {
+    "key": "stories.table.views",
+    "tr": "İzlenme",
+    "en": "Views",
+    "ar": "المشاهدات"
+  },
+  {
+    "key": "users.actions.delete",
+    "tr": "Kullanıcıyı Sil",
+    "en": "Delete User",
+    "ar": "حذف المستخدم"
+  },
+  {
+    "key": "users.actions.edit",
+    "tr": "Bilgileri Düzenle",
+    "en": "Edit Profile",
+    "ar": "تعديل الملف الشخصي"
+  },
+  {
+    "key": "users.actions.role",
+    "tr": "Rolü Değiştir",
+    "en": "Change Role",
+    "ar": "تغيير الدور"
+  },
+  {
+    "key": "users.add_new",
+    "tr": "KULLANICI EKLE",
+    "en": "ADD USER",
+    "ar": "إضافة مستخدم"
+  },
+  {
+    "key": "users.delete_confirm",
+    "tr": "\\\"{name}\\\" isimli kullanıcıyı silmek istediğinize emin misiniz?",
+    "en": "Are you sure you want to delete \\\"{name}\\\"?",
+    "ar": "هل أنت متأكد أنك تريد حذف \\\"{name}\\\"؟"
+  },
+  {
+    "key": "users.delete_title",
+    "tr": "Kullanıcıyı Sil?",
+    "en": "Delete User?",
+    "ar": "حذف المستخدم؟"
+  },
+  {
+    "key": "users.delete_warning",
+    "tr": "Bu işlem geri alınamaz.",
+    "en": "This action cannot be undone.",
+    "ar": "لا يمكن التراجع عن هذا الإجراء."
+  },
+  {
+    "key": "users.empty_state",
+    "tr": "Hiç kullanıcı bulunamadı",
+    "en": "No users found",
+    "ar": "لم يتم العثور على مستخدمين"
+  },
+  {
+    "key": "users.form.add_btn",
+    "tr": "KULLANICIYI OLUŞTUR",
+    "en": "CREATE USER",
+    "ar": "إنشاء المستخدم"
+  },
+  {
+    "key": "users.form.email",
+    "tr": "E-posta Adresi",
+    "en": "Email Address",
+    "ar": "البريد الإلكتروني"
+  },
+  {
+    "key": "users.form.full_name",
+    "tr": "Ad Soyad",
+    "en": "Full Name",
+    "ar": "الاسم الكامل"
+  },
+  {
+    "key": "users.form.password",
+    "tr": "Geçici Şifre",
+    "en": "Temporary Password",
+    "ar": "كلمة المرور المؤقتة"
+  },
+  {
+    "key": "users.form.role",
+    "tr": "Başlangıç Rolü",
+    "en": "Initial Role",
+    "ar": "الدور الأولي"
+  },
+  {
+    "key": "users.form.title",
+    "tr": "Yeni Kullanıcı Tanımla",
+    "en": "Define New User",
+    "ar": "تعريف مستخدم جديد"
+  },
+  {
+    "key": "users.form.username",
+    "tr": "Kullanıcı Adı",
+    "en": "Username",
+    "ar": "اسم المستخدم"
+  },
+  {
+    "key": "users.page_desc",
+    "tr": "Platformdaki tüm üyeleri ve yetkilerini denetleyin.",
+    "en": "Audit all members and their permissions on the platform.",
+    "ar": "تدقيق جميع الأعضاء وصلاحياتهم على المنصة."
+  },
+  {
+    "key": "users.page_title",
+    "tr": "Kullanıcı Yönetimi",
+    "en": "User Management",
+    "ar": "إدارة المستخدمين"
+  },
+  {
+    "key": "users.role_modal.select",
+    "tr": "Rol Seçimi",
+    "en": "Role Selection",
+    "ar": "اختيار الدور"
+  },
+  {
+    "key": "users.role_modal.submit",
+    "tr": "Kullanıcıyı Kaydet",
+    "en": "Save User",
+    "ar": "حفظ المستخدم"
+  },
+  {
+    "key": "users.role_modal.title",
+    "tr": "Yetki Güncelle",
+    "en": "Update Permission",
+    "ar": "تحديث الصلاحية"
+  },
+  {
+    "key": "users.search_placeholder",
+    "tr": "İsim veya kullanıcı adı ile ara...",
+    "en": "Search by name or username...",
+    "ar": "البحث بالاسم أو اسم المستخدم..."
+  },
+  {
+    "key": "users.sql_notice",
+    "tr": "Lütfen SQL komutlarını çalıştırdığınızdan emin olun.",
+    "en": "Please make sure you have run the SQL commands.",
+    "ar": "يرجى التأكد من تشغيل أوامر SQL."
+  },
+  {
+    "key": "users.status.syncing",
+    "tr": "Kullanıcı listesi güncelleniyor...",
+    "en": "Syncing user database...",
+    "ar": "جاري مزامنة قاعدة البيانات..."
+  },
+  {
+    "key": "users.table.actions",
+    "tr": "İşlemler",
+    "en": "Actions",
+    "ar": "إجراءات"
+  },
+  {
+    "key": "users.table.info",
+    "tr": "Kullanıcı Bilgileri",
+    "en": "User Information",
+    "ar": "معلومات المستخدم"
+  },
+  {
+    "key": "users.table.role",
+    "tr": "Sistem Rolü",
+    "en": "System Role",
+    "ar": "دور النظام"
+  },
+  {
+    "key": "users.unnamed",
+    "tr": "İsimsiz",
+    "en": "Unnamed",
+    "ar": "بدون اسم"
+  }
+]

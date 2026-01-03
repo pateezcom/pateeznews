@@ -103,8 +103,8 @@ const PostVSItem: React.FC<PostVSItemProps> = ({
                             <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>swords</span>
                         </div>
                         <div>
-                            <h3 className="text-base font-black text-palette-maroon leading-tight">VS / Düello Bloğu</h3>
-                            <p className="text-[11px] font-bold text-palette-tan/50 tracking-wide">İki seçenekli karşılaştırma sistemi</p>
+                            <h3 className="text-base font-black text-palette-maroon leading-tight">{t('admin.post.vs.block_title')}</h3>
+                            <p className="text-[11px] font-bold text-palette-tan/50 tracking-wide">{t('admin.post.vs.block_desc')}</p>
                         </div>
                     </div>
                 </div>
@@ -112,7 +112,7 @@ const PostVSItem: React.FC<PostVSItemProps> = ({
                 {/* 2. TITLE & MAIN IMAGE */}
                 <div className="space-y-4">
                     <div className="space-y-1.5 w-full">
-                        <label className="text-[13px] font-black text-palette-tan ml-1">Düello Başlığı / Soru</label>
+                        <label className="text-[13px] font-black text-palette-tan ml-1">{t('admin.post.vs.question_title')}</label>
                         <div className="flex items-center gap-3">
                             {showBlockNumbers && (
                                 <div className="w-9 h-9 shrink-0 rounded-[3px] bg-palette-maroon text-white flex items-center justify-center text-base font-black shadow-md shadow-palette-maroon/10">
@@ -124,7 +124,7 @@ const PostVSItem: React.FC<PostVSItemProps> = ({
                                 value={item.title || ''}
                                 onChange={(e) => onUpdate(item.id, 'title', e.target.value)}
                                 className="w-full h-10 bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] px-4 text-base font-bold text-palette-maroon outline-none focus:border-palette-red transition-all shadow-inner"
-                                placeholder="Düello sorusu buraya gelecek..."
+                                placeholder={t('admin.post.vs.question_placeholder')}
                             />
                         </div>
                     </div>
@@ -133,7 +133,7 @@ const PostVSItem: React.FC<PostVSItemProps> = ({
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
                         {/* LEFT: IMAGE AREA */}
                         <div className="md:col-span-4 space-y-2">
-                            <label className="text-[13px] font-black text-palette-tan ml-1 uppercase tracking-wider">Düello Ana Resmi</label>
+                            <label className="text-[13px] font-black text-palette-tan ml-1 uppercase tracking-wider">{t('admin.post.vs.main_image')}</label>
                             <div className="rounded-[3px] bg-palette-beige/5 border-2 border-dashed border-palette-tan/20 flex flex-col items-center justify-center overflow-hidden transition-all relative group w-full min-h-[220px]">
                                 {item.mediaUrl ? (
                                     <div className="relative w-full h-full flex items-center justify-center bg-palette-beige/5 min-h-[220px]">
@@ -164,7 +164,7 @@ const PostVSItem: React.FC<PostVSItemProps> = ({
                                             className="flex flex-col items-center cursor-pointer group/pick mb-4"
                                         >
                                             <span className="material-symbols-rounded text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-2" style={{ fontSize: '48px' }}>add</span>
-                                            <span className="text-[14px] font-bold text-palette-tan/50 px-4 text-center">Görsel Seç / Yükle</span>
+                                            <span className="text-[14px] font-bold text-palette-tan/50 px-4 text-center">{t('admin.post.poll.pick_image')}</span>
                                         </div>
                                         <button
                                             onClick={() => onOpenUrlMode(item.id, 'mediaUrl')}
@@ -180,7 +180,7 @@ const PostVSItem: React.FC<PostVSItemProps> = ({
                         {/* RIGHT: DESCRIPTION EDITOR */}
                         <div className="md:col-span-8 h-full flex flex-col">
                             <div className="space-y-2 group/editor flex-1 flex flex-col">
-                                <label className="text-[13px] font-black text-palette-tan ml-1 uppercase tracking-wider">Düello Açıklaması</label>
+                                <label className="text-[13px] font-black text-palette-tan ml-1 uppercase tracking-wider">{t('admin.post.vs.description')}</label>
                                 <div className="quill-modern-wrapper compact-quill border border-palette-tan/20 rounded-[3px] overflow-hidden focus-within:border-palette-red/40 transition-all shadow-sm bg-white flex-1 min-h-[220px]">
                                     {(() => {
                                         const Quill: any = ReactQuill;
@@ -191,7 +191,7 @@ const PostVSItem: React.FC<PostVSItemProps> = ({
                                                 onChange={(content: string) => onUpdate(item.id, 'description', content)}
                                                 modules={QUILL_MODULES}
                                                 formats={QUILL_FORMATS}
-                                                placeholder="Bu düello hakkında kısa bir açıklama veya not yazın..."
+                                                placeholder={t('admin.post.vs.description_placeholder')}
                                                 className="modern-quill-editor h-full"
                                             />
                                         );
@@ -205,7 +205,7 @@ const PostVSItem: React.FC<PostVSItemProps> = ({
                 {/* VS OPTIONS AREA */}
                 <div className="space-y-6 pt-6 border-t border-palette-tan/15 relative">
                     <div className="flex flex-col items-center gap-2 mb-2">
-                        <span className="text-[10px] font-black text-palette-tan/60 uppercase tracking-widest leading-none">Düello Seçenekleri</span>
+                        <span className="text-[10px] font-black text-palette-tan/60 uppercase tracking-widest leading-none">{t('admin.post.vs.options')}</span>
                     </div>
 
                     <div className="relative grid grid-cols-1 sm:grid-cols-2 gap-8 items-center">
@@ -240,26 +240,26 @@ const PostVSItem: React.FC<PostVSItemProps> = ({
                                                 className="flex flex-col items-center cursor-pointer group/pick mb-3"
                                             >
                                                 <span className="material-symbols-rounded text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-1" style={{ fontSize: '32px' }}>add</span>
-                                                <span className="text-[11px] font-bold text-palette-tan/50 leading-tight">Görsel Seç / Yükle</span>
+                                                <span className="text-[11px] font-bold text-palette-tan/50 leading-tight">{t('admin.post.vs.pick_image')}</span>
                                             </div>
                                             <button
                                                 onClick={() => onOpenUrlMode(item.id, 'options', option.id)}
                                                 className="mt-1 text-[9px] font-black text-palette-tan/60 hover:text-palette-maroon border border-palette-tan/20 px-3 py-1.5 rounded-[3px] bg-white shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 uppercase tracking-wider"
                                             >
-                                                <span className="material-symbols-rounded" style={{ fontSize: '11px' }}>public</span> URL VEYA YÜKLE
+                                                <span className="material-symbols-rounded" style={{ fontSize: '11px' }}>public</span> {t('admin.post.url_or_upload')}
                                             </button>
                                         </div>
                                     )}
                                 </div>
                                 <div className="p-3 bg-white">
                                     <div className="flex items-center gap-2 mb-2">
-                                        <span className="text-[9px] font-black text-palette-tan/30 shrink-0">{idx === 0 ? 'SOL' : 'SAĞ'}</span>
+                                        <span className="text-[9px] font-black text-palette-tan/30 shrink-0">{idx === 0 ? t('admin.post.vs.option_left') : t('admin.post.vs.option_right')}</span>
                                         <input
                                             type="text"
                                             value={option.text}
                                             onChange={(e) => handleUpdateOption(option.id, 'text', e.target.value)}
                                             className="w-full bg-transparent border-none text-[13px] font-bold text-palette-maroon outline-none placeholder:text-palette-tan/20 p-0"
-                                            placeholder="Seçenek metni..."
+                                            placeholder={t('admin.post.vs.option_placeholder')}
                                         />
                                     </div>
                                     <div className="flex items-center gap-2 pt-2 border-t border-palette-tan/5">

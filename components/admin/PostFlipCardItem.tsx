@@ -125,7 +125,7 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                             <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>sync</span>
                         </div>
                         <div>
-                            <h3 className="text-base font-black text-palette-maroon leading-tight">{t('admin.post.iframe_block').replace('Iframe', 'Flip kart')}</h3>
+                            <h3 className="text-base font-black text-palette-maroon leading-tight">{t('admin.post.flip_block')}</h3>
                             <p className="text-[11px] font-bold text-palette-tan/50 tracking-wide">{t('admin.post.flip_desc')}</p>
                         </div>
                     </div>
@@ -208,7 +208,7 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                                             className="flex flex-col items-center cursor-pointer group/pick mb-4"
                                         >
                                             <span className="material-symbols-rounded text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-2" style={{ fontSize: '48px' }}>add</span>
-                                            <span className="text-[14px] font-bold text-palette-tan/50 px-4 text-center">{t('admin.post.pick_image')} (Ön)</span>
+                                            <span className="text-[14px] font-bold text-palette-tan/50 px-4 text-center">{t('admin.post.pick_image')} ({t('common.front')})</span>
                                         </div>
                                         <button
                                             onClick={() => onOpenUrlMode(item.id, 'frontImage')}
@@ -322,7 +322,7 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                                             className="flex flex-col items-center cursor-pointer group/pick mb-4"
                                         >
                                             <span className="material-symbols-rounded text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-2" style={{ fontSize: '48px' }}>add</span>
-                                            <span className="text-[14px] font-bold text-palette-tan/50 px-4 text-center">{t('admin.post.pick_image')} (Arka)</span>
+                                            <span className="text-[14px] font-bold text-palette-tan/50 px-4 text-center">{t('admin.post.pick_image')} ({t('common.back')})</span>
                                         </div>
                                         <button
                                             onClick={() => onOpenUrlMode(item.id, 'backImage')}
@@ -438,10 +438,10 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                                                         onClick={(e) => e.stopPropagation()}
                                                         className="block hover:text-palette-red transition-colors"
                                                     >
-                                                        <h3 className="text-2xl font-black leading-tight mb-2 drop-shadow-md">{item.flipData?.frontTitle || 'Ön Başlık Buraya'}</h3>
+                                                        <h3 className="text-2xl font-black leading-tight mb-2 drop-shadow-md">{item.flipData?.frontTitle || t('admin.post.front_title_default')}</h3>
                                                     </a>
                                                 ) : (
-                                                    <h3 className="text-2xl font-black leading-tight mb-2 drop-shadow-md">{item.flipData?.frontTitle || 'Ön Başlık Buraya'}</h3>
+                                                    <h3 className="text-2xl font-black leading-tight mb-2 drop-shadow-md">{item.flipData?.frontTitle || t('admin.post.front_title_default')}</h3>
                                                 )}
                                                 {item.flipData?.frontDescription && (
                                                     <div
@@ -466,10 +466,10 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                                                     onClick={(e) => e.stopPropagation()}
                                                     className="block hover:text-palette-red transition-colors"
                                                 >
-                                                    <h3 className="text-2xl font-black mb-4 leading-tight drop-shadow-md">{item.flipData?.frontTitle || 'Ön Başlık Buraya'}</h3>
+                                                    <h3 className="text-2xl font-black mb-4 leading-tight drop-shadow-md">{item.flipData?.frontTitle || t('admin.post.front_title_default')}</h3>
                                                 </a>
                                             ) : (
-                                                <h3 className="text-2xl font-black mb-4 leading-tight drop-shadow-md">{item.flipData?.frontTitle || 'Ön Başlık Buraya'}</h3>
+                                                <h3 className="text-2xl font-black mb-4 leading-tight drop-shadow-md">{item.flipData?.frontTitle || t('admin.post.front_title_default')}</h3>
                                             )}
                                             {item.flipData?.frontDescription && (
                                                 <div
@@ -510,10 +510,10 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                                                         onClick={(e) => e.stopPropagation()}
                                                         className="block hover:text-palette-red transition-colors"
                                                     >
-                                                        <h3 className="text-2xl font-black leading-tight mb-2 drop-shadow-md">{item.flipData?.backTitle || 'Arka Başlık Buraya'}</h3>
+                                                        <h3 className="text-2xl font-black leading-tight mb-2 drop-shadow-md">{item.flipData?.backTitle || t('admin.post.back_title_default')}</h3>
                                                     </a>
                                                 ) : (
-                                                    <h3 className="text-2xl font-black leading-tight mb-2 drop-shadow-md">{item.flipData?.backTitle || 'Arka Başlık Buraya'}</h3>
+                                                    <h3 className="text-2xl font-black leading-tight mb-2 drop-shadow-md">{item.flipData?.backTitle || t('admin.post.back_title_default')}</h3>
                                                 )}
                                                 {item.flipData?.backDescription && (
                                                     <div
@@ -538,10 +538,10 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
                                                     onClick={(e) => e.stopPropagation()}
                                                     className="block hover:text-palette-red transition-colors"
                                                 >
-                                                    <h3 className="text-2xl font-black mb-4 leading-tight drop-shadow-md">{item.flipData?.backTitle || 'Arka Başlık Buraya'}</h3>
+                                                    <h3 className="text-2xl font-black mb-4 leading-tight drop-shadow-md">{item.flipData?.backTitle || t('admin.post.back_title_default')}</h3>
                                                 </a>
                                             ) : (
-                                                <h3 className="text-2xl font-black mb-4 leading-tight drop-shadow-md">{item.flipData?.backTitle || 'Arka Başlık Buraya'}</h3>
+                                                <h3 className="text-2xl font-black mb-4 leading-tight drop-shadow-md">{item.flipData?.backTitle || t('admin.post.back_title_default')}</h3>
                                             )}
                                             {item.flipData?.backDescription && (
                                                 <div
