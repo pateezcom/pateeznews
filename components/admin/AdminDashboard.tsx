@@ -10,6 +10,8 @@ const NavigationSettings = React.lazy(() => import('./NavigationSettings'));
 const StoryManagement = React.lazy(() => import('./StoryManagement'));
 const PostManagement = React.lazy(() => import('./PostManagement'));
 const PostList = React.lazy(() => import('./PostList'));
+const PublisherManagement = React.lazy(() => import('./PublisherManagement'));
+const PublisherProfileSettings = React.lazy(() => import('./PublisherProfileSettings'));
 import { useLanguage } from '../../context/LanguageContext';
 
 interface AdminDashboardProps {
@@ -44,6 +46,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
     { id: 'posts', label: t('admin.sidebar.posts'), icon: 'add_circle', perm: 'manage_content', group: t('admin.management') },
     { id: 'news_list', label: t('admin.sidebar.news_list'), icon: 'description', perm: 'manage_content', group: t('admin.management') },
     { id: 'stories', label: t('admin.sidebar.stories'), icon: 'bolt', perm: 'manage_content', group: t('admin.management') },
+    { id: 'publishers', label: t('admin.sidebar.publishers'), icon: 'business_center', perm: 'manage_users', group: t('admin.management') },
     { id: 'users', label: t('admin.sidebar.users'), icon: 'group', perm: 'manage_users', group: t('admin.system') },
     { id: 'navigation', label: t('admin.sidebar.navigation'), icon: 'account_tree', perm: 'manage_navigation', group: t('admin.system') },
     { id: 'roles', label: t('admin.sidebar.roles'), icon: 'verified_user', perm: 'view_roles', group: t('admin.system') },
@@ -162,6 +165,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
     handleTabChange('edit_user', userId);
   };
 
+  const handleEditPublisher = (publisherId: string) => {
+    handleTabChange('edit_publisher', publisherId);
+  };
+
   const renderContent = () => {
     if (activeTab === 'users' && !hasPermission('manage_users')) return <AccessDenied />;
     if (activeTab === 'posts' && !hasPermission('manage_content')) return <AccessDenied />;
@@ -201,6 +208,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
               <UserProfileSettings
                 onBack={() => handleTabChange('overview')}
                 onSuccess={() => handleTabChange('overview')}
+              />
+            );
+            case 'publishers': return <PublisherManagement onEditPublisher={handleEditPublisher} />;
+            case 'edit_publisher': return (
+              <PublisherProfileSettings
+                publisherId={editingUserId || undefined}
+                onBack={() => handleTabChange('publishers')}
+                onSuccess={() => handleTabChange('publishers')}
               />
             );
             default: return null;
@@ -277,7 +292,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
         <header className="h-20 bg-white/70 backdrop-blur-2xl border-b border-palette-tan/20 sticky top-0 z-30 px-8 flex items-center justify-between">
           <div>
             <h1 className="text-[22px] font-bold text-palette-maroon tracking-tight">
-              {activeTab === 'edit_user' ? t('users.role_modal.title') : (menuItems.find(i => i.id === activeTab)?.label || t('admin.sidebar.overview'))}
+              {activeTab === 'edit_user' ? t('users.role_modal.title') :
+                activeTab === 'edit_publisher' ? "Yayıncıyı Düzenle" :
+                  (menuItems.find(i => i.id === activeTab)?.label || t('admin.sidebar.overview'))}
             </h1>
             <p className="text-[13px] text-palette-tan font-bold mt-0.5">
               {new Date().toLocaleDateString(t('admin.date_format'), { day: 'numeric', month: 'long', year: 'numeric' })}

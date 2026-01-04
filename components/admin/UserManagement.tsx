@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -9,6 +9,12 @@ interface Profile {
   full_name: string;
   avatar_url: string;
   role: string;
+  email?: string;
+  created_at?: string;
+  status?: string;
+  publisher?: string;
+  reward_system?: boolean;
+  assigned_publishers?: { id: string, full_name: string }[];
 }
 
 interface Role {
@@ -24,15 +30,24 @@ interface UserManagementProps {
 const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
   const { t } = useLanguage();
   const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [roles, setRoles] = useState<Role[]>([]);
+  const [roles, setRoles] = useState<Role[]>([
+    { id: 'default-1', name: 'admin', label: 'Süper Yönetici' },
+    { id: 'default-2', name: 'editor', label: 'Editör' },
+    { id: 'default-3', name: 'moderator', label: 'Moderatör' },
+    { id: 'default-4', name: 'member', label: 'Standart Üye' }
+  ]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [pageSize, setPageSize] = useState(10);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
-  const [showRoleModal, setShowRoleModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showPublisherModal, setShowPublisherModal] = useState(false);
+  const [showUserPublisherModal, setShowUserPublisherModal] = useState(false);
+  const [targetUserForPublishers, setTargetUserForPublishers] = useState<Profile | null>(null);
   const [userToDelete, setUserToDelete] = useState<Profile | null>(null);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const [statusModal, setStatusModal] = useState<{ show: boolean, type: 'error' | 'success', message: string }>({ show: false, type: 'success', message: '' });
@@ -41,12 +56,40 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  const [filters, setFilters] = useState({
+    role: 'Tümü',
+    publisher: 'Tümü',
+    reward_system: 'Tümü',
+    status: 'Tümü'
+  });
+
+  const [publishersList, setPublishersList] = useState<Profile[]>([]);
+  const [selectedUsersForPublisher, setSelectedUsersForPublisher] = useState<string[]>([]);
+  const [selectedPublishersForUser, setSelectedPublishersForUser] = useState<string[]>([]);
+  const [activeMultiSelect, setActiveMultiSelect] = useState<'users' | 'publishers' | null>(null);
+  const [userSearchTerm, setUserSearchTerm] = useState('');
+  const [pubSearchTerm, setPubSearchTerm] = useState('');
+
   const [newUser, setNewUser] = useState({
     email: '',
     password: '',
+    confirmPassword: '',
     full_name: '',
     username: '',
-    role: 'member'
+    role: 'member',
+    reward_system: false
+  });
+
+  const [editUserData, setEditUserData] = useState({
+    id: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    full_name: '',
+    username: '',
+    role: 'member',
+    status: 'Aktif',
+    reward_system: false
   });
 
   useEffect(() => {
@@ -58,6 +101,10 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setOpenDropdownId(null);
       }
+      // Close custom multi-selects on outside click
+      if (activeMultiSelect && !(event.target as Element).closest('.group\\/select, .relative')) {
+        setActiveMultiSelect(null);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -68,30 +115,92 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
       setLoading(true);
       setErrorMsg(null);
 
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select('*');
+      const [profilesRes, rolesRes, publishersRes] = await Promise.allSettled([
+        supabase.from('profiles').select('*').neq('role', 'publisher').order('created_at', { ascending: false }),
+        supabase.from('roles').select('*').neq('name', 'publisher'),
+        supabase.from('profiles').select('*').eq('role', 'publisher')
+      ]);
 
-      if (profilesError) throw profilesError;
+      if (profilesRes.status === 'fulfilled' && !profilesRes.value.error) {
+        const rawProfiles = profilesRes.value.data || [];
 
-      const { data: rolesData, error: rolesError } = await supabase
-        .from('roles')
-        .select('*');
+        // Fetch assignments
+        const { data: assignments } = await supabase
+          .from('publisher_users')
+          .select('user_id, publisher_id, profiles!publisher_id(full_name)');
 
-      if (rolesError) throw rolesError;
+        const enrichedProfiles = rawProfiles.map(p => ({
+          ...p,
+          assigned_publishers: assignments?.filter(a => a.user_id === p.id).map(a => ({
+            id: a.publisher_id,
+            full_name: (a as any).profiles?.full_name
+          })) || []
+        }));
 
-      setProfiles(profilesData || []);
-      setRoles(rolesData || []);
+        setProfiles(enrichedProfiles);
+      } else {
+        console.error("Profiles fetch error:", profilesRes.status === 'fulfilled' ? profilesRes.value.error : profilesRes.reason);
+      }
+
+      if (rolesRes.status === 'fulfilled' && !rolesRes.value.error) {
+        const fetchedRoles = rolesRes.value.data || [];
+        if (fetchedRoles.length > 0) {
+          setRoles(fetchedRoles);
+        }
+      } else {
+        console.error("Roles fetch error:", rolesRes.status === 'fulfilled' ? rolesRes.value.error : rolesRes.reason);
+      }
+
+      if (publishersRes.status === 'fulfilled' && !publishersRes.value.error) {
+        setPublishersList(publishersRes.value.data || []);
+      }
+
     } catch (err: any) {
-      console.error("Veri çekme hatası:", err);
+      console.error("fetchData general error:", err);
       setErrorMsg(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAddUser = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const stats = useMemo(() => {
+    const totalUsers = profiles.length;
+    const rewardActive = profiles.filter(p => p.reward_system).length;
+    const activeUsers = profiles.filter(p => p.status === 'Aktif').length;
+    const waitingUsers = profiles.filter(p => p.status === 'Beklemede' || p.status === 'Bekleyen' || p.status === 'Pasif').length;
+
+    return [
+      { label: 'Oturum', value: totalUsers, change: '+0%', desc: 'Toplam Kullanıcılar', icon: 'groups', color: 'bg-red-50 text-red-600', iconBg: 'bg-red-50' },
+      { label: 'Ödül Sistemi', value: rewardActive, change: '+0%', desc: 'Geçen hafta analitiği', icon: 'shield_person', color: 'bg-red-50 text-red-600', iconBg: 'bg-red-50' },
+      { label: 'Aktif Kullanıcılar', value: activeUsers, change: '+0%', desc: 'Geçen hafta analitiği', icon: 'person_outline', color: 'bg-emerald-50 text-emerald-600', iconBg: 'bg-emerald-50' },
+      { label: 'Bekleyen Kullanıcılar', value: waitingUsers, change: '+0%', desc: 'Geçen hafta analitiği', icon: 'person_add', color: 'bg-orange-50 text-orange-600', iconBg: 'bg-orange-50' },
+    ];
+  }, [profiles]);
+
+  const filteredUsers = profiles.filter(user => {
+    const matchesSearch = (
+      user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    const matchesRole = filters.role === 'Tümü' || user.role === filters.role;
+    const matchesStatus = filters.status === 'Tümü' || user.status === filters.status;
+    const matchesReward = filters.reward_system === 'Tümü' ||
+      (filters.reward_system === 'Aktif' ? user.reward_system === true : user.reward_system === false);
+
+    return matchesSearch && matchesRole && matchesStatus && matchesReward;
+  });
+
+  const getRoleLabel = (roleName: string) => {
+    return roles.find(r => r.name === roleName)?.label || roleName;
+  };
+
+  const handleAddUser = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (newUser.password !== newUser.confirmPassword) {
+      setStatusModal({ show: true, type: 'error', message: 'Şifreler uyuşmuyor.' });
+      return;
+    }
     setSaving(true);
     try {
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -107,10 +216,13 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
 
       if (authError) throw authError;
 
-      if (authData.user && newUser.role !== 'member') {
+      if (authData.user) {
         await supabase
           .from('profiles')
-          .update({ role: newUser.role })
+          .update({
+            role: newUser.role,
+            reward_system: newUser.reward_system
+          })
           .eq('id', authData.user.id);
       }
 
@@ -118,7 +230,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
       setTimeout(() => {
         setSuccess(false);
         setShowAddModal(false);
-        setNewUser({ email: '', password: '', full_name: '', username: '', role: 'member' });
+        setNewUser({ email: '', password: '', confirmPassword: '', full_name: '', username: '', role: 'member', reward_system: false });
         fetchData();
       }, 1500);
     } catch (err: any) {
@@ -128,21 +240,46 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
     }
   };
 
-  const handleUpdateRole = async () => {
-    if (!selectedUser) return;
+  const handleEditClick = (user: Profile) => {
+    setEditUserData({
+      id: user.id,
+      email: user.email || '',
+      password: '',
+      confirmPassword: '',
+      full_name: user.full_name || '',
+      username: user.username || '',
+      role: user.role || 'member',
+      status: user.status || 'Aktif',
+      reward_system: user.reward_system || false
+    });
+    setShowEditModal(true);
+  };
+
+  const handleUpdateUser = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (editUserData.password && editUserData.password !== editUserData.confirmPassword) {
+      setStatusModal({ show: true, type: 'error', message: 'Şifreler uyuşmuyor.' });
+      return;
+    }
     setSaving(true);
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ role: selectedUser.role })
-        .eq('id', selectedUser.id);
+        .update({
+          full_name: editUserData.full_name,
+          username: editUserData.username,
+          role: editUserData.role,
+          status: editUserData.status,
+          reward_system: editUserData.reward_system
+        })
+        .eq('id', editUserData.id);
 
       if (error) throw error;
 
       setSuccess(true);
       setTimeout(() => {
         setSuccess(false);
-        setShowRoleModal(false);
+        setShowEditModal(false);
         fetchData();
       }, 1500);
     } catch (err: any) {
@@ -150,11 +287,6 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
     } finally {
       setSaving(false);
     }
-  };
-
-  const handleDeleteUser = (user: Profile) => {
-    setUserToDelete(user);
-    setShowDeleteModal(true);
   };
 
   const confirmDelete = async () => {
@@ -173,309 +305,521 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
     }
   };
 
-  const filteredUsers = profiles.filter(user =>
-    user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.username?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const getRoleLabel = (roleName: string) => {
-    return roles.find(r => r.name === roleName)?.label || roleName;
-  };
-
-  const inputClasses = "w-full h-11 pl-11 pr-4 bg-palette-beige/30 border border-palette-tan/20 rounded-[3px] text-base font-bold text-palette-maroon outline-none hover:border-palette-tan/40 focus:bg-white focus:border-palette-tan focus:ring-4 focus:ring-palette-tan/5 transition-all placeholder:text-palette-tan/30";
-  const iconClasses = "absolute left-4 top-1/2 -translate-y-1/2 text-palette-tan/40 group-focus-within:text-palette-tan transition-colors";
-
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[500px] gap-6">
-        <div className="w-10 h-10 border-4 border-palette-tan/20 border-t-palette-red rounded-[3px] animate-spin"></div>
-        <p className="text-[13px] font-black text-palette-tan/40 tracking-widest">{t('users.status.syncing')}</p>
-      </div>
-    );
-  }
+  const inputClasses = "w-full h-10 px-4 bg-palette-beige/30 border border-palette-tan/10 rounded-[3px] text-sm font-bold text-palette-maroon outline-none focus:bg-white focus:border-palette-tan focus:ring-4 focus:ring-palette-tan/5 transition-all placeholder:text-palette-tan/30";
 
   return (
-    <div className="animate-in fade-in duration-700 admin-font pb-20 text-palette-tan mx-auto">
+    <>
+      {/* WRAP CONTENT IN ANIMATED DIV BUT KEEP MODALS OUTSIDE TO FIX THE BLUR GAPS */}
+      <div className="space-y-6 animate-in fade-in duration-700 pb-20">
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 px-2">
-        <div>
-          <h2 className="text-[32px] font-black text-palette-maroon tracking-tighter leading-none mb-2">{t('users.page_title')}</h2>
-          <p className="text-[13px] font-bold text-palette-tan/50 tracking-wider">{t('users.page_desc')}</p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-3 px-4 py-2 bg-palette-beige/40 border border-palette-tan/20 rounded-[3px] shadow-sm w-full max-w-md focus-within:ring-4 focus-within:ring-palette-tan/5 focus-within:border-palette-tan focus-within:bg-white transition-all group">
-            <span className="material-symbols-rounded text-palette-tan/30 group-focus-within:text-palette-tan transition-colors" style={{ fontSize: '16px' }}>search</span>
-            <input
-              type="text"
-              placeholder={t('users.search_placeholder')}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-transparent border-none outline-none text-[14px] font-bold w-full text-palette-maroon placeholder:text-palette-tan/30"
-            />
-          </div>
-
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="h-10 px-10 bg-palette-red text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-primary-600 transition-all shadow-lg active:scale-95 flex items-center gap-2 whitespace-nowrap"
-          >
-            <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>add</span>
-            <span>{t('users.add_new')}</span>
-          </button>
-        </div>
-      </div>
-
-      {errorMsg && (
-        <div className="mb-6 p-4 bg-palette-red/5 border border-palette-red/30 rounded-[3px] flex items-center gap-4 text-palette-red">
-          <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>report</span>
-          <div className="text-sm font-bold tracking-wider">{t('common.error')}: {errorMsg}</div>
-        </div>
-      )}
-
-      <div className="bg-white rounded-[3px] border border-palette-tan/15 shadow-sm overflow-visible">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-palette-beige/20 border-b border-palette-tan/15">
-              <th className="px-8 py-5 text-[13px] font-black text-palette-tan/40 tracking-widest">{t('users.table.info')}</th>
-              <th className="px-8 py-5 text-[13px] font-black text-palette-tan/40 tracking-widest">{t('users.table.role')}</th>
-              <th className="px-8 py-5 text-[13px] font-black text-palette-tan/40 tracking-widest text-right">{t('users.table.actions')}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-palette-tan/15">
-            {filteredUsers.map((user) => (
-              <tr key={user.id} className="hover:bg-palette-beige/5 transition-colors group">
-                <td className="px-8 py-5">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-[3px] bg-palette-beige border border-palette-tan/15 overflow-hidden flex-shrink-0">
-                      <img src={user.avatar_url || `https://picsum.photos/seed/${user.id}/100`} className="w-full h-full object-cover" />
-                    </div>
-                    <div>
-                      <h4 className="text-base font-black text-palette-maroon leading-none mb-1">{user.full_name || t('users.unnamed')}</h4>
-                      <p className="text-[12px] text-palette-tan/50 font-bold tracking-widest">@{user.username || 'username'}</p>
-                    </div>
+        {/* STATS CARDS */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {stats.map((stat, i) => (
+            <div key={i} className="bg-white p-6 rounded-[3px] border border-palette-tan/15 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <p className="text-[13px] font-bold text-palette-tan/60">{stat.label}</p>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <h3 className="text-[28px] font-black text-palette-maroon tracking-tight">{stat.value}</h3>
+                    <span className={`text-[11px] font-black ${stat.change.startsWith('+') ? 'text-emerald-500' : 'text-palette-red'}`}>({stat.change})</span>
                   </div>
-                </td>
-                <td className="px-8 py-5">
-                  <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[3px] text-[12px] font-black tracking-widest border ${user.role === 'admin' ? 'bg-palette-red/5 text-palette-red border-palette-red/25' :
-                    user.role === 'moderator' ? 'bg-palette-maroon/5 text-palette-maroon border-palette-maroon/20' :
-                      'bg-palette-tan/5 text-palette-tan border-palette-tan/20'
-                    }`}>
-                    <span className="material-symbols-rounded" style={{ fontSize: '12px' }}>verified_user</span>
-                    {getRoleLabel(user.role)}
-                  </div>
-                </td>
-                <td className="px-8 py-5 text-right relative overflow-visible">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setOpenDropdownId(openDropdownId === user.id ? null : user.id); }}
-                    className={`p-2 rounded-[3px] transition-all active:scale-90 shadow-sm flex items-center justify-center ${openDropdownId === user.id ? 'bg-palette-maroon text-white' : 'bg-palette-beige/50 text-palette-tan/40 hover:bg-palette-tan hover:text-white'}`}
-                  >
-                    <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>more_vert</span>
-                  </button>
-
-                  {openDropdownId === user.id && (
-                    <div ref={dropdownRef} className="absolute right-8 top-14 w-52 bg-white rounded-[3px] shadow-2xl border border-palette-tan/15 z-[100] animate-in fade-in slide-in-from-top-2 overflow-hidden py-1.5">
-                      <button
-                        onClick={() => { onEditUser(user.id); setOpenDropdownId(null); }}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-bold text-palette-tan hover:bg-palette-beige/50 hover:text-palette-maroon transition-colors text-left"
-                      >
-                        <span className="material-symbols-rounded text-palette-tan/30" style={{ fontSize: '14px' }}>edit_square</span>
-                        {t('users.actions.edit')}
-                      </button>
-                      <button
-                        onClick={() => { setSelectedUser(user); setShowRoleModal(true); setOpenDropdownId(null); }}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-bold text-palette-tan hover:bg-palette-beige/50 hover:text-palette-maroon transition-colors text-left"
-                      >
-                        <span className="material-symbols-rounded text-palette-tan/30" style={{ fontSize: '14px' }}>manage_accounts</span>
-                        {t('users.actions.role')}
-                      </button>
-                      <div className="h-px bg-palette-tan/10 mx-4 my-1"></div>
-                      <button
-                        onClick={() => { handleDeleteUser(user); setOpenDropdownId(null); }}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-bold text-palette-red hover:bg-palette-red/5 transition-colors text-left"
-                      >
-                        <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>delete</span>
-                        {t('users.actions.delete')}
-                      </button>
-                    </div>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {filteredUsers.length === 0 && (
-          <div className="p-20 text-center text-palette-tan/30">
-            <span className="material-symbols-rounded mx-auto mb-4 opacity-20" style={{ fontSize: '40px' }}>group</span>
-            <p className="text-[13px] font-black tracking-widest">{t('users.empty_state')}</p>
-            <p className="text-[11px] mt-2 font-medium">{t('users.sql_notice')}</p>
-          </div>
-        )}
-      </div>
-
-      {showAddModal && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-palette-maroon/90 backdrop-blur-md animate-in fade-in" onClick={() => !saving && setShowAddModal(false)} />
-          <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 flex flex-col">
-            <div className="px-8 py-6 border-b border-palette-tan/15 flex items-center justify-between bg-palette-beige/10">
-              <h3 className="text-[20px] font-black text-palette-maroon tracking-tight flex items-center gap-3">
-                <div className="w-8 h-8 bg-palette-red rounded-[3px] flex items-center justify-center text-white shadow-lg shadow-palette-red/20">
-                  <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>add</span>
                 </div>
-                {t('users.form.title')}
-              </h3>
-              <button onClick={() => setShowAddModal(false)} className="p-1 text-palette-tan/40 hover:text-palette-red transition-colors flex items-center justify-center"><span className="material-symbols-rounded" style={{ fontSize: '20px' }}>close</span></button>
+                <div className={`w-10 h-10 ${stat.iconBg} rounded-[3px] flex items-center justify-center ${stat.color.split(' ')[1]}`}>
+                  <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>{stat.icon}</span>
+                </div>
+              </div>
+              <p className="text-[11px] font-bold text-palette-tan/40 uppercase tracking-widest">{stat.desc}</p>
+              <div className="absolute bottom-0 left-0 w-full h-0.5 bg-palette-maroon/5 group-hover:bg-palette-maroon/20 transition-all"></div>
+            </div>
+          ))}
+        </div>
+
+        {/* MAIN CONTENT BOX */}
+        <div className="bg-white rounded-[3px] border border-palette-tan/20 shadow-sm min-h-[600px] flex flex-col">
+
+          <div className="p-8 border-b border-palette-tan/10 space-y-8">
+            <h2 className="text-xl font-black text-palette-maroon uppercase tracking-tight">{t('users.page_title')}</h2>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { label: 'Rol', key: 'role' },
+                { label: 'Yayıncı', key: 'publisher' },
+                { label: 'Ödül Sistemi', key: 'reward_system' },
+                { label: 'Durum', key: 'status' }
+              ].map((filter) => (
+                <div key={filter.key} className="space-y-1.5">
+                  <label className="text-[11px] font-black text-palette-tan/40 uppercase tracking-widest block">{filter.label}</label>
+                  <div className="relative group/select">
+                    <select
+                      className="w-full h-11 px-4 bg-palette-beige/20 border border-palette-tan/15 rounded-[3px] text-[13px] font-bold text-palette-maroon appearance-none outline-none focus:bg-white focus:border-palette-maroon transition-all cursor-pointer"
+                      value={(filters as any)[filter.key]}
+                      onChange={(e) => setFilters({ ...filters, [filter.key]: e.target.value })}
+                    >
+                      <option value="Tümü">Tümü</option>
+                      {roles.length === 0 && <option disabled>Yükleniyor...</option>}
+                      {filter.key === 'role' && roles.map(r => <option key={r.id} value={r.name}>{r.label}</option>)}
+                      {filter.key === 'publisher' && publishersList.map(p => <option key={p.id} value={p.username}>{p.full_name}</option>)}
+                      {filter.key === 'reward_system' && (
+                        <>
+                          <option value="Aktif">Aktif</option>
+                          <option value="Pasif">Pasif</option>
+                        </>
+                      )}
+                      {filter.key === 'status' && (
+                        <>
+                          <option value="Aktif">Aktif</option>
+                          <option value="Beklemede">Beklemede</option>
+                          <option value="Engelli">Engelli</option>
+                        </>
+                      )}
+                    </select>
+                    <span className="material-symbols-rounded absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/30 pointer-events-none group-hover/select:text-palette-maroon transition-colors" style={{ fontSize: '18px' }}>expand_more</span>
+                  </div>
+                </div>
+              ))}
             </div>
 
-            <form onSubmit={handleAddUser} className="p-8 space-y-5">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[13px] font-black text-palette-tan/50 ml-1">{t('users.form.full_name')}</label>
-                  <div className="relative group">
-                    <span className="material-symbols-rounded absolute left-4 top-1/2 -translate-y-1/2 text-palette-tan/40 group-focus-within:text-palette-tan transition-colors" style={{ fontSize: '14px' }}>person</span>
-                    <input type="text" required value={newUser.full_name} onChange={e => setNewUser({ ...newUser, full_name: e.target.value })} className={inputClasses} />
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[13px] font-black text-palette-tan/50 ml-1">{t('users.form.username')}</label>
-                  <div className="relative group">
-                    <span className={`${iconClasses} font-black text-sm`}>@</span>
-                    <input type="text" required value={newUser.username} onChange={e => setNewUser({ ...newUser, username: e.target.value.toLowerCase().replace(' ', '_') })} className={inputClasses} />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[13px] font-black text-palette-tan/50 ml-1">{t('users.form.email')}</label>
-                <div className="relative group">
-                  <span className="material-symbols-rounded absolute left-4 top-1/2 -translate-y-1/2 text-palette-tan/40 group-focus-within:text-palette-tan transition-colors" style={{ fontSize: '14px' }}>mail</span>
-                  <input type="email" required value={newUser.email} onChange={e => setNewUser({ ...newUser, email: e.target.value })} className={inputClasses} />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[13px] font-black text-palette-tan/50 ml-1">{t('users.form.password')}</label>
-                <div className="relative group">
-                  <span className="material-symbols-rounded absolute left-4 top-1/2 -translate-y-1/2 text-palette-tan/40 group-focus-within:text-palette-tan transition-colors" style={{ fontSize: '14px' }}>lock</span>
-                  <input type="password" required value={newUser.password} onChange={e => setNewUser({ ...newUser, password: e.target.value })} className={inputClasses} minLength={6} />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[13px] font-black text-palette-tan/50 ml-1">{t('users.form.role')}</label>
-                <div className="relative group">
-                  <select value={newUser.role} onChange={e => setNewUser({ ...newUser, role: e.target.value })} className={`${inputClasses} appearance-none px-4 pl-4`}>
-                    {roles.map(r => <option key={r.id} value={r.name}>{r.label}</option>)}
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-4 border-t border-palette-tan/5">
+              <div className="flex items-center gap-6 w-full md:w-auto">
+                <div className="relative group/size">
+                  <select
+                    className="h-11 px-6 pr-10 bg-palette-beige/20 border border-palette-tan/15 rounded-[3px] text-[13px] font-black text-palette-maroon appearance-none outline-none focus:bg-white focus:border-palette-maroon transition-all cursor-pointer min-w-[80px]"
+                    value={pageSize}
+                    onChange={(e) => setPageSize(Number(e.target.value))}
+                  >
+                    <option value={10}>10</option>
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
                   </select>
-                  <span className="material-symbols-rounded absolute right-4 top-1/2 -translate-y-1/2 text-palette-tan/30" style={{ fontSize: '16px' }}>expand_more</span>
+                  <span className="material-symbols-rounded absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/30 pointer-events-none" style={{ fontSize: '18px' }}>expand_more</span>
                 </div>
-              </div>
 
-              <div className="pt-4">
-                <button type="submit" disabled={saving} className="w-full h-12 bg-palette-tan text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-maroon shadow-xl active:scale-95 flex items-center justify-center gap-3 transition-all">
-                  {saving ? <span className="material-symbols-rounded animate-spin" style={{ fontSize: '16px' }}>progress_activity</span> : <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>save</span>}
-                  <span>{t('users.form.add_btn')}</span>
+                <button
+                  type="button"
+                  onClick={() => setShowPublisherModal(true)}
+                  className="flex items-center gap-2 px-4 h-11 text-[13px] font-black text-cyan-600 hover:bg-cyan-50/50 rounded-[3px] transition-all active:scale-95 group/pub"
+                >
+                  <span className="material-symbols-rounded text-cyan-500 group-hover/pub:scale-110 transition-transform" style={{ fontSize: '20px' }}>person_add</span>
+                  <span>Yayıncıları Ekle</span>
                 </button>
               </div>
-            </form>
+
+              <div className="flex items-center gap-4 w-full md:w-auto">
+                <div className="relative flex-1 md:flex-none">
+                  <input
+                    type="text"
+                    placeholder="Kullanıcı Ara ..."
+                    className="w-full md:w-[250px] h-11 pl-4 pr-10 bg-white border border-palette-tan/15 rounded-[3px] text-[13px] font-bold text-palette-maroon outline-none focus:border-palette-maroon focus:ring-4 focus:ring-palette-maroon/5 transition-all shadow-sm"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  <span className="material-symbols-rounded absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/40" style={{ fontSize: '18px' }}>search</span>
+                </div>
+
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="flex items-center gap-2 h-11 px-4 bg-palette-red text-white rounded-[3px] text-[13px] font-black tracking-widest hover:bg-palette-maroon transition-all shadow-lg shadow-palette-red/20 active:scale-95"
+                >
+                  <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>add</span>
+                  Kullanıcı Ekle
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
 
-      {showRoleModal && selectedUser && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-palette-maroon/90 backdrop-blur-md animate-in fade-in" onClick={() => !saving && setShowRoleModal(false)} />
-          <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 flex flex-col">
+          <div className="flex-1 relative z-10 overflow-x-auto md:overflow-visible scrollbar-thin scrollbar-thumb-palette-tan/10">
+            <table className="w-full text-left border-collapse table-fixed md:table-auto">
+              <thead>
+                <tr className="bg-palette-beige/10 border-b border-palette-tan/10">
+                  <th className="w-12 px-8 py-5">
+                    <input type="checkbox" className="w-4 h-4 rounded-[2px] border-palette-tan/30 text-palette-maroon focus:ring-palette-maroon cursor-pointer" />
+                  </th>
+                  <th className="w-20 px-4 py-5 text-[12px] font-black text-palette-tan uppercase tracking-widest">Id</th>
+                  <th className="px-4 py-5 text-[12px] font-black text-palette-tan uppercase tracking-widest">Kullanıcı</th>
+                  <th className="px-6 py-5 text-[12px] font-black text-palette-tan uppercase tracking-widest text-center">Rol</th>
+                  <th className="px-6 py-5 text-[12px] font-black text-palette-tan uppercase tracking-widest text-center">Yayıncılar</th>
+                  <th className="px-6 py-5 text-[12px] font-black text-palette-tan uppercase tracking-widest text-center">Ödül Sistemi</th>
+                  <th className="px-6 py-5 text-[12px] font-black text-palette-tan uppercase tracking-widest text-center">Durum</th>
+                  <th className="px-8 py-5 text-[12px] font-black text-palette-tan uppercase tracking-widest text-right">Oluşturma</th>
+                  <th className="w-20 px-8 py-5 text-[12px] font-black text-palette-tan uppercase tracking-widest text-right">İşlemler</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-palette-tan/5 min-h-[400px]">
+                {loading ? (
+                  Array(5).fill(0).map((_, i) => (
+                    <tr key={i} className="animate-pulse">
+                      <td colSpan={9} className="px-8 py-10 opacity-50"><div className="h-4 bg-palette-beige rounded-[3px] w-full"></div></td>
+                    </tr>
+                  ))
+                ) : filteredUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan={9} className="px-8 py-32 text-center text-palette-tan/40 font-bold uppercase tracking-widest text-sm">
+                      Kullanıcı Bulunamadı
+                    </td>
+                  </tr>
+                ) : (
+                  filteredUsers.map((user, idx) => (
+                    <tr key={user.id} className={`hover:bg-palette-beige/5 transition-all group ${openDropdownId === user.id ? 'relative z-[100]' : 'relative z-1'}`}>
+                      <td className="px-8 py-6">
+                        <input type="checkbox" className="w-4 h-4 rounded-[2px] border-palette-tan/30 text-palette-maroon focus:ring-palette-maroon cursor-pointer" />
+                      </td>
+                      <td className="px-4 py-6 text-[13px] font-bold text-palette-tan/60">{idx + 25}</td>
+                      <td className="px-4 py-6">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 flex-shrink-0 bg-palette-beige rounded-full overflow-hidden border border-palette-tan/10 shadow-sm relative transition-all">
+                            <img src={user.avatar_url || `https://picsum.photos/seed/${user.id}/100`} className="w-full h-full object-cover" alt="" />
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="font-bold text-palette-maroon text-[14px] leading-tight group-hover:text-palette-red transition-colors">{user.full_name || 'İsimsiz'}</span>
+                            <span className="text-[11px] font-bold text-palette-tan/60 break-all truncate max-w-[150px]">@{user.username || 'username'}</span>
+                            <span className="text-[10px] font-bold text-palette-tan/40">{user.email || 'user@example.com'}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-6 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          {user.role === 'admin' ? (
+                            <span className="material-symbols-rounded text-cyan-500" style={{ fontSize: '18px' }}>workspace_premium</span>
+                          ) : (
+                            <span className="material-symbols-rounded text-palette-red" style={{ fontSize: '18px' }}>person</span>
+                          )}
+                          <span className="text-[12px] font-bold text-palette-tan/70 uppercase tracking-widest">{getRoleLabel(user.role)}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-6 text-center">
+                        <div className="flex flex-wrap items-center justify-center gap-2">
+                          {user.assigned_publishers && user.assigned_publishers.length > 0 ? (
+                            <>
+                              {user.assigned_publishers.map(pub => (
+                                <span key={pub.id} className="bg-cyan-50 text-cyan-600 px-2 py-0.5 rounded-[3px] text-[11px] font-bold">
+                                  {pub.full_name}
+                                </span>
+                              ))}
+                              <button
+                                onClick={() => {
+                                  setTargetUserForPublishers(user);
+                                  setSelectedPublishersForUser(user.assigned_publishers?.map(p => p.id) || []);
+                                  setShowUserPublisherModal(true);
+                                }}
+                                className="text-palette-red hover:text-palette-maroon transition-colors"
+                              >
+                                <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>edit</span>
+                              </button>
+                            </>
+                          ) : (
+                            <span className="text-[11px] font-bold text-palette-tan/40"> - </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-6 text-center">
+                        <div className="flex items-center justify-center">
+                          <span className={`material-symbols-rounded ${user.reward_system ? 'text-emerald-500' : 'text-palette-tan/20'}`} style={{ fontSize: '20px' }}>{user.reward_system ? 'cached' : 'block'}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-6 text-center">
+                        <span className={`px-2.5 py-1 rounded-[3px] text-[10px] font-black uppercase tracking-widest ${user.status === 'Aktif' ? 'bg-emerald-100 text-emerald-700' :
+                          user.status === 'Engelli' ? 'bg-red-100 text-red-700' :
+                            'bg-orange-100 text-orange-700'
+                          }`}>
+                          {user.status || 'Aktif'}
+                        </span>
+                      </td>
+                      <td className="px-8 py-6 text-right">
+                        <div className="text-[11px] font-bold text-palette-tan flex flex-col uppercase">
+                          <span>{user.created_at ? new Date(user.created_at).toLocaleDateString('tr-TR') : 'Yükleniyor...'}</span>
+                          <span className="text-[9px] text-palette-tan/40 mt-0.5">
+                            {user.created_at ? new Date(user.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : ''}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <button onClick={() => handleEditClick(user)} className="w-8 h-8 rounded-full flex items-center justify-center text-palette-red hover:bg-red-50 transition-all"><span className="material-symbols-rounded" style={{ fontSize: '18px' }}>edit</span></button>
+                          <button onClick={() => { setUserToDelete(user); setShowDeleteModal(true); }} className="w-8 h-8 rounded-full flex items-center justify-center text-palette-red hover:bg-red-50 transition-all"><span className="material-symbols-rounded" style={{ fontSize: '18px' }}>delete</span></button>
+                          <div className="relative inline-block text-left" ref={openDropdownId === user.id ? dropdownRef : null}>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setOpenDropdownId(openDropdownId === user.id ? null : user.id); }}
+                              className="w-8 h-8 rounded-full flex items-center justify-center text-palette-tan/40 hover:bg-palette-beige hover:text-palette-maroon transition-all active:scale-90"
+                            >
+                              <span className="material-symbols-rounded">more_vert</span>
+                            </button>
+                            {openDropdownId === user.id && (
+                              <div className={`absolute right-0 ${idx >= filteredUsers.length - 2 && idx > 0 ? 'bottom-full mb-2' : 'top-full mt-1'} w-64 bg-white border border-palette-tan/20 rounded-[3px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-[200] py-2 animate-in fade-in zoom-in-95 duration-200`}>
+                                <button onClick={() => { onEditUser(user.id); setOpenDropdownId(null); }} className="w-full px-5 py-3 text-left text-[13px] font-bold text-palette-maroon hover:bg-palette-beige/30 transition-all flex items-center gap-3">
+                                  <span className="material-symbols-rounded text-cyan-500" style={{ fontSize: '18px' }}>person_outline</span>
+                                  Profili Güncelle (Yeni Sayfa)
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    setSaving(true);
+                                    try {
+                                      const { error } = await supabase.from('profiles').update({ status: 'Aktif' }).eq('id', user.id);
+                                      if (error) throw error;
+                                      setStatusModal({ show: true, type: 'success', message: 'Kullanıcı durumu güncellendi.' });
+                                      fetchData();
+                                    } catch (err: any) {
+                                      setStatusModal({ show: true, type: 'error', message: err.message });
+                                    } finally {
+                                      setSaving(false);
+                                      setOpenDropdownId(null);
+                                    }
+                                  }}
+                                  className="w-full px-5 py-3 text-left text-[13px] font-bold text-palette-maroon hover:bg-palette-beige/30 transition-all flex items-center gap-3"
+                                >
+                                  <span className="material-symbols-rounded text-emerald-500" style={{ fontSize: '18px' }}>check_circle</span>
+                                  Kullanıcıyı Aktifleştir
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    setSaving(true);
+                                    try {
+                                      const { error } = await supabase.from('profiles').update({ status: 'Engelli' }).eq('id', user.id);
+                                      if (error) throw error;
+                                      setStatusModal({ show: true, type: 'success', message: 'Kullanıcı durduruldu.' });
+                                      fetchData();
+                                    } catch (err: any) {
+                                      setStatusModal({ show: true, type: 'error', message: err.message });
+                                    } finally {
+                                      setSaving(false);
+                                      setOpenDropdownId(null);
+                                    }
+                                  }}
+                                  className="w-full px-5 py-3 text-left text-[13px] font-bold text-palette-maroon hover:bg-palette-beige/30 transition-all flex items-center gap-3"
+                                >
+                                  <span className="material-symbols-rounded text-orange-400" style={{ fontSize: '18px' }}>person_off</span>
+                                  Kullanıcıyı Devre Dışı Bırak
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    setSaving(true);
+                                    try {
+                                      const { error } = await supabase.from('profiles').update({ reward_system: !user.reward_system }).eq('id', user.id);
+                                      if (error) throw error;
+                                      setStatusModal({ show: true, type: 'success', message: 'Ödül sistemi ayarı güncellendi.' });
+                                      fetchData();
+                                    } catch (err: any) {
+                                      setStatusModal({ show: true, type: 'error', message: err.message });
+                                    } finally {
+                                      setSaving(false);
+                                      setOpenDropdownId(null);
+                                    }
+                                  }}
+                                  className="w-full px-5 py-3 text-left text-[13px] font-bold text-palette-maroon hover:bg-palette-beige/30 transition-all flex items-center gap-3"
+                                >
+                                  <span className="material-symbols-rounded text-orange-400" style={{ fontSize: '18px' }}>visibility_off</span>
+                                  Ödül Sistemini {user.reward_system ? 'Kapat' : 'Aç'}
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
 
-            <div className="px-8 py-6 border-b border-palette-tan/15 flex items-center justify-between bg-palette-beige/10">
-              <div className="flex items-center gap-4">
-                <div className="w-8 h-8 bg-palette-maroon rounded-[3px] flex items-center justify-center text-white shadow-lg">
-                  <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>fingerprint</span>
-                </div>
-                <div>
-                  <h3 className="text-xl font-black text-palette-maroon leading-none">{t('users.role_modal.title')}</h3>
-                </div>
-              </div>
-              <button onClick={() => setShowRoleModal(false)} className="p-1 text-palette-tan/40 hover:text-palette-red transition-colors flex items-center justify-center"><span className="material-symbols-rounded" style={{ fontSize: '20px' }}>close</span></button>
+          <div className="p-8 border-t border-palette-tan/10 bg-palette-beige/5 flex items-center justify-between relative z-0">
+            <div className="flex items-center gap-4">
+              <p className="text-[12px] font-bold text-palette-tan/40 uppercase tracking-widest">
+                {Math.min(filteredUsers.length, pageSize)} / {filteredUsers.length} Sonuç gösteriliyor
+              </p>
             </div>
-
-            <div className="p-8 space-y-6">
-              <div className="flex items-center gap-4 p-4 bg-palette-beige/30 rounded-[3px] border border-palette-tan/20">
-                <div className="w-12 h-12 rounded-[3px] overflow-hidden border-2 border-white shadow-sm flex-shrink-0">
-                  <img src={selectedUser.avatar_url || `https://picsum.photos/seed/${selectedUser.id}/100`} className="w-full h-full object-cover" />
-                </div>
-                <div>
-                  <h4 className="text-base font-black text-palette-maroon leading-tight">{selectedUser.full_name || t('users.unnamed')}</h4>
-                  <p className="text-[12px] font-bold text-palette-tan/60 tracking-widest">@{selectedUser.username}</p>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <label className="text-[11px] font-black text-palette-tan/50 ml-1">{t('users.role_modal.select')}</label>
-                <div className="grid grid-cols-1 gap-2">
-                  {roles.map((role) => (
-                    <button
-                      key={role.id}
-                      onClick={() => setSelectedUser({ ...selectedUser, role: role.name })}
-                      className={`flex items-center justify-between px-5 py-4 rounded-[3px] border transition-all ${selectedUser.role === role.name
-                        ? 'bg-palette-maroon border-palette-maroon text-white shadow-lg'
-                        : 'bg-palette-beige/30 border-palette-tan/15 text-palette-tan hover:border-palette-maroon/20 hover:bg-palette-beige/50'
-                        }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="material-symbols-rounded" style={{ fontSize: '18px', color: selectedUser.role === role.name ? 'white' : 'rgba(var(--palette-tan-rgb), 0.3)' }}>verified_user</span>
-                        <span className="text-[13px] font-black tracking-widest">{role.label}</span>
-                      </div>
-                      {selectedUser.role === role.name && <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>check_circle</span>}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="px-8 py-6 border-t border-palette-tan/15 bg-palette-beige/10 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {success && <div className="flex items-center gap-1 text-emerald-600 text-[12px] font-black tracking-wider animate-in fade-in zoom-in"><span className="material-symbols-rounded" style={{ fontSize: '12px' }}>check_circle</span> {t('common.updated')}</div>}
-              </div>
-              <button
-                onClick={handleUpdateRole}
-                disabled={saving}
-                className="flex items-center gap-2 px-8 py-3 bg-palette-maroon text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-black transition-all shadow-xl active:scale-95 disabled:opacity-40"
-              >
-                {saving ? <span className="material-symbols-rounded animate-spin" style={{ fontSize: '14px' }}>progress_activity</span> : <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>save</span>}
-                <span>{t('users.role_modal.submit')}</span>
+            <div className="flex items-center gap-2">
+              <button className="w-10 h-10 flex items-center justify-center rounded-[3px] border border-palette-tan/15 text-palette-tan hover:bg-white hover:text-palette-maroon transition-all disabled:opacity-30">
+                <span className="material-symbols-rounded">chevron_left</span>
+              </button>
+              <button className="w-10 h-10 flex items-center justify-center rounded-[3px] bg-palette-maroon text-white font-bold text-sm shadow-lg shadow-palette-maroon/20">1</button>
+              <button className="w-10 h-10 flex items-center justify-center rounded-[3px] border border-palette-tan/15 text-palette-tan hover:bg-white hover:text-palette-maroon transition-all">
+                <span className="material-symbols-rounded">chevron_right</span>
               </button>
             </div>
           </div>
         </div>
+      </div>
+
+      {/* MODALS RENDERED AT THE ROOT OF FRAGMENT TO ESCAPE TRANSFORM CONTAINMENT */}
+      {(showAddModal || showEditModal) && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 overflow-hidden">
+          {/* Backdrop covers EVERYTHING because it's no longer inside the animated div */}
+          <div
+            className="absolute inset-0 bg-palette-maroon/90 backdrop-blur-md animate-in fade-in"
+            onClick={() => !saving && (showAddModal ? setShowAddModal(false) : setShowEditModal(false))}
+          />
+
+          <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-xl overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 flex flex-col">
+
+            <div className="px-8 py-6 border-b border-palette-tan/15 flex items-center justify-between bg-palette-beige/10">
+              <h3 className="text-lg font-black text-palette-maroon tracking-tight flex items-center gap-2">
+                <div className="p-1.5 bg-palette-red rounded-[3px] text-white shadow-md flex items-center justify-center">
+                  {showEditModal ? <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>edit_square</span> : <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>add</span>}
+                </div>
+                {showEditModal ? 'Kullanıcıyı Düzenle' : 'Kullanıcı Ekle'}
+              </h3>
+              <button
+                onClick={() => showAddModal ? setShowAddModal(false) : setShowEditModal(false)}
+                className="p-1.5 text-palette-tan/40 hover:text-palette-red transition-colors flex items-center justify-center"
+              >
+                <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>close</span>
+              </button>
+            </div>
+
+            <div className="p-8 space-y-5">
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest">Adı Soyadı</label>
+                <input
+                  type="text"
+                  value={showAddModal ? newUser.full_name : editUserData.full_name}
+                  onChange={e => showAddModal ? setNewUser({ ...newUser, full_name: e.target.value }) : setEditUserData({ ...editUserData, full_name: e.target.value })}
+                  placeholder="John Doe"
+                  className={inputClasses}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest">Kullanıcı Adı</label>
+                  <input
+                    type="text"
+                    value={showAddModal ? newUser.username : editUserData.username}
+                    onChange={e => showAddModal ? setNewUser({ ...newUser, username: e.target.value }) : setEditUserData({ ...editUserData, username: e.target.value })}
+                    placeholder="johndoe"
+                    className={inputClasses}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest">E-posta</label>
+                  <input
+                    type="email"
+                    value={showAddModal ? newUser.email : editUserData.email}
+                    onChange={e => showAddModal && setNewUser({ ...newUser, email: e.target.value })}
+                    readOnly={showEditModal}
+                    placeholder="example@domain.com"
+                    className={`${inputClasses} ${showEditModal ? 'bg-palette-beige/20 cursor-not-allowed' : ''}`}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest">Rol</label>
+                  <div className="relative group/input">
+                    <select
+                      value={showAddModal ? newUser.role : editUserData.role}
+                      onChange={e => showAddModal ? setNewUser({ ...newUser, role: e.target.value }) : setEditUserData({ ...editUserData, role: e.target.value })}
+                      className={`${inputClasses} appearance-none cursor-pointer pr-10`}
+                    >
+                      <option value="" disabled>Rol Seçin</option>
+                      {roles.map(r => (
+                        <option key={r.id} value={r.name}>
+                          {r.label}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="material-symbols-rounded absolute right-4 top-1/2 -translate-y-1/2 text-palette-tan/30 pointer-events-none group-hover/input:text-palette-maroon transition-colors" style={{ fontSize: '14px' }}>expand_more</span>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest">Durum</label>
+                  <div className="relative group/input">
+                    <select
+                      value={showAddModal ? 'Aktif' : editUserData.status}
+                      onChange={e => setEditUserData({ ...editUserData, status: e.target.value })}
+                      className={`${inputClasses} appearance-none cursor-pointer ${showAddModal ? 'pointer-events-none' : ''}`}
+                    >
+                      <option value="Aktif">Aktif</option>
+                      <option value="Beklemede">Beklemede</option>
+                      <option value="Engelli">Engelli</option>
+                    </select>
+                    {!showAddModal && <span className="material-symbols-rounded absolute right-4 top-1/2 -translate-y-1/2 text-palette-tan/30 pointer-events-none group-hover/input:text-palette-maroon transition-colors" style={{ fontSize: '14px' }}>expand_more</span>}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest">{showEditModal ? 'Şifre (Değiştir)' : 'Şifre'}</label>
+                  <input
+                    type="password"
+                    value={showAddModal ? newUser.password : editUserData.password}
+                    onChange={e => showAddModal ? setNewUser({ ...newUser, password: e.target.value }) : setEditUserData({ ...editUserData, password: e.target.value })}
+                    placeholder="........"
+                    className={inputClasses}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest">Onayla</label>
+                  <input
+                    type="password"
+                    value={showAddModal ? newUser.confirmPassword : editUserData.confirmPassword}
+                    onChange={e => showAddModal ? setNewUser({ ...newUser, confirmPassword: e.target.value }) : setEditUserData({ ...editUserData, confirmPassword: e.target.value })}
+                    placeholder="........"
+                    className={inputClasses}
+                  />
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <label className="relative inline-flex items-center cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={showAddModal ? newUser.reward_system : editUserData.reward_system}
+                    onChange={e => showAddModal ? setNewUser({ ...newUser, reward_system: e.target.checked }) : setEditUserData({ ...editUserData, reward_system: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-palette-beige/50 border border-palette-tan/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-palette-tan/30 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-palette-red peer-checked:border-palette-red"></div>
+                  <span className="ml-3 text-[11px] font-black text-palette-maroon uppercase tracking-widest opacity-60 group-hover:opacity-100 transition-opacity">Ödül Sistemini Etkinleştir</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="px-8 py-6 border-t border-palette-beige bg-palette-beige/10 flex items-center justify-end gap-3">
+              <button
+                onClick={() => showAddModal ? setShowAddModal(false) : setShowEditModal(false)}
+                className="px-5 py-2.5 font-black text-[11px] text-palette-tan/40 hover:text-palette-maroon tracking-widest uppercase"
+              >
+                Vazgeç
+              </button>
+              <button
+                onClick={() => showAddModal ? handleAddUser() : handleUpdateUser()}
+                disabled={saving}
+                className="flex items-center justify-center gap-2 px-6 py-2 bg-palette-tan text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-maroon shadow-xl active:scale-95 disabled:opacity-40 transition-all uppercase"
+              >
+                {saving ? <span className="material-symbols-rounded animate-spin" style={{ fontSize: '16px' }}>progress_activity</span> : <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>save</span>}
+                <span>{showEditModal ? 'Kaydet' : 'Ekle'}</span>
+              </button>
+            </div>
+
+          </div>
+        </div>
       )}
 
-      {/* DELETE CONFIRMATION MODAL */}
+      {/* DELETE MODAL OUTSIDE ANIMATED DIV */}
       {showDeleteModal && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-palette-maroon/40 backdrop-blur-sm animate-in fade-in" onClick={() => !saving && setShowDeleteModal(false)} />
-          <div className="relative bg-white rounded-[3px] shadow-[0_20px_70px_rgba(0,0,0,0.2)] w-full max-w-sm overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 p-8 text-center">
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-palette-maroon/40 backdrop-blur-md animate-in fade-in" onClick={() => !saving && setShowDeleteModal(false)} />
+          <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 p-8 text-center">
             <div className="w-20 h-20 bg-red-50 text-palette-red rounded-[3px] flex items-center justify-center mx-auto mb-6 shadow-inner">
               <span className="material-symbols-rounded" style={{ fontSize: '32px' }}>delete</span>
             </div>
-            <h3 className="text-[22px] font-black text-palette-maroon tracking-tight mb-3">{t('users.delete_title')}</h3>
-            <p className="text-sm font-bold text-palette-tan/60 leading-relaxed mb-8">
-              <span className="text-palette-maroon">"{userToDelete?.full_name}"</span> {t('users.delete_confirm').replace('{name}', '')} <br />
-              <span className="text-palette-red/70">{t('users.delete_warning')}</span>
+            <h3 className="text-xl font-black text-palette-maroon tracking-tight mb-3 uppercase">{t('users.actions.delete')}?</h3>
+            <p className="text-[13px] font-bold text-palette-tan/60 leading-relaxed mb-8">
+              <span className="text-palette-maroon">"{userToDelete?.full_name}"</span> isimli kullanıcıyı silmek istediğinize emin misiniz?
             </p>
             <div className="flex flex-col gap-3">
               <button
                 onClick={confirmDelete}
                 disabled={saving}
-                className="w-full h-12 bg-palette-red text-white rounded-[3px] font-black text-[14px] tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-palette-red/20 flex items-center justify-center gap-2"
+                className="w-full h-10 bg-palette-red text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-palette-red/20 flex items-center justify-center gap-2 uppercase"
               >
                 {saving ? <span className="material-symbols-rounded animate-spin" style={{ fontSize: '16px' }}>progress_activity</span> : <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>delete</span>}
-                {t('common.delete_kalici')}
+                SİLİNSİN
               </button>
               <button
                 onClick={() => setShowDeleteModal(false)}
-                disabled={saving}
-                className="w-full h-12 bg-palette-beige/30 text-palette-tan rounded-[3px] font-black text-[14px] tracking-widest hover:bg-palette-beige/50 transition-all"
+                className="w-full h-10 bg-palette-beige/30 text-palette-tan rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-beige/50 transition-all uppercase"
               >
                 {t('common.cancel')}
               </button>
@@ -484,9 +828,371 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
         </div>
       )}
 
-      {/* STATUS MODAL (Success/Error) */}
+      {/* PUBLISHER MODAL OUTSIDE ANIMATED DIV */}
+      {showPublisherModal && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-palette-maroon/90 backdrop-blur-md animate-in fade-in" onClick={() => !saving && setShowPublisherModal(false)} />
+          <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 flex flex-col">
+
+            <div className="px-8 py-6 border-b border-palette-tan/15 flex items-center justify-between bg-palette-beige/10">
+              <h3 className="text-lg font-black text-palette-maroon tracking-tight flex items-center gap-2">
+                <div className="p-1.5 bg-palette-red rounded-[3px] text-white shadow-md flex items-center justify-center">
+                  <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>business_center</span>
+                </div>
+                Yayıncı Ekle
+              </h3>
+              <button
+                onClick={() => setShowPublisherModal(false)}
+                className="p-1.5 text-palette-tan/40 hover:text-palette-red transition-colors flex items-center justify-center"
+              >
+                <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>close</span>
+              </button>
+            </div>
+
+            <div className="p-8 space-y-7">
+              {/* Kullanıcı Seçimi */}
+              <div className="space-y-2 relative">
+                <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest flex items-center gap-1.5">
+                  Kullanıcıları Seçin <span className="text-palette-red">*</span>
+                </label>
+                <div
+                  className={`min-h-[44px] p-2 bg-palette-beige/30 border ${activeMultiSelect === 'users' ? 'border-palette-red ring-4 ring-palette-red/5' : 'border-palette-tan/10'} rounded-[3px] transition-all flex flex-wrap gap-2 items-center cursor-text relative group`}
+                  onClick={() => setActiveMultiSelect('users')}
+                >
+                  {selectedUsersForPublisher.map(id => {
+                    const u = profiles.find(p => p.id === id);
+                    return (
+                      <div key={id} className="flex items-center gap-2 bg-white/80 border border-palette-tan/10 px-2.5 py-1 rounded-[3px] text-[12px] font-bold text-palette-maroon shadow-sm group/tag animate-in zoom-in-95">
+                        <span>{u?.full_name} ({u?.email})</span>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setSelectedUsersForPublisher(prev => prev.filter(i => i !== id)); }}
+                          className="hover:text-palette-red transition-colors"
+                        >
+                          <span className="material-symbols-rounded text-[14px]">close</span>
+                        </button>
+                      </div>
+                    );
+                  })}
+                  <input
+                    type="text"
+                    value={userSearchTerm}
+                    onChange={(e) => setUserSearchTerm(e.target.value)}
+                    placeholder={selectedUsersForPublisher.length === 0 ? "Kullanıcı Ara..." : ""}
+                    className="flex-1 bg-transparent border-none outline-none text-sm font-bold text-palette-maroon min-w-[120px] placeholder:text-palette-tan/30 ml-1"
+                  />
+                  {selectedUsersForPublisher.length > 0 && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setSelectedUsersForPublisher([]); }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/40 hover:text-palette-red transition-colors"
+                    >
+                      <span className="material-symbols-rounded text-[18px]">close</span>
+                    </button>
+                  )}
+                </div>
+                <p className="text-[10px] font-bold text-palette-tan/40 ml-1">Lütfen en az bir kullanıcı seçin</p>
+
+                {activeMultiSelect === 'users' && (
+                  <div className="absolute top-[calc(100%+4px)] left-0 right-0 bg-white border border-palette-tan/20 rounded-[3px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-[200] max-h-60 overflow-y-auto py-2 animate-in fade-in slide-in-from-top-2">
+                    {profiles.filter(u => !selectedUsersForPublisher.includes(u.id) && (u.full_name?.toLowerCase().includes(userSearchTerm.toLowerCase()) || u.email?.toLowerCase().includes(userSearchTerm.toLowerCase()))).length === 0 ? (
+                      <div className="px-5 py-4 text-center text-palette-tan/40 text-[12px] font-bold uppercase tracking-widest italic">Sonuç bulunamadı</div>
+                    ) : (
+                      profiles.filter(u => !selectedUsersForPublisher.includes(u.id) && (u.full_name?.toLowerCase().includes(userSearchTerm.toLowerCase()) || u.email?.toLowerCase().includes(userSearchTerm.toLowerCase()))).map(u => (
+                        <button
+                          key={u.id}
+                          onClick={() => { setSelectedUsersForPublisher(prev => [...prev, u.id]); setUserSearchTerm(''); setActiveMultiSelect(null); }}
+                          className="w-full px-5 py-3 text-left text-[13px] font-bold text-palette-maroon hover:bg-palette-beige/30 transition-all flex items-center justify-between group/item"
+                        >
+                          <div className="flex flex-col">
+                            <span className="group-hover/item:text-palette-red transition-colors">{u.full_name}</span>
+                            <span className="text-[10px] text-palette-tan/40">@{u.username} • {u.email}</span>
+                          </div>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Yayıncı Seçimi */}
+              <div className="space-y-2 relative pt-2">
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest flex items-center gap-1.5">
+                    Yayıncıları Seçin <span className="text-palette-red">*</span>
+                  </label>
+                  <button
+                    onClick={() => { /* Navigate to publishers */ window.location.href = '/admin/publishers'; }}
+                    className="flex items-center gap-1.5 h-8 px-3 border border-palette-red/30 text-palette-red rounded-[3px] text-[10px] font-black uppercase tracking-widest hover:bg-palette-red hover:text-white transition-all active:scale-95"
+                  >
+                    <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>add</span>
+                    Yeni Yayıncı Ekle
+                  </button>
+                </div>
+                <div
+                  className={`min-h-[44px] p-2 bg-palette-beige/30 border ${activeMultiSelect === 'publishers' ? 'border-palette-red ring-4 ring-palette-red/5' : 'border-palette-tan/10'} rounded-[3px] transition-all flex flex-wrap gap-2 items-center cursor-text relative group`}
+                  onClick={() => setActiveMultiSelect('publishers')}
+                >
+                  {selectedPublishersForUser.map(id => {
+                    const p = publishersList.find(i => i.id === id);
+                    return (
+                      <div key={id} className="flex items-center gap-2 bg-white/80 border border-palette-tan/10 px-2.5 py-1 rounded-[3px] text-[12px] font-bold text-palette-maroon shadow-sm group/tag animate-in zoom-in-95">
+                        <span>{p?.full_name} ({p?.email})</span>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setSelectedPublishersForUser(prev => prev.filter(i => i !== id)); }}
+                          className="hover:text-palette-red transition-colors"
+                        >
+                          <span className="material-symbols-rounded text-[14px]">close</span>
+                        </button>
+                      </div>
+                    );
+                  })}
+                  <input
+                    type="text"
+                    value={pubSearchTerm}
+                    onChange={(e) => setPubSearchTerm(e.target.value)}
+                    placeholder={selectedPublishersForUser.length === 0 ? "Yayıncı Ara..." : ""}
+                    className="flex-1 bg-transparent border-none outline-none text-sm font-bold text-palette-maroon min-w-[120px] placeholder:text-palette-tan/30 ml-1"
+                  />
+                  {selectedPublishersForUser.length > 0 && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setSelectedPublishersForUser([]); }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/40 hover:text-palette-red transition-colors"
+                    >
+                      <span className="material-symbols-rounded text-[18px]">close</span>
+                    </button>
+                  )}
+                </div>
+
+                {activeMultiSelect === 'publishers' && (
+                  <div className="absolute top-[calc(100%+4px)] left-0 right-0 bg-white border border-palette-tan/20 rounded-[3px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-[200] max-h-60 overflow-y-auto py-2 animate-in fade-in slide-in-from-top-2">
+                    {publishersList.filter(p => !selectedPublishersForUser.includes(p.id) && (p.full_name?.toLowerCase().includes(pubSearchTerm.toLowerCase()) || p.email?.toLowerCase().includes(pubSearchTerm.toLowerCase()))).length === 0 ? (
+                      <div className="px-5 py-4 text-center text-palette-tan/40 text-[12px] font-bold uppercase tracking-widest italic">Sonuç bulunamadı</div>
+                    ) : (
+                      publishersList.filter(p => !selectedPublishersForUser.includes(p.id) && (p.full_name?.toLowerCase().includes(pubSearchTerm.toLowerCase()) || p.email?.toLowerCase().includes(pubSearchTerm.toLowerCase()))).map(p => (
+                        <button
+                          key={p.id}
+                          onClick={() => { setSelectedPublishersForUser(prev => [...prev, p.id]); setPubSearchTerm(''); setActiveMultiSelect(null); }}
+                          className="w-full px-5 py-3 text-left text-[13px] font-bold text-palette-maroon hover:bg-palette-beige/30 transition-all flex items-center justify-between group/item"
+                        >
+                          <div className="flex flex-col">
+                            <span className="group-hover/item:text-palette-red transition-colors">{p.full_name}</span>
+                            <span className="text-[10px] text-palette-tan/40">{p.email}</span>
+                          </div>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-palette-beige/20 p-4 rounded-[3px] border border-palette-tan/5 mt-4">
+                <p className="text-[10px] font-bold text-palette-tan/40 leading-relaxed uppercase">
+                  Not: Bir kullanıcıya birden fazla yayıncı atayarak içerik üretim yetkisini genişletebilirsiniz.
+                </p>
+              </div>
+            </div>
+
+            <div className="px-8 py-6 border-t border-palette-beige bg-palette-beige/10 flex items-center justify-end gap-3">
+              <button
+                onClick={() => setShowPublisherModal(false)}
+                className="px-5 py-2.5 font-black text-[11px] text-palette-tan/40 hover:text-palette-maroon tracking-widest uppercase transition-colors"
+              >
+                Vazgeç
+              </button>
+              <button
+                onClick={async () => {
+                  if (selectedUsersForPublisher.length === 0 || selectedPublishersForUser.length === 0) {
+                    setStatusModal({ show: true, type: 'error', message: 'Lütfen kullanıcı ve yayıncı seçin.' });
+                    return;
+                  }
+                  setSaving(true);
+                  try {
+                    // This logic assumes a 'publisher_users' table exists as suggested in SQL.
+                    // If not, it will error, which ensures the user runs the SQL.
+                    for (const userId of selectedUsersForPublisher) {
+                      for (const pubId of selectedPublishersForUser) {
+                        await supabase.from('publisher_users').upsert({
+                          user_id: userId,
+                          publisher_id: pubId
+                        });
+                      }
+                    }
+                    setStatusModal({ show: true, type: 'success', message: 'Yayıncı atamaları başarıyla gerçekleştirildi.' });
+                    setShowPublisherModal(false);
+                    fetchData();
+                  } catch (err: any) {
+                    setStatusModal({ show: true, type: 'error', message: err.message });
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving || selectedUsersForPublisher.length === 0 || selectedPublishersForUser.length === 0}
+                className="flex items-center justify-center gap-2 px-6 py-2 bg-palette-tan text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-maroon shadow-xl active:scale-95 disabled:opacity-40 transition-all uppercase"
+              >
+                {saving ? <span className="material-symbols-rounded animate-spin" style={{ fontSize: '16px' }}>progress_activity</span> : <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>save</span>}
+                <span>Kaydet</span>
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {showUserPublisherModal && targetUserForPublishers && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-palette-maroon/90 backdrop-blur-md animate-in fade-in" onClick={() => !saving && setShowUserPublisherModal(false)} />
+          <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-xl overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 flex flex-col">
+
+            <div className="px-8 py-6 border-b border-palette-tan/15 flex items-center justify-between bg-palette-beige/10">
+              <h3 className="text-xl font-black text-palette-maroon tracking-tight flex items-center gap-2">
+                Kullanıcı Yayıncılarını Düzenle
+              </h3>
+              <button
+                onClick={() => setShowUserPublisherModal(false)}
+                className="p-1.5 text-palette-tan/40 hover:text-palette-red transition-colors"
+              >
+                <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>close</span>
+              </button>
+            </div>
+
+            <div className="p-8 space-y-6">
+              <div className="text-center mb-2">
+                <p className="text-[13px] font-bold text-palette-tan/60 tracking-tight">Seçili kullanıcı için yayıncıları düzenleyin</p>
+              </div>
+
+              <div className="bg-cyan-50/50 border border-cyan-100 p-4 rounded-[3px] flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+                <div className="w-8 h-8 rounded-full bg-cyan-100 flex items-center justify-center text-cyan-600">
+                  <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>info</span>
+                </div>
+                <p className="text-[12px] font-bold text-cyan-700">
+                  Yayıncıları düzenlenen kullanıcı: <span className="font-black underline">{targetUserForPublishers.full_name} ({targetUserForPublishers.email})</span>
+                </p>
+              </div>
+
+              <div className="space-y-2 relative">
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest flex items-center gap-1.5">
+                    Yayıncıları Seçin <span className="text-palette-red">*</span>
+                  </label>
+                  <button
+                    onClick={() => window.location.href = '/admin/publishers'}
+                    className="flex items-center gap-1.5 h-8 px-3 border border-palette-red/30 text-palette-red rounded-[3px] text-[10px] font-black uppercase tracking-widest hover:bg-palette-red hover:text-white transition-all active:scale-95"
+                  >
+                    <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>add</span>
+                    Yeni Yayıncı Ekle
+                  </button>
+                </div>
+                <div
+                  className={`min-h-[44px] p-2 bg-palette-beige/30 border ${activeMultiSelect === 'publishers' ? 'border-palette-red ring-4 ring-palette-red/5' : 'border-palette-tan/10'} rounded-[3px] transition-all flex flex-wrap gap-2 items-center cursor-text relative group`}
+                  onClick={() => setActiveMultiSelect('publishers')}
+                >
+                  {selectedPublishersForUser.map(id => {
+                    const p = publishersList.find(i => i.id === id);
+                    return (
+                      <div key={id} className="flex items-center gap-2 bg-white/80 border border-palette-tan/10 px-2.5 py-1 rounded-[3px] text-[12px] font-bold text-palette-maroon shadow-sm group/tag animate-in zoom-in-95">
+                        <span>{p?.full_name} ({p?.email})</span>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setSelectedPublishersForUser(prev => prev.filter(i => i !== id)); }}
+                          className="hover:text-palette-red transition-colors"
+                        >
+                          <span className="material-symbols-rounded text-[14px]">close</span>
+                        </button>
+                      </div>
+                    );
+                  })}
+                  <input
+                    type="text"
+                    value={pubSearchTerm}
+                    onChange={(e) => setPubSearchTerm(e.target.value)}
+                    placeholder={selectedPublishersForUser.length === 0 ? "Yayıncı Ara..." : ""}
+                    className="flex-1 bg-transparent border-none outline-none text-sm font-bold text-palette-maroon min-w-[120px] placeholder:text-palette-tan/30 ml-1"
+                  />
+                  {selectedPublishersForUser.length > 0 && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setSelectedPublishersForUser([]); }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/40 hover:text-palette-red transition-colors"
+                    >
+                      <span className="material-symbols-rounded text-[18px]">close</span>
+                    </button>
+                  )}
+                </div>
+
+                {activeMultiSelect === 'publishers' && (
+                  <div className="absolute top-[calc(100%+4px)] left-0 right-0 bg-white border border-palette-tan/20 rounded-[3px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-[200] max-h-60 overflow-y-auto py-2 animate-in fade-in slide-in-from-top-2">
+                    {publishersList.filter(p => !selectedPublishersForUser.includes(p.id) && (p.full_name?.toLowerCase().includes(pubSearchTerm.toLowerCase()) || p.email?.toLowerCase().includes(pubSearchTerm.toLowerCase()))).length === 0 ? (
+                      <div className="px-5 py-4 text-center text-palette-tan/40 text-[12px] font-bold uppercase tracking-widest italic">Sonuç bulunamadı</div>
+                    ) : (
+                      publishersList.filter(p => !selectedPublishersForUser.includes(p.id) && (p.full_name?.toLowerCase().includes(pubSearchTerm.toLowerCase()) || p.email?.toLowerCase().includes(pubSearchTerm.toLowerCase()))).map(p => (
+                        <button
+                          key={p.id}
+                          onClick={() => { setSelectedPublishersForUser(prev => [...prev, p.id]); setPubSearchTerm(''); setActiveMultiSelect(null); }}
+                          className="w-full px-5 py-3 text-left text-[13px] font-bold text-palette-maroon hover:bg-palette-beige/30 transition-all flex items-center justify-between group/item"
+                        >
+                          <div className="flex flex-col">
+                            <span className="group-hover/item:text-palette-red transition-colors">{p.full_name}</span>
+                            <span className="text-[10px] text-palette-tan/40">{p.email}</span>
+                          </div>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+                <p className="text-[10px] font-bold text-palette-tan/40 ml-1">Kullanıcı için Yayıncıları Seçin</p>
+              </div>
+
+              <div className="bg-palette-beige/20 p-4 rounded-[3px] border border-palette-tan/5 mt-4">
+                <p className="text-[10px] font-bold text-palette-tan/40 leading-relaxed uppercase italic">
+                  Not: Bir kullanıcıya birden fazla yayıncı atayarak içerik üretim yetkisini genişletebilirsiniz.
+                </p>
+              </div>
+            </div>
+
+            <div className="px-8 py-8 border-t border-palette-beige bg-palette-beige/10 flex items-center justify-center gap-4">
+              <button
+                onClick={async () => {
+                  setSaving(true);
+                  try {
+                    // Delete existing relations for this user
+                    await supabase.from('publisher_users').delete().eq('user_id', targetUserForPublishers.id);
+
+                    // Insert new relations
+                    if (selectedPublishersForUser.length > 0) {
+                      const inserts = selectedPublishersForUser.map(pubId => ({
+                        user_id: targetUserForPublishers.id,
+                        publisher_id: pubId
+                      }));
+                      const { error } = await supabase.from('publisher_users').insert(inserts);
+                      if (error) throw error;
+                    }
+
+                    setStatusModal({ show: true, type: 'success', message: 'Kullanıcı yayıncıları başarıyla güncellendi.' });
+                    setShowUserPublisherModal(false);
+                    fetchData();
+                  } catch (err: any) {
+                    setStatusModal({ show: true, type: 'error', message: err.message });
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving}
+                className="min-w-[140px] px-8 py-3 bg-palette-red text-white rounded-[3px] font-black text-[14px] tracking-widest hover:bg-palette-maroon shadow-xl active:scale-95 transition-all uppercase"
+              >
+                {saving ? 'KAYDEDİLİYOR...' : 'KAYDET'}
+              </button>
+              <button
+                onClick={() => setShowUserPublisherModal(false)}
+                className="min-w-[140px] px-8 py-3 bg-[#E5E7EB] text-palette-tan font-black text-[14px] tracking-widest hover:bg-[#D1D5DB] rounded-[3px] transition-all uppercase"
+              >
+                İPTAL
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* STATUS MODAL OUTSIDE ANIMATED DIV */}
       {statusModal.show && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-palette-maroon/20 backdrop-blur-[2px] animate-in fade-in" onClick={() => setStatusModal({ ...statusModal, show: false })} />
           <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-xs overflow-hidden animate-in slide-in-from-bottom-4 border border-palette-tan/15 p-8 text-center">
             <div className={`w-16 h-16 rounded-[3px] flex items-center justify-center mx-auto mb-6 ${statusModal.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
@@ -495,15 +1201,14 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
             <p className="text-base font-black text-palette-maroon mb-8 leading-relaxed">{statusModal.message}</p>
             <button
               onClick={() => setStatusModal({ ...statusModal, show: false })}
-              className="w-full py-4 bg-palette-tan text-white rounded-[3px] font-black text-[14px] tracking-widest hover:bg-palette-maroon transition-all shadow-lg active:scale-95"
+              className="w-full py-2.5 bg-palette-tan text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-maroon transition-all shadow-lg active:scale-95 uppercase"
             >
               {t('common.ok')}
             </button>
           </div>
         </div>
       )}
-
-    </div>
+    </>
   );
 };
 

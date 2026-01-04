@@ -1,0 +1,722 @@
+
+import React, { useEffect, useState, useRef, useMemo } from 'react';
+import { supabase } from '../../lib/supabase';
+import { useLanguage } from '../../context/LanguageContext';
+
+interface Publisher {
+    id: string;
+    username: string;
+    full_name: string;
+    avatar_url: string;
+    email?: string;
+    phone?: string;
+    website?: string;
+    address?: string;
+    expertise?: string;
+    foundation_date?: string;
+    description?: string;
+    meta_title?: string;
+    meta_keywords?: string;
+    meta_description?: string;
+    canonical_url?: string;
+    status?: string;
+    reward_system?: boolean;
+    created_at?: string;
+    assigned_users?: any[];
+    assigned_categories?: any[];
+    post_count?: number;
+    password?: string;
+    confirmPassword?: string;
+}
+
+interface PublisherManagementProps {
+    onEditPublisher: (publisherId: string) => void;
+}
+
+const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublisher }) => {
+    const { t } = useLanguage();
+    const [publishers, setPublishers] = useState<Publisher[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [pageSize, setPageSize] = useState(10);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [publisherToDelete, setPublisherToDelete] = useState<Publisher | null>(null);
+    const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+    const [statusModal, setStatusModal] = useState<{ show: boolean, type: 'error' | 'success', message: string }>({ show: false, type: 'success', message: '' });
+
+    const dropdownRef = useRef<HTMLDivElement>(null);
+    const [saving, setSaving] = useState(false);
+
+    const [formData, setFormData] = useState<Publisher>({
+        id: '',
+        username: '',
+        full_name: '',
+        avatar_url: '',
+        email: '',
+        phone: '',
+        website: '',
+        address: '',
+        expertise: '',
+        foundation_date: '',
+        description: '',
+        meta_title: '',
+        meta_keywords: '',
+        meta_description: '',
+        canonical_url: '',
+        status: 'Aktif',
+        reward_system: true,
+        password: '',
+        confirmPassword: ''
+    });
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setOpenDropdownId(null);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+            setErrorMsg(null);
+
+            // Fetch publishers (profiles with role = 'publisher')
+            const { data: pubData, error: pubError } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('role', 'publisher')
+                .order('created_at', { ascending: false });
+
+            if (pubError) throw pubError;
+
+            // Fetch relations for each publisher
+            const enrichedData = await Promise.all((pubData || []).map(async (pub) => {
+                // Fetch assigned users
+                const { data: userData } = await supabase
+                    .from('publisher_users')
+                    .select('profiles(id, full_name)')
+                    .eq('publisher_id', pub.id);
+
+                // Fetch assigned categories (from navigation_items)
+                const { data: catData } = await supabase
+                    .from('publisher_categories')
+                    .select('navigation_items(id, label)')
+                    .eq('publisher_id', pub.id);
+
+                // Fetch post count (mocked for now as we don't have the relation easily countable in one query here)
+                // In a production app, you might use a VIEW or a RPC call.
+                const { count: postCount } = await supabase
+                    .from('posts')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('author_id', pub.id); // Assuming author_id links to publisher profile
+
+                return {
+                    ...pub,
+                    assigned_users: userData?.map((u: any) => u.profiles) || [],
+                    assigned_categories: catData?.map((c: any) => ({ id: c.navigation_items.id, name: c.navigation_items.label })) || [],
+                    post_count: postCount || 0
+                };
+            }));
+
+            setPublishers(enrichedData);
+        } catch (err: any) {
+            console.error("Veri çekme hatası:", err);
+            setErrorMsg(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const stats = useMemo(() => {
+        const totalPubs = publishers.length;
+        const totalPosts = publishers.reduce((acc, pub) => acc + (pub.post_count || 0), 0);
+        const activePubs = publishers.filter(p => p.status === 'Aktif').length;
+        const passivePubs = publishers.filter(p => p.status !== 'Aktif').length;
+
+        return [
+            { label: t('publishers.stats.session'), value: totalPubs, change: '+0%', desc: 'Toplam Yayıncılar', icon: 'business', color: 'bg-red-50 text-red-600', iconBg: 'bg-red-50' },
+            { label: t('publishers.stats.total_posts'), value: totalPosts, change: '+0%', desc: 'Geçen hafta analitiği', icon: 'description', color: 'bg-red-50 text-red-600', iconBg: 'bg-red-50' },
+            { label: t('publishers.stats.active'), value: activePubs, change: '+0%', desc: 'Geçen hafta analitiği', icon: 'check_circle', color: 'bg-emerald-50 text-emerald-600', iconBg: 'bg-emerald-50' },
+            { label: t('publishers.stats.passive'), value: passivePubs, change: '+0%', desc: 'Geçen hafta analitiği', icon: 'schedule', color: 'bg-orange-50 text-orange-600', iconBg: 'bg-orange-50' },
+        ];
+    }, [publishers, t]);
+
+    const filteredPublishers = publishers.filter(pub =>
+        pub.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        pub.username?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const handleEditClick = (pub: Publisher) => {
+        setFormData(pub);
+        setShowEditModal(true);
+        setOpenDropdownId(null);
+    };
+
+    const confirmDelete = async () => {
+        if (!publisherToDelete) return;
+        setSaving(true);
+        try {
+            // Option A: Just change role to 'member'
+            // Option B: Delete profile (this will cascade delete users/categories relations)
+            // We'll go with changing role or deleting if confirmed. 
+            // In many systems, we just deactivate.
+            const { error } = await supabase.from('profiles').delete().eq('id', publisherToDelete.id);
+            if (error) throw error;
+
+            setShowDeleteModal(false);
+            setPublisherToDelete(null);
+            fetchData();
+            setStatusModal({ show: true, type: 'success', message: 'Yayıncı başarıyla silindi.' });
+        } catch (err: any) {
+            setStatusModal({ show: true, type: 'error', message: err.message });
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const inputClasses = "w-full h-10 px-4 bg-palette-beige/30 border border-palette-tan/10 rounded-[3px] text-sm font-bold text-palette-maroon outline-none focus:bg-white focus:border-palette-tan focus:ring-4 focus:ring-palette-tan/5 transition-all placeholder:text-palette-tan/30";
+
+    return (
+        <>
+            <div className="space-y-6 animate-in fade-in duration-700 pb-20">
+
+                {/* STATS CARDS matches Image 0 */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {stats.map((stat, i) => (
+                        <div key={i} className="bg-white p-6 rounded-[3px] border border-palette-tan/15 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+                            <div className="flex justify-between items-start mb-4">
+                                <div>
+                                    <p className="text-[13px] font-bold text-palette-tan/60">{stat.label}</p>
+                                    <div className="flex items-baseline gap-2 mt-1">
+                                        <h3 className="text-[28px] font-black text-palette-maroon tracking-tight">{stat.value}</h3>
+                                        <span className={`text-[11px] font-black ${stat.change.startsWith('+') ? 'text-emerald-500' : 'text-palette-red'}`}>({stat.change})</span>
+                                    </div>
+                                </div>
+                                <div className={`w-10 h-10 ${stat.iconBg} rounded-[3px] flex items-center justify-center ${stat.color.split(' ')[1]}`}>
+                                    <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>{stat.icon}</span>
+                                </div>
+                            </div>
+                            <p className="text-[11px] font-bold text-palette-tan/40 uppercase tracking-widest">{stat.desc}</p>
+                            <div className="absolute bottom-0 left-0 w-full h-0.5 bg-palette-maroon/5 group-hover:bg-palette-maroon/20 transition-all"></div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* MAIN CONTENT BOX */}
+                <div className="bg-white rounded-[3px] border border-palette-tan/20 shadow-sm min-h-[600px] flex flex-col">
+
+                    <div className="p-8 border-b border-palette-tan/10 space-y-8">
+                        <h2 className="text-xl font-black text-palette-maroon uppercase tracking-tight">{t('publishers.page_title')}</h2>
+
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                            <div className="flex items-center gap-6 w-full md:w-auto">
+                                <div className="relative group/size">
+                                    <select
+                                        className="h-11 px-6 pr-10 bg-palette-beige/20 border border-palette-tan/15 rounded-[3px] text-[13px] font-black text-palette-maroon appearance-none outline-none focus:bg-white focus:border-palette-maroon transition-all cursor-pointer min-w-[80px]"
+                                        value={pageSize}
+                                        onChange={(e) => setPageSize(Number(e.target.value))}
+                                    >
+                                        <option value={10}>10</option>
+                                        <option value={25}>25</option>
+                                        <option value={50}>50</option>
+                                    </select>
+                                    <span className="material-symbols-rounded absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/30 pointer-events-none" style={{ fontSize: '18px' }}>expand_more</span>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-4 w-full md:w-auto">
+                                <div className="relative flex-1 md:flex-none">
+                                    <input
+                                        type="text"
+                                        placeholder={t('publishers.search_placeholder')}
+                                        className="w-full md:w-[250px] h-11 pl-4 pr-10 bg-white border border-palette-tan/15 rounded-[3px] text-[13px] font-bold text-palette-maroon outline-none focus:border-palette-maroon focus:ring-4 focus:ring-palette-maroon/5 transition-all shadow-sm"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                    <span className="material-symbols-rounded absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/40" style={{ fontSize: '18px' }}>search</span>
+                                </div>
+
+                                <button
+                                    onClick={() => {
+                                        setFormData({
+                                            id: '',
+                                            username: '',
+                                            full_name: '',
+                                            avatar_url: '',
+                                            email: '',
+                                            phone: '',
+                                            website: '',
+                                            address: '',
+                                            expertise: '',
+                                            foundation_date: '',
+                                            description: '',
+                                            meta_title: '',
+                                            meta_keywords: '',
+                                            meta_description: '',
+                                            canonical_url: '',
+                                            status: 'Aktif',
+                                            reward_system: true,
+                                            password: '',
+                                            confirmPassword: ''
+                                        });
+                                        setShowAddModal(true);
+                                    }}
+                                    className="flex items-center gap-2 h-11 px-4 bg-palette-red text-white rounded-[3px] text-[13px] font-black tracking-widest hover:bg-palette-maroon transition-all shadow-lg shadow-palette-red/20 active:scale-95"
+                                >
+                                    <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>add</span>
+                                    Yayıncı Ekle
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* TABLE matches Image 0 */}
+                    <div className="flex-1 relative z-10 overflow-x-auto md:overflow-visible scrollbar-thin scrollbar-thumb-palette-tan/10">
+                        <table className="w-full text-left border-collapse table-fixed md:table-auto">
+                            <thead>
+                                <tr className="bg-palette-beige/10 border-b border-palette-tan/10">
+                                    <th className="w-12 px-8 py-5">
+                                        <input type="checkbox" className="w-4 h-4 rounded-[2px] border-palette-tan/30 text-palette-maroon focus:ring-palette-maroon cursor-pointer" />
+                                    </th>
+                                    <th className="w-24 px-4 py-5 text-[11px] font-black text-palette-tan uppercase tracking-widest">{t('publishers.table.id')}</th>
+                                    <th className="px-4 py-5 text-[11px] font-black text-palette-tan uppercase tracking-widest">{t('publishers.table.info')}</th>
+                                    <th className="px-6 py-5 text-[11px] font-black text-palette-tan uppercase tracking-widest text-center">{t('publishers.table.users')}</th>
+                                    <th className="px-6 py-5 text-[11px] font-black text-palette-tan uppercase tracking-widest text-center">{t('publishers.table.categories')}</th>
+                                    <th className="px-6 py-5 text-[11px] font-black text-palette-tan uppercase tracking-widest text-center">{t('publishers.table.reward')}</th>
+                                    <th className="px-6 py-5 text-[11px] font-black text-palette-tan uppercase tracking-widest text-center">{t('publishers.table.posts')}</th>
+                                    <th className="px-6 py-5 text-[11px] font-black text-palette-tan uppercase tracking-widest text-center">{t('publishers.table.status')}</th>
+                                    <th className="px-8 py-5 text-[11px] font-black text-palette-tan uppercase tracking-widest text-right">{t('publishers.table.created')}</th>
+                                    <th className="w-20 px-8 py-5 text-[11px] font-black text-palette-tan uppercase tracking-widest text-right">{t('publishers.table.actions')}</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-palette-tan/5 min-h-[400px]">
+                                {loading ? (
+                                    Array(5).fill(0).map((_, i) => (
+                                        <tr key={i} className="animate-pulse">
+                                            <td colSpan={10} className="px-8 py-10 opacity-50"><div className="h-4 bg-palette-beige rounded-[3px] w-full"></div></td>
+                                        </tr>
+                                    ))
+                                ) : filteredPublishers.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={10} className="px-8 py-32 text-center text-palette-tan/40 font-bold uppercase tracking-widest text-sm">
+                                            {t('publishers.empty_state')}
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    filteredPublishers.map((pub, idx) => (
+                                        <tr key={pub.id} className={`hover:bg-palette-beige/5 transition-all group ${openDropdownId === pub.id ? 'relative z-[100]' : 'relative z-1'}`}>
+                                            <td className="px-8 py-6">
+                                                <input type="checkbox" className="w-4 h-4 rounded-[2px] border-palette-tan/30 text-palette-maroon focus:ring-palette-maroon cursor-pointer" />
+                                            </td>
+                                            <td className="px-4 py-6 text-[13px] font-bold text-palette-tan/60">{idx + 2}</td>
+                                            <td className="px-4 py-6">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-12 h-12 flex-shrink-0 bg-palette-beige rounded-full overflow-hidden border border-palette-tan/10 shadow-sm relative transition-all">
+                                                        <img src={pub.avatar_url || `https://picsum.photos/seed/${pub.id}/100`} className="w-full h-full object-cover" alt="" />
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="font-bold text-palette-maroon text-[14px] leading-tight group-hover:text-palette-red transition-colors">{pub.full_name || t('publishers.unnamed')}</span>
+                                                        <span className="text-[11px] font-bold text-palette-tan/60">@{pub.username || 'username'}</span>
+                                                        <span className="text-[10px] font-bold text-palette-tan/40">{pub.email || 'pub@example.com'}</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-6 text-center">
+                                                <div className="flex flex-wrap items-center justify-center gap-1.5">
+                                                    {pub.assigned_users?.map(u => (
+                                                        <div key={u.id} className="flex items-center gap-1.5 bg-cyan-50 text-cyan-600 px-2.5 py-1 rounded-[3px] text-[10px] font-black uppercase tracking-widest border border-cyan-100">
+                                                            <span>{u.full_name}</span>
+                                                            <button className="text-palette-red hover:scale-110 transition-transform"><span className="material-symbols-rounded" style={{ fontSize: '14px' }}>edit</span></button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-6 text-center">
+                                                <div className="flex flex-wrap items-center justify-center gap-1.5">
+                                                    {pub.assigned_categories?.map(c => (
+                                                        <div key={c.id} className="flex items-center gap-1.5 bg-cyan-50 text-cyan-600 px-2.5 py-1 rounded-[3px] text-[10px] font-black uppercase tracking-widest border border-cyan-100">
+                                                            <span>{c.name}</span>
+                                                            <button className="text-palette-red hover:scale-110 transition-transform"><span className="material-symbols-rounded" style={{ fontSize: '14px' }}>edit</span></button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-6 text-center text-palette-tan/40">
+                                                <div className="flex items-center justify-center">
+                                                    <span className="material-symbols-rounded text-emerald-500" style={{ fontSize: '20px' }}>cached</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-6 text-center">
+                                                <div className="flex items-center justify-center gap-1.5 text-palette-tan/60 font-black text-[12px]">
+                                                    <span className="material-symbols-rounded text-[16px] opacity-40">description</span>
+                                                    <span>{pub.post_count || 0}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-6 text-center">
+                                                <span className="bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-[3px] text-[10px] font-black uppercase tracking-widest">{pub.status}</span>
+                                            </td>
+                                            <td className="px-8 py-6 text-right">
+                                                <div className="text-[11px] font-bold text-palette-tan flex flex-col uppercase">
+                                                    <span>{pub.created_at ? new Date(pub.created_at).toLocaleDateString('tr-TR') : 'Yükleniyor...'}</span>
+                                                    <span className="text-[9px] text-palette-tan/40 mt-0.5">
+                                                        {pub.created_at ? new Date(pub.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : ''}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="px-8 py-6 text-right">
+                                                <div className="flex items-center justify-end gap-1">
+                                                    <button onClick={() => handleEditClick(pub)} className="w-8 h-8 rounded-full flex items-center justify-center text-palette-red hover:bg-red-50 transition-all"><span className="material-symbols-rounded" style={{ fontSize: '18px' }}>edit</span></button>
+                                                    <button onClick={() => { setPublisherToDelete(pub); setShowDeleteModal(true); }} className="w-8 h-8 rounded-full flex items-center justify-center text-palette-red hover:bg-red-50 transition-all"><span className="material-symbols-rounded" style={{ fontSize: '18px' }}>delete</span></button>
+                                                    <div className="relative inline-block text-left" ref={openDropdownId === pub.id ? dropdownRef : null}>
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); setOpenDropdownId(openDropdownId === pub.id ? null : pub.id); }}
+                                                            className="w-8 h-8 rounded-full flex items-center justify-center text-palette-tan/40 hover:bg-palette-beige hover:text-palette-maroon transition-all active:scale-90"
+                                                        >
+                                                            <span className="material-symbols-rounded">more_vert</span>
+                                                        </button>
+                                                        {openDropdownId === pub.id && (
+                                                            <div className={`absolute right-0 ${idx >= filteredPublishers.length - 2 && idx > 0 ? 'bottom-full mb-2' : 'top-full mt-1'} w-64 bg-white border border-palette-tan/20 rounded-[3px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-[200] py-2 animate-in fade-in zoom-in-95 duration-200`}>
+                                                                <button onClick={() => { onEditPublisher(pub.id); setOpenDropdownId(null); }} className="w-full px-5 py-3 text-left text-[13px] font-bold text-palette-maroon hover:bg-palette-beige/30 transition-all flex items-center gap-3">
+                                                                    <span className="material-symbols-rounded text-cyan-500" style={{ fontSize: '18px' }}>description</span>
+                                                                    {t('publishers.actions.manage_posts')}
+                                                                </button>
+                                                                <button
+                                                                    onClick={async () => {
+                                                                        setSaving(true);
+                                                                        try {
+                                                                            const { error } = await supabase.from('profiles').update({ reward_system: !pub.reward_system }).eq('id', pub.id);
+                                                                            if (error) throw error;
+                                                                            setStatusModal({ show: true, type: 'success', message: 'Ödül sistemi güncellendi.' });
+                                                                            fetchData();
+                                                                        } catch (err: any) {
+                                                                            setStatusModal({ show: true, type: 'error', message: err.message });
+                                                                        } finally {
+                                                                            setSaving(false);
+                                                                            setOpenDropdownId(null);
+                                                                        }
+                                                                    }}
+                                                                    className="w-full px-5 py-3 text-left text-[13px] font-bold text-palette-maroon hover:bg-palette-beige/30 transition-all flex items-center gap-3"
+                                                                >
+                                                                    <span className="material-symbols-rounded text-orange-400" style={{ fontSize: '18px' }}>visibility_off</span>
+                                                                    {pub.reward_system ? 'Ödülü Devre Dışı Bırak' : 'Ödülü Aktifleştir'}
+                                                                </button>
+                                                                <button
+                                                                    onClick={async () => {
+                                                                        setSaving(true);
+                                                                        try {
+                                                                            const newStatus = pub.status === 'Aktif' ? 'Engelli' : 'Aktif';
+                                                                            const { error } = await supabase.from('profiles').update({ status: newStatus }).eq('id', pub.id);
+                                                                            if (error) throw error;
+                                                                            setStatusModal({ show: true, type: 'success', message: `Yayıncı ${newStatus === 'Aktif' ? 'Aktifleştirildi' : 'Durduruldu'}.` });
+                                                                            fetchData();
+                                                                        } catch (err: any) {
+                                                                            setStatusModal({ show: true, type: 'error', message: err.message });
+                                                                        } finally {
+                                                                            setSaving(false);
+                                                                            setOpenDropdownId(null);
+                                                                        }
+                                                                    }}
+                                                                    className="w-full px-5 py-3 text-left text-[13px] font-bold text-palette-maroon hover:bg-palette-beige/30 transition-all flex items-center gap-3"
+                                                                >
+                                                                    <span className="material-symbols-rounded text-orange-400" style={{ fontSize: '18px' }}>person_off</span>
+                                                                    {pub.status === 'Aktif' ? 'Yayıcıyı Durdur' : 'Yayıncıyı Başlat'}
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div className="p-8 border-t border-palette-tan/10 bg-palette-beige/5 flex items-center justify-between font-black text-[11px] tracking-widest text-palette-tan/40 uppercase relative z-0">
+                        <span>Showing 1 to {Math.min(filteredPublishers.length, pageSize)} of {filteredPublishers.length} entries</span>
+                        <div className="flex items-center gap-1">
+                            <button className="w-8 h-8 flex items-center justify-center rounded-[3px] border border-palette-tan/10 opacity-30 cursor-not-allowed"><span className="material-symbols-rounded" style={{ fontSize: '16px' }}>chevron_left</span></button>
+                            <button className="w-8 h-8 flex items-center justify-center rounded-[3px] bg-palette-red text-white">1</button>
+                            <button className="w-8 h-8 flex items-center justify-center rounded-[3px] border border-palette-tan/10"><span className="material-symbols-rounded" style={{ fontSize: '16px' }}>chevron_right</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div >
+
+            {/* MODALS RENDERED OUTSIDE FOR PERFECT BLUR */}
+            {
+                (showAddModal || showEditModal) && (
+                    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+                        <div className="absolute inset-0 bg-palette-maroon/90 backdrop-blur-md animate-in fade-in" onClick={() => !saving && (showAddModal ? setShowAddModal(false) : setShowEditModal(false))} />
+
+                        <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 flex flex-col">
+
+                            <div className="px-8 py-6 border-b border-palette-tan/15 flex items-center justify-between bg-palette-beige/10 sticky top-0 z-10">
+                                <h3 className="text-lg font-black text-palette-maroon tracking-tight flex items-center gap-3">
+                                    <div className="p-1.5 bg-palette-red rounded-[3px] text-white shadow-md flex items-center justify-center">
+                                        <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>business_center</span>
+                                    </div>
+                                    {showAddModal ? t('publishers.form.title') : t('publishers.form.edit_title')}
+                                </h3>
+                                <button
+                                    onClick={() => showAddModal ? setShowAddModal(false) : setShowEditModal(false)}
+                                    className="p-1.5 text-palette-tan/40 hover:text-palette-red transition-colors flex items-center justify-center"
+                                >
+                                    <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>close</span>
+                                </button>
+                            </div>
+
+                            <div className="p-8 overflow-y-auto scrollbar-thin scrollbar-thumb-palette-tan/10 space-y-5">
+                                <div className="text-center">
+                                    <p className="text-[14px] font-bold text-palette-tan/40 uppercase tracking-widest">{showAddModal ? 'Yeni yayıncı bilgilerini ekleyin' : 'Yayıncı bilgilerini güncelleyin'}</p>
+                                </div>
+
+                                {/* FIELDS matches Image 2 & 3 */}
+                                <div className="space-y-6">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[11px] font-black text-palette-tan/60 uppercase tracking-widest ml-1">{t('publishers.form.name')} <span className="text-palette-red">*</span></label>
+                                        <input type="text" value={formData.full_name} onChange={e => setFormData({ ...formData, full_name: e.target.value })} placeholder="Yayıncı Adı" className={inputClasses} />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1.5">
+                                            <label className="text-[11px] font-black text-palette-tan/60 uppercase tracking-widest ml-1">{t('publishers.form.username')} <span className="text-palette-red">*</span></label>
+                                            <input type="text" value={formData.username} onChange={e => setFormData({ ...formData, username: e.target.value })} placeholder="Kullanıcı Adı" className={inputClasses} />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[11px] font-black text-palette-tan/60 uppercase tracking-widest ml-1">{t('publishers.form.email')} <span className="text-palette-red">*</span></label>
+                                            <input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} placeholder="yayinci@ornek.com" className={inputClasses} />
+                                        </div>
+                                    </div>
+
+                                    {showAddModal && (
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1.5">
+                                                <label className="text-[11px] font-black text-palette-tan/60 uppercase tracking-widest ml-1">Şifre <span className="text-palette-red">*</span></label>
+                                                <input type="password" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} placeholder="••••••••" className={inputClasses} />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[11px] font-black text-palette-tan/60 uppercase tracking-widest ml-1">Şifre Onayla <span className="text-palette-red">*</span></label>
+                                                <input type="password" value={formData.confirmPassword} onChange={e => setFormData({ ...formData, confirmPassword: e.target.value })} placeholder="••••••••" className={inputClasses} />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1.5">
+                                            <label className="text-[11px] font-black text-palette-tan/60 uppercase tracking-widest ml-1">{t('publishers.form.phone')}</label>
+                                            <input type="text" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} placeholder="+90 555 000 00 00" className={inputClasses} />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[11px] font-black text-palette-tan/60 uppercase tracking-widest ml-1">{t('publishers.form.website')}</label>
+                                            <input type="text" value={formData.website} onChange={e => setFormData({ ...formData, website: e.target.value })} placeholder="https://ornek.com" className={inputClasses} />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1.5">
+                                            <label className="text-[11px] font-black text-palette-tan/60 uppercase tracking-widest ml-1">{t('publishers.form.address')}</label>
+                                            <input type="text" value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} placeholder="Yayıncı Adresi" className={inputClasses} />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[11px] font-black text-palette-tan/60 uppercase tracking-widest ml-1">{t('publishers.form.expertise')}</label>
+                                            <input type="text" value={formData.expertise} onChange={e => setFormData({ ...formData, expertise: e.target.value })} placeholder="Teknoloji, Haber, Spor..." className={inputClasses} />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-1.5 w-1/2">
+                                        <label className="text-[11px] font-black text-palette-tan/60 uppercase tracking-widest ml-1">{t('publishers.form.foundation')}</label>
+                                        <div className="relative group">
+                                            <input type="text" value={formData.foundation_date} onChange={e => setFormData({ ...formData, foundation_date: e.target.value })} placeholder="gg.aa.yyyy" className={inputClasses} />
+                                            <span className="material-symbols-rounded absolute right-4 top-1/2 -translate-y-1/2 text-palette-tan/40" style={{ fontSize: '18px' }}>calendar_month</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <label className="text-[11px] font-black text-palette-tan/60 uppercase tracking-widest ml-1">{t('publishers.form.description')}</label>
+                                        <textarea rows={4} value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} placeholder="Yayıncı açıklaması..." className="w-full p-4 bg-palette-beige/30 border border-palette-tan/10 rounded-[3px] text-sm font-bold text-palette-maroon outline-none focus:bg-white focus:border-palette-tan focus:ring-4 focus:ring-palette-tan/5 transition-all resize-none" />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1.5">
+                                            <label className="text-[11px] font-black text-palette-tan/60 uppercase tracking-widest ml-1">{t('publishers.form.meta_title')}</label>
+                                            <input type="text" value={formData.meta_title} onChange={e => setFormData({ ...formData, meta_title: e.target.value })} placeholder="Meta Başlık" className={inputClasses} />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[11px] font-black text-palette-tan/60 uppercase tracking-widest ml-1">{t('publishers.form.meta_keywords')}</label>
+                                            <input type="text" value={formData.meta_keywords} onChange={e => setFormData({ ...formData, meta_keywords: e.target.value })} placeholder="anahtar kelime1, anahtar kelime2" className={inputClasses} />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <label className="text-[11px] font-black text-palette-tan/60 uppercase tracking-widest ml-1">{t('publishers.form.meta_desc')}</label>
+                                        <textarea rows={2} value={formData.meta_description} onChange={e => setFormData({ ...formData, meta_description: e.target.value })} placeholder="Meta Açıklama" className="w-full p-4 bg-palette-beige/30 border border-palette-tan/10 rounded-[3px] text-sm font-bold text-palette-maroon outline-none focus:bg-white focus:border-palette-tan focus:ring-4 focus:ring-palette-tan/5 transition-all resize-none" />
+                                    </div>
+
+                                    <div className="space-y-1.5 w-1/2">
+                                        <label className="text-[11px] font-black text-palette-tan/60 uppercase tracking-widest ml-1">{t('publishers.form.canonical')}</label>
+                                        <input type="text" value={formData.canonical_url} onChange={e => setFormData({ ...formData, canonical_url: e.target.value })} placeholder="Kanonik URL" className={inputClasses} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="px-8 py-6 border-t border-palette-beige bg-palette-beige/10 flex items-center justify-end gap-3 sticky bottom-0 z-10">
+                                <button
+                                    onClick={() => showAddModal ? setShowAddModal(false) : setShowEditModal(false)}
+                                    className="px-5 py-2.5 font-black text-[13px] text-palette-tan/40 hover:text-palette-maroon tracking-widest uppercase transition-colors"
+                                >
+                                    {t('common.cancel')}
+                                </button>
+                                <button
+                                    onClick={async () => {
+                                        if (!formData.full_name || !formData.username) {
+                                            setStatusModal({ show: true, type: 'error', message: 'Lütfen zorunlu alanları doldurun.' });
+                                            return;
+                                        }
+                                        setSaving(true);
+                                        try {
+                                            const payload = {
+                                                full_name: formData.full_name,
+                                                username: formData.username,
+                                                email: formData.email,
+                                                phone: formData.phone,
+                                                website: formData.website,
+                                                address: formData.address,
+                                                expertise: formData.expertise,
+                                                foundation_date: formData.foundation_date,
+                                                about_me: formData.description,
+                                                meta_title: formData.meta_title,
+                                                meta_keywords: formData.meta_keywords,
+                                                meta_description: formData.meta_description,
+                                                canonical_url: formData.canonical_url,
+                                                role: 'publisher', // Ensure it is publisher if adding new
+                                            };
+
+                                            if (showEditModal && formData.id) {
+                                                const { error } = await supabase.from('profiles').update(payload).eq('id', formData.id);
+                                                if (error) throw error;
+                                            } else {
+                                                if (!formData.password || formData.password !== formData.confirmPassword) {
+                                                    setStatusModal({ show: true, type: 'error', message: 'Şifreler uyuşmuyor veya boş.' });
+                                                    setSaving(false);
+                                                    return;
+                                                }
+
+                                                const { data: authData, error: authError } = await supabase.auth.signUp({
+                                                    email: formData.email!,
+                                                    password: formData.password!,
+                                                    options: {
+                                                        data: {
+                                                            full_name: formData.full_name,
+                                                            username: formData.username
+                                                        }
+                                                    }
+                                                });
+
+                                                if (authError) throw authError;
+
+                                                if (authData.user) {
+                                                    const { error: profileError } = await supabase
+                                                        .from('profiles')
+                                                        .update(payload)
+                                                        .eq('id', authData.user.id);
+
+                                                    if (profileError) throw profileError;
+                                                }
+                                            }
+
+                                            setShowAddModal(false);
+                                            setShowEditModal(false);
+                                            setStatusModal({ show: true, type: 'success', message: 'Yayıncı başarıyla kaydedildi.' });
+                                            fetchData();
+                                        } catch (err: any) {
+                                            setStatusModal({ show: true, type: 'error', message: err.message });
+                                        } finally {
+                                            setSaving(false);
+                                        }
+                                    }}
+                                    disabled={saving}
+                                    className="flex items-center justify-center gap-2 px-6 py-2 bg-palette-tan text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-maroon shadow-xl active:scale-95 disabled:opacity-40 transition-all uppercase"
+                                >
+                                    {saving ? <span className="material-symbols-rounded animate-spin" style={{ fontSize: '16px' }}>progress_activity</span> : <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>save</span>}
+                                    <span>{showEditModal ? 'Kaydet' : 'Ekle'}</span>
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                )
+            }
+
+            {/* DELETE MODAL matches Image 4 standard */}
+            {
+                showDeleteModal && (
+                    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+                        <div className="absolute inset-0 bg-palette-maroon/40 backdrop-blur-md animate-in fade-in" onClick={() => !saving && setShowDeleteModal(false)} />
+                        <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 p-8 text-center">
+                            <div className="w-20 h-20 bg-red-50 text-palette-red rounded-[3px] flex items-center justify-center mx-auto mb-6 shadow-inner">
+                                <span className="material-symbols-rounded" style={{ fontSize: '32px' }}>delete</span>
+                            </div>
+                            <h3 className="text-xl font-black text-palette-maroon tracking-tight mb-3 uppercase">{t('publishers.delete_title')}</h3>
+                            <p className="text-[13px] font-bold text-palette-tan/60 leading-relaxed mb-8">
+                                <span className="text-palette-maroon">"{publisherToDelete?.full_name}"</span> {t('publishers.delete_confirm')}
+                            </p>
+                            <div className="flex flex-col gap-3">
+                                <button
+                                    onClick={confirmDelete}
+                                    disabled={saving}
+                                    className="w-full h-10 bg-palette-red text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-palette-red/20 flex items-center justify-center gap-2 uppercase"
+                                >
+                                    {saving ? <span className="material-symbols-rounded animate-spin" style={{ fontSize: '16px' }}>progress_activity</span> : <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>delete</span>}
+                                    SİLİNSİN
+                                </button>
+                                <button
+                                    onClick={() => setShowDeleteModal(false)}
+                                    className="w-full h-10 bg-palette-beige/30 text-palette-tan rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-beige/50 transition-all uppercase"
+                                >
+                                    {t('common.cancel')}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+
+            {/* SUCCESS/ERROR MODAL matches Image 4 standard */}
+            {
+                statusModal.show && (
+                    <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
+                        <div className="absolute inset-0 bg-palette-maroon/20 backdrop-blur-[2px] animate-in fade-in" onClick={() => setStatusModal({ ...statusModal, show: false })} />
+                        <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-xs overflow-hidden animate-in slide-in-from-bottom-4 border border-palette-tan/15 p-8 text-center">
+                            <div className={`w-16 h-16 rounded-[3px] flex items-center justify-center mx-auto mb-6 ${statusModal.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
+                                {statusModal.type === 'error' ? <span className="material-symbols-rounded" style={{ fontSize: '28px' }}>close</span> : <span className="material-symbols-rounded" style={{ fontSize: '28px' }}>check_circle</span>}
+                            </div>
+                            <p className="text-[14px] font-black text-palette-maroon mb-8 leading-relaxed uppercase">{statusModal.message}</p>
+                            <button
+                                onClick={() => setStatusModal({ ...statusModal, show: false })}
+                                className="w-full py-2.5 bg-palette-tan text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-maroon transition-all shadow-lg active:scale-95 uppercase"
+                            >
+                                TAMAM
+                            </button>
+                        </div>
+                    </div>
+                )
+            }
+        </>
+    );
+};
+
+export default PublisherManagement;

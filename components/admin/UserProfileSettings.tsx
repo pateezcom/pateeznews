@@ -15,7 +15,16 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({ userId, onSuc
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [profile, setProfile] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<'details' | 'security'>('details');
+  const [showPassword, setShowPassword] = useState({ old: false, new: false, confirm: false });
   const [statusModal, setStatusModal] = useState<{ show: boolean, type: 'error' | 'success', message: string }>({ show: false, type: 'success', message: '' });
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+
+  const [passwords, setPasswords] = useState({
+    old: '',
+    new: '',
+    confirm: ''
+  });
 
   useEffect(() => {
     fetchProfile();
@@ -48,7 +57,7 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({ userId, onSuc
     }
   };
 
-  const handleSave = async () => {
+  const handleSaveDetails = async () => {
     setSaving(true);
     try {
       const { error } = await supabase
@@ -58,7 +67,8 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({ userId, onSuc
           username: profile.username,
           slug: profile.slug,
           about_me: profile.about_me,
-          social_links: profile.social_links
+          social_links: profile.social_links,
+          phone: profile.phone
         })
         .eq('id', profile.id);
 
@@ -75,11 +85,53 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({ userId, onSuc
     }
   };
 
+  const handleUpdatePassword = async () => {
+    if (passwords.new !== passwords.confirm) {
+      setStatusModal({ show: true, type: 'error', message: 'Şifreler uyuşmuyor.' });
+      return;
+    }
+    setSaving(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: passwords.new });
+      if (error) throw error;
+      setSuccess(true);
+      setPasswords({ old: '', new: '', confirm: '' });
+      setTimeout(() => setSuccess(false), 2000);
+    } catch (err: any) {
+      setStatusModal({ show: true, type: 'error', message: err.message });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const updateSocial = (key: string, value: string) => {
     setProfile({
       ...profile,
       social_links: { ...profile.social_links, [key]: value }
     });
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!deleteConfirm) return;
+    setSaving(true);
+    try {
+      // For a real delete, we'd need an Edge Function to delete the auth user.
+      // Here we set status to 'Engelli' as a safe alternative for the client side.
+      const { error } = await supabase
+        .from('profiles')
+        .update({ status: 'Engelli' })
+        .eq('id', profile.id);
+
+      if (error) throw error;
+      setStatusModal({ show: true, type: 'success', message: 'Hesap başarıyla devre dışı bırakıldı.' });
+      setTimeout(() => {
+        if (onBack) onBack();
+      }, 2000);
+    } catch (err: any) {
+      setStatusModal({ show: true, type: 'error', message: err.message });
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading) return (
@@ -89,208 +141,267 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({ userId, onSuc
     </div>
   );
 
-  const inputClasses = "w-full h-11 pl-11 pr-4 bg-palette-beige/30 border border-palette-tan/20 rounded-[3px] text-base font-bold text-palette-maroon outline-none hover:border-palette-tan/40 focus:bg-white focus:border-palette-tan focus:ring-4 focus:ring-palette-tan/5 transition-all placeholder:text-palette-tan/30";
-  const iconClasses = "absolute left-4 top-1/2 -translate-y-1/2 text-palette-tan/40 group-focus-within:text-palette-tan transition-colors";
+  const inputClasses = "w-full h-10 px-4 bg-white border border-palette-tan/20 rounded-[3px] text-base font-bold text-palette-maroon outline-none hover:border-palette-tan focus:ring-4 focus:ring-palette-tan/5 transition-all placeholder:text-palette-tan/30";
+  const iconInputClasses = "w-full h-10 pl-12 pr-4 bg-white border border-palette-tan/20 rounded-[3px] text-base font-bold text-palette-maroon outline-none hover:border-palette-tan focus:ring-4 focus:ring-palette-tan/5 transition-all placeholder:text-palette-tan/30";
 
   return (
-    <div className="animate-in fade-in duration-500 mx-auto pb-10 admin-font">
+    <div className="animate-in fade-in duration-500 mx-auto pb-20 admin-font max-w-7xl">
 
-      {/* COMPACT HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 px-2">
-        <div className="flex items-center gap-5">
-          {onBack && (
-            <button
-              onClick={onBack}
-              className="p-3 bg-white border border-palette-tan/15 rounded-[3px] text-palette-tan hover:bg-palette-tan hover:text-white transition-all shadow-sm active:scale-90 flex items-center justify-center"
-            >
-              <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>arrow_back</span>
-            </button>
-          )}
-          <div className="relative group">
-            <div className="w-16 h-16 rounded-[3px] overflow-hidden border-2 border-white shadow-xl bg-palette-beige relative z-10">
-              <img src={profile.avatar_url || `https://picsum.photos/seed/${profile.id}/200`} className="w-full h-full object-cover" />
-            </div>
-            <button className="absolute -bottom-1.5 -right-1.5 w-7 h-7 bg-palette-red text-white rounded-[3px] flex items-center justify-center shadow-lg z-20 border-2 border-white hover:scale-110 transition-all">
-              <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>photo_camera</span>
-            </button>
-          </div>
-          <div>
-            <h2 className="text-[26px] font-black text-palette-maroon tracking-tighter leading-none mb-1">{profile.full_name || t('profile.page_title')}</h2>
-            <p className="text-[12px] font-bold text-palette-tan/40 tracking-wider">{t('profile.page_desc')}</p>
-          </div>
+      {/* HEADER SECTION */}
+      <div className="bg-white rounded-[4px] border border-palette-tan/15 shadow-sm overflow-hidden mb-6">
+        <div className="relative h-48 bg-gradient-to-r from-pink-300 via-purple-300 to-cyan-300 opacity-80">
+          <button className="absolute top-4 right-4 bg-palette-red text-white px-4 py-2 rounded-[4px] text-[13px] font-black flex items-center gap-2 shadow-lg hover:bg-palette-maroon transition-all">
+            <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>photo_camera</span>
+            Kapak Değiştir
+          </button>
         </div>
 
-        <div className="flex items-center gap-3">
-          {success && <div className="flex items-center gap-1.5 text-emerald-600 text-[12px] font-black tracking-widest animate-in zoom-in"><span className="material-symbols-rounded" style={{ fontSize: '14px' }}>check_circle</span> {t('profile.success')}</div>}
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="h-10 px-6 bg-palette-tan text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-maroon transition-all shadow-lg active:scale-95 disabled:opacity-50 flex items-center gap-2"
-          >
-            {saving ? <span className="material-symbols-rounded animate-spin" style={{ fontSize: '14px' }}>progress_activity</span> : <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>save</span>}
-            <span>{t('profile.save_btn')}</span>
-          </button>
+        <div className="px-8 pb-6 pt-0 relative">
+          <div className="flex items-end gap-6 -mt-12 mb-6">
+            <div className="relative">
+              <div className="w-28 h-28 rounded-[12px] overflow-hidden border-4 border-white shadow-xl bg-palette-beige relative">
+                <img src={profile.avatar_url || `https://picsum.photos/seed/${profile.id}/200`} className="w-full h-full object-cover" />
+              </div>
+              <button className="absolute -bottom-1 -right-1 w-9 h-9 bg-palette-red text-white rounded-full flex items-center justify-center shadow-lg border-2 border-white hover:scale-110 transition-all">
+                <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>photo_camera</span>
+              </button>
+            </div>
+            <div className="pb-1">
+              <h2 className="text-[26px] font-black text-palette-maroon leading-none mb-1.5">{profile.full_name || 'İsimsiz'}</h2>
+              <div className="flex items-center gap-4 text-palette-tan/60 font-bold text-[12px]">
+                <span className="flex items-center gap-1.5"><span className="material-symbols-rounded text-palette-tan/30" style={{ fontSize: '16px' }}>person</span> @{profile.username}</span>
+                <span className="flex items-center gap-1.5"><span className="material-symbols-rounded text-palette-tan/30" style={{ fontSize: '16px' }}>calendar_today</span> June 2025</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 border-t border-palette-tan/5 pt-4">
+            <button
+              onClick={() => setActiveTab('details')}
+              className={`px-4 py-2 rounded-[4px] text-[12px] font-black tracking-tight transition-all ${activeTab === 'details' ? 'bg-palette-red text-white shadow-md' : 'bg-palette-beige/20 text-palette-maroon hover:bg-palette-beige/40'}`}
+            >
+              Hesap Detayları
+            </button>
+            <button
+              onClick={() => setActiveTab('security')}
+              className={`px-4 py-2 rounded-[4px] text-[12px] font-black tracking-tight transition-all ${activeTab === 'security' ? 'bg-palette-red text-white shadow-md' : 'bg-palette-beige/20 text-palette-maroon hover:bg-palette-beige/40'}`}
+            >
+              Security
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {activeTab === 'details' ? (
+        <div className="space-y-6">
+          {/* HESAP DETAYLARI SECTION */}
+          <div className="bg-white p-8 rounded-[4px] border border-palette-tan/15 shadow-sm space-y-8">
+            <h3 className="text-[14px] font-black text-palette-maroon uppercase tracking-tight">Hesap Detayları</h3>
 
-        {/* LEFT COLUMN: MAIN FIELDS */}
-        <div className="lg:col-span-2 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-[12px] font-black text-palette-tan uppercase tracking-tight opacity-70">Adı Soyadı</label>
+                <input type="text" value={profile.full_name || ''} onChange={e => setProfile({ ...profile, full_name: e.target.value })} className={inputClasses} />
+              </div>
 
-          {/* BASIC INFO */}
-          <div className="bg-white p-6 rounded-[3px] border border-palette-tan/15 shadow-sm">
-            <div className="flex items-center gap-2 mb-6 border-b border-palette-tan/15 pb-4">
-              <span className="material-symbols-rounded text-palette-red" style={{ fontSize: '16px' }}>person</span>
-              <h3 className="text-[13px] font-black text-palette-tan/60 tracking-wider">{t('profile.section.basic')}</h3>
-            </div>
+              <div className="space-y-2">
+                <label className="text-[12px] font-black text-palette-tan uppercase tracking-tight opacity-70">Kullanıcı Adı</label>
+                <input type="text" value={profile.username || ''} onChange={e => setProfile({ ...profile, username: e.target.value.toLowerCase().replace(' ', '_') })} className={inputClasses} />
+              </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="space-y-1.5">
-                <label className="text-[12px] font-black text-palette-tan/50 ml-1">{t('profile.full_name')}</label>
-                <div className="relative group">
-                  <span className="material-symbols-rounded absolute left-4 top-1/2 -translate-y-1/2 text-palette-tan/40 group-focus-within:text-palette-tan transition-colors" style={{ fontSize: '16px' }}>person</span>
-                  <input
-                    type="text"
-                    value={profile.full_name}
-                    onChange={e => setProfile({ ...profile, full_name: e.target.value })}
-                    className={inputClasses}
-                  />
+              <div className="space-y-2">
+                <label className="text-[12px] font-black text-palette-tan uppercase tracking-tight opacity-70">Kısa Ad</label>
+                <input type="text" value={profile.slug || ''} placeholder="slug_auto_generated" onChange={e => setProfile({ ...profile, slug: e.target.value.toLowerCase().replace(/ /g, '-') })} className={inputClasses} />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[12px] font-black text-palette-tan uppercase tracking-tight opacity-70">E-posta</label>
+                <input type="email" value={profile.email || 'aaa@aaa.com'} readOnly className={`${inputClasses} bg-palette-beige/20 cursor-not-allowed`} />
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-[12px] font-black text-palette-tan uppercase tracking-tight opacity-70">Telefon</label>
+                <div className="relative group/input">
+                  <span className="material-symbols-rounded absolute left-4 top-1/2 -translate-y-1/2 text-palette-tan/30 group-focus-within/input:text-palette-maroon transition-colors" style={{ fontSize: '20px' }}>call</span>
+                  <input type="text" value={profile.phone || ''} placeholder="+90XXXXXXXXXX" onChange={e => setProfile({ ...profile, phone: e.target.value })} className={iconInputClasses} />
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[12px] font-black text-palette-tan/50 ml-1">{t('profile.username')}</label>
-                <div className="relative group">
-                  <span className="material-symbols-rounded absolute left-4 top-1/2 -translate-y-1/2 text-palette-tan/40 group-focus-within:text-palette-tan transition-colors" style={{ fontSize: '16px' }}>alternate_email</span>
-                  <input
-                    type="text"
-                    value={profile.username}
-                    onChange={e => setProfile({ ...profile, username: e.target.value.toLowerCase().replace(' ', '_') })}
-                    className={inputClasses}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[12px] font-black text-palette-tan/50 ml-1">{t('profile.email')}</label>
-                <div className="relative group opacity-60">
-                  <span className="material-symbols-rounded absolute left-4 top-1/2 -translate-y-1/2 text-palette-tan/40 group-focus-within:text-palette-tan transition-colors" style={{ fontSize: '16px' }}>mail</span>
-                  <input
-                    type="email"
-                    readOnly
-                    value={profile.username + '@buzzhaber.com'}
-                    className="w-full h-11 pl-11 pr-4 bg-palette-beige/40 border border-palette-tan/15 rounded-[3px] text-base font-bold text-palette-tan/40 outline-none cursor-not-allowed"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[12px] font-black text-palette-tan/50 ml-1">{t('profile.slug')}</label>
-                <div className="relative group">
-                  <span className="material-symbols-rounded absolute left-4 top-1/2 -translate-y-1/2 text-palette-tan/40 group-focus-within:text-palette-tan transition-colors" style={{ fontSize: '16px' }}>link</span>
-                  <input
-                    type="text"
-                    value={profile.slug || ''}
-                    onChange={e => setProfile({ ...profile, slug: e.target.value.toLowerCase().replace(/ /g, '-') })}
-                    className={inputClasses}
-                  />
-                </div>
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-[12px] font-black text-palette-tan uppercase tracking-tight opacity-70">Hakkımda</label>
+                <textarea
+                  rows={4}
+                  value={profile.about_me || ''}
+                  onChange={e => setProfile({ ...profile, about_me: e.target.value })}
+                  className="w-full p-4 bg-white border border-palette-tan/20 rounded-[3px] text-base font-bold text-palette-maroon outline-none hover:border-palette-tan focus:ring-4 focus:ring-palette-tan/5 transition-all resize-none"
+                />
               </div>
             </div>
           </div>
 
-          {/* SOCIAL LINKS */}
-          <div className="bg-white p-6 rounded-[3px] border border-palette-tan/15 shadow-sm">
-            <div className="flex items-center gap-2 mb-6 border-b border-palette-tan/15 pb-4">
-              <span className="material-symbols-rounded text-palette-red" style={{ fontSize: '16px' }}>smartphone</span>
-              <h3 className="text-[13px] font-black text-palette-tan/60 tracking-widest">{t('profile.section.social')}</h3>
-            </div>
+          {/* SOSYAL HESAPLAR SECTION */}
+          <div className="bg-white p-8 rounded-[4px] border border-palette-tan/15 shadow-sm space-y-8">
+            <h3 className="text-[14px] font-black text-palette-maroon uppercase tracking-tight">Sosyal Hesaplar</h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[
-                { id: 'facebook', icon: 'facebook', label: t('social.facebook') },
-                { id: 'twitter', icon: 'public', label: t('social.twitter') },
-                { id: 'instagram', icon: 'photo_camera', label: t('social.instagram') },
-                { id: 'tiktok', icon: 'smartphone', label: t('social.tiktok') },
-                { id: 'whatsapp', icon: 'chat', label: t('social.whatsapp') },
-                { id: 'youtube', icon: 'video_library', label: t('social.youtube') },
-                { id: 'discord', icon: 'sports_esports', label: t('social.discord') },
-                { id: 'telegram', icon: 'send', label: t('social.telegram') },
-                { id: 'pinterest', icon: 'image', label: t('social.pinterest') },
-                { id: 'linkedin', icon: 'business', label: t('social.linkedin') },
-                { id: 'twitch', icon: 'tv', label: t('social.twitch') },
-                { id: 'vk', icon: 'person', label: t('social.vk') },
-                { id: 'website', icon: 'public', label: t('social.website') },
+                { id: 'facebook', icon: 'facebook', label: 'Facebook', placeholder: 'https://facebook.com/username' },
+                { id: 'twitter', icon: 'public', label: 'Twitter', placeholder: 'https://twitter.com/username' },
+                { id: 'instagram', icon: 'photo_camera', label: 'Instagram', placeholder: 'https://instagram.com/username' },
+                { id: 'tiktok', icon: 'content_copy', label: 'TikTok', placeholder: 'https://tiktok.com/@username' },
+                { id: 'youtube', icon: 'smart_display', label: 'YouTube', placeholder: 'https://youtube.com/c/channel' },
+                { id: 'whatsapp', icon: 'chat', label: 'WhatsApp', placeholder: 'https://wa.me/905XXXXXXXXX' },
+                { id: 'telegram', icon: 'send', label: 'Telegram', placeholder: 'https://t.me/username' },
+                { id: 'discord', icon: 'sports_esports', label: 'Discord', placeholder: 'https://discord.gg/XXXXX' },
+                { id: 'pinterest', icon: 'image', label: 'Pinterest', placeholder: 'https://pinterest.com/username' },
+                { id: 'linkedin', icon: 'business', label: 'LinkedIn', placeholder: 'https://linkedin.com/in/username' },
+                { id: 'twitch', icon: 'tv', label: 'Twitch', placeholder: 'https://twitch.tv/username' },
+                { id: 'vk', icon: 'person', label: 'VK', placeholder: 'https://vk.com/username' },
+                { id: 'website', icon: 'language', label: 'Kişisel Web Sitesi URL\'si', placeholder: 'https://website.com' },
               ].map((social) => (
-                <div key={social.id} className="space-y-1 group">
-                  <div className="relative">
-                    <span className="material-symbols-rounded absolute left-4 top-1/2 -translate-y-1/2 text-palette-tan/40 group-focus-within:text-palette-tan transition-colors" style={{ fontSize: '16px' }}>{social.icon}</span>
+                <div key={social.id} className="space-y-2 group">
+                  <label className="text-[12px] font-black text-palette-tan uppercase tracking-tight opacity-70">{social.label}</label>
+                  <div className="relative group/input">
+                    <span className="material-symbols-rounded absolute left-4 top-1/2 -translate-y-1/2 text-palette-tan/30 group-focus-within/input:text-palette-maroon transition-colors" style={{ fontSize: '18px' }}>{social.icon}</span>
                     <input
                       type="text"
                       value={profile.social_links?.[social.id] || ''}
                       onChange={e => updateSocial(social.id, e.target.value)}
-                      placeholder={social.label}
-                      className={inputClasses}
+                      placeholder={social.placeholder}
+                      className={iconInputClasses}
                     />
                   </div>
                 </div>
               ))}
             </div>
+
+            <div className="pt-4">
+              <button
+                onClick={handleSaveDetails}
+                disabled={saving}
+                className="px-4 py-2 bg-palette-red text-white rounded-[4px] font-black text-[13px] tracking-tight hover:bg-palette-maroon shadow-md active:scale-95 flex items-center gap-2 transition-all"
+              >
+                {saving ? <span className="material-symbols-rounded animate-spin" style={{ fontSize: '16px' }}>progress_activity</span> : <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>save</span>}
+                Değişiklikleri Kaydet
+              </button>
+            </div>
+          </div>
+
+          {/* HESABI SIL SECTION */}
+          <div className="bg-white p-8 rounded-[4px] border border-palette-tan/15 shadow-sm space-y-8">
+            <h3 className="text-[14px] font-black text-palette-maroon uppercase tracking-tight">Hesabı Sil</h3>
+
+            <div className="bg-orange-50 border border-orange-100 p-6 rounded-[4px]">
+              <h4 className="text-[13px] font-black text-orange-600 mb-2 uppercase tracking-tight">Hesap Silmeyi Onayla</h4>
+              <p className="text-[13px] font-bold text-orange-600/70">Hesabınızı sildiğinizde geri dönüş yoktur. Lütfen emin olun.</p>
+            </div>
+
+            <div className="flex items-center gap-3 pl-1">
+              <input
+                type="checkbox"
+                checked={deleteConfirm}
+                onChange={e => setDeleteConfirm(e.target.checked)}
+                className="w-4 h-4 rounded-[3px] border-palette-tan/20 text-palette-red focus:ring-palette-red cursor-pointer"
+              />
+              <span className="text-[13px] font-bold text-palette-maroon">Hesap silmemi onaylıyorum</span>
+            </div>
+
+            <button
+              onClick={handleDeleteAccount}
+              disabled={!deleteConfirm || saving}
+              className="px-4 py-2 bg-palette-red text-white rounded-[4px] font-black text-[13px] tracking-tight hover:bg-palette-maroon shadow-md active:scale-95 disabled:opacity-30 transition-all uppercase flex items-center gap-2"
+            >
+              {saving && <span className="material-symbols-rounded animate-spin" style={{ fontSize: '16px' }}>progress_activity</span>}
+              Hesabı Devre Dışı Bırak / Sil
+            </button>
           </div>
         </div>
+      ) : (
+        <div className="bg-white p-10 rounded-[4px] border border-palette-tan/15 shadow-sm space-y-10 animate-in fade-in duration-300">
+          <h3 className="text-[15px] font-black text-palette-maroon uppercase tracking-tight">Şifre Değiştir</h3>
 
-        {/* RIGHT COLUMN: ABOUT & STATS */}
-        <div className="space-y-6">
-
-          {/* STATS */}
-          <div className="bg-palette-tan p-6 rounded-[3px] text-white shadow-xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-palette-red rounded-[3px] blur-[40px] opacity-10 translate-x-8 -translate-y-8" />
-            <h3 className="text-[12px] font-black text-white/30 tracking-widest mb-6">{t('profile.section.stats')}</h3>
-
-            <div className="space-y-5">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-white/5 rounded-[3px] flex items-center justify-center text-palette-red border border-white/20">
-                  <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>payments</span>
-                </div>
-                <div>
-                  <p className="text-[12px] font-black text-white/30 tracking-widest">{t('profile.balance')}</p>
-                  <h4 className="text-[22px] font-black">{profile.balance?.toLocaleString() || '0.00'} ₺</h4>
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-2 col-span-2">
+              <label className="text-[13px] font-black text-palette-maroon uppercase tracking-tight">Eski Şifre</label>
+              <div className="relative">
+                <input
+                  type={showPassword.old ? "text" : "password"}
+                  placeholder=".........."
+                  value={passwords.old}
+                  onChange={e => setPasswords({ ...passwords, old: e.target.value })}
+                  className={inputClasses}
+                />
+                <button onClick={() => setShowPassword({ ...showPassword, old: !showPassword.old })} className="absolute right-4 top-1/2 -translate-y-1/2 text-palette-tan/40 hover:text-palette-maroon transition-colors">
+                  <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>{showPassword.old ? 'visibility_off' : 'visibility'}</span>
+                </button>
               </div>
+            </div>
 
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-white/5 rounded-[3px] flex items-center justify-center text-blue-400 border border-white/20">
-                  <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>visibility</span>
-                </div>
-                <div>
-                  <p className="text-[12px] font-black text-white/30 tracking-widest">{t('profile.views')}</p>
-                  <h4 className="text-[22px] font-black">{profile.pageviews?.toLocaleString() || '0'}</h4>
-                </div>
+            <div className="space-y-2">
+              <label className="text-[13px] font-black text-palette-maroon uppercase tracking-tight">Yeni Şifre</label>
+              <div className="relative">
+                <input
+                  type={showPassword.new ? "text" : "password"}
+                  placeholder=".........."
+                  value={passwords.new}
+                  onChange={e => setPasswords({ ...passwords, new: e.target.value })}
+                  className={inputClasses}
+                />
+                <button onClick={() => setShowPassword({ ...showPassword, new: !showPassword.new })} className="absolute right-4 top-1/2 -translate-y-1/2 text-palette-tan/40 hover:text-palette-maroon transition-colors">
+                  <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>{showPassword.new ? 'visibility_off' : 'visibility'}</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[13px] font-black text-palette-maroon uppercase tracking-tight">Şifreyi Onayla</label>
+              <div className="relative">
+                <input
+                  type={showPassword.confirm ? "text" : "password"}
+                  placeholder=".........."
+                  value={passwords.confirm}
+                  onChange={e => setPasswords({ ...passwords, confirm: e.target.value })}
+                  className={inputClasses}
+                />
+                <button onClick={() => setShowPassword({ ...showPassword, confirm: !showPassword.confirm })} className="absolute right-4 top-1/2 -translate-y-1/2 text-palette-tan/40 hover:text-palette-maroon transition-colors">
+                  <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>{showPassword.confirm ? 'visibility_off' : 'visibility'}</span>
+                </button>
               </div>
             </div>
           </div>
 
-          {/* ABOUT ME */}
-          <div className="bg-white p-6 rounded-[3px] border border-palette-tan/15 shadow-sm group">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="material-symbols-rounded text-palette-red" style={{ fontSize: '16px' }}>work</span>
-              <h3 className="text-[13px] font-black text-palette-tan/60 tracking-wider">{t('profile.section.about')}</h3>
-            </div>
-            <textarea
-              rows={8}
-              value={profile.about_me || ''}
-              onChange={e => setProfile({ ...profile, about_me: e.target.value })}
-              placeholder={t('profile.about_placeholder')}
-              className="w-full p-4 bg-palette-beige/30 border border-palette-tan/20 rounded-[3px] text-base font-medium text-palette-maroon outline-none hover:border-palette-tan/40 focus:bg-white focus:border-palette-tan focus:ring-4 focus:ring-palette-tan/5 transition-all resize-none leading-relaxed"
-            />
+          <div className="space-y-3">
+            <h4 className="text-[13px] font-black text-palette-tan/60 uppercase tracking-tight">Şifre Gereksinimleri</h4>
+            <ul className="space-y-2">
+              <li className="flex items-center gap-3 text-[14px] font-bold text-palette-tan/60">
+                <div className="w-1.5 h-1.5 rounded-full bg-palette-tan/40"></div>
+                Şifre en az 6 karakter olmalıdır
+              </li>
+              <li className="flex items-center gap-3 text-[14px] font-bold text-palette-tan/60">
+                <div className="w-1.5 h-1.5 rounded-full bg-palette-tan/40"></div>
+                En az bir küçük harf
+              </li>
+              <li className="flex items-center gap-3 text-[14px] font-bold text-palette-tan/60">
+                <div className="w-1.5 h-1.5 rounded-full bg-palette-tan/40"></div>
+                En az bir özel karakter veya rakam
+              </li>
+            </ul>
           </div>
 
+          <div className="pt-6">
+            <button
+              onClick={handleUpdatePassword}
+              disabled={saving}
+              className="px-4 py-2 bg-palette-red text-white rounded-[4px] font-black text-[13px] tracking-tight hover:bg-palette-maroon shadow-md active:scale-95 flex items-center gap-2 transition-all"
+            >
+              <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>save</span>
+              Değişiklikleri Kaydet
+            </button>
+          </div>
         </div>
+      )}
 
-      </div>
-
-      {/* STATUS MODAL (Success/Error) */}
+      {/* STATUS MODAL */}
       {statusModal.show && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-palette-maroon/20 backdrop-blur-[2px] animate-in fade-in" onClick={() => setStatusModal({ ...statusModal, show: false })} />
