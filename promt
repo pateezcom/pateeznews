@@ -15,3 +15,16 @@ Aşağıda iletilen talimatları bir cerrah titizliğiyle analiz et ve %100 eksi
 * **Hatasız Kodlama:** Yazacağın React ve SQL kodları, performans standartlarına uygun ve hatasız olmalıdır.
 
 ---
+
+
+git add .
+git commit -m "Initial commit"
+git push -u origin main
+
+
+dart run lib/servisler/veritabani_reset_servisi.dart
+
+
+git reset --hard origin/main
+
+git fetch origin && git reset --hard origin/main
