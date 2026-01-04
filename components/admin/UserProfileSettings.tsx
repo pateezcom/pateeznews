@@ -19,6 +19,7 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({ userId, onSuc
   const [showPassword, setShowPassword] = useState({ old: false, new: false, confirm: false });
   const [statusModal, setStatusModal] = useState<{ show: boolean, type: 'error' | 'success', message: string }>({ show: false, type: 'success', message: '' });
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   const [passwords, setPasswords] = useState({
     old: '',
@@ -58,8 +59,32 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({ userId, onSuc
   };
 
   const handleSaveDetails = async () => {
+    const errors: Record<string, string> = {};
+    if (!profile.full_name) errors.full_name = 'Alan zorunludur';
+    if (!profile.username) errors.username = 'Alan zorunludur';
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+
+    setFormErrors({});
     setSaving(true);
     try {
+      // Uniqueness check for username
+      const { data: conflict } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('username', profile.username)
+        .neq('id', profile.id)
+        .maybeSingle();
+
+      if (conflict) {
+        setFormErrors({ username: 'Kullanıcı adı zaten kullanımda' });
+        setSaving(false);
+        return;
+      }
+
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -74,10 +99,7 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({ userId, onSuc
 
       if (error) throw error;
       setSuccess(true);
-      setTimeout(() => {
-        setSuccess(false);
-        if (onSuccess) onSuccess();
-      }, 2000);
+      if (onSuccess) onSuccess();
     } catch (err: any) {
       setStatusModal({ show: true, type: 'error', message: t('admin.generic_error').replace('{error}', err.message) });
     } finally {
@@ -86,22 +108,36 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({ userId, onSuc
   };
 
   const handleUpdatePassword = async () => {
-    if (passwords.new !== passwords.confirm) {
-      setStatusModal({ show: true, type: 'error', message: 'Şifreler uyuşmuyor.' });
+    const errors: Record<string, string> = {};
+    if (!passwords.old) errors.old = 'Alan zorunludur';
+    if (!passwords.new) errors.new = 'Alan zorunludur';
+    if (!passwords.confirm) errors.confirm = 'Alan zorunludur';
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
       return;
     }
+
+    if (passwords.new !== passwords.confirm) {
+      setFormErrors({ confirm: 'Şifreler uyuşmuyor.' });
+      return;
+    }
+    setFormErrors({});
     setSaving(true);
     try {
       const { error } = await supabase.auth.updateUser({ password: passwords.new });
       if (error) throw error;
       setSuccess(true);
       setPasswords({ old: '', new: '', confirm: '' });
-      setTimeout(() => setSuccess(false), 2000);
     } catch (err: any) {
       setStatusModal({ show: true, type: 'error', message: err.message });
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleCloseStatusModal = () => {
+    setStatusModal({ show: false, type: 'success', message: '' });
   };
 
   const updateSocial = (key: string, value: string) => {
@@ -124,9 +160,7 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({ userId, onSuc
 
       if (error) throw error;
       setStatusModal({ show: true, type: 'success', message: 'Hesap başarıyla devre dışı bırakıldı.' });
-      setTimeout(() => {
-        if (onBack) onBack();
-      }, 2000);
+      if (onBack) onBack();
     } catch (err: any) {
       setStatusModal({ show: true, type: 'error', message: err.message });
     } finally {
@@ -200,13 +234,31 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({ userId, onSuc
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-[12px] font-black text-palette-tan uppercase tracking-tight opacity-70">Adı Soyadı</label>
-                <input type="text" value={profile.full_name || ''} onChange={e => setProfile({ ...profile, full_name: e.target.value })} className={inputClasses} />
+                <label className="text-[12px] font-black text-palette-tan uppercase tracking-tight opacity-70">Adı Soyadı <span className="text-palette-red">*</span></label>
+                <input
+                  type="text"
+                  value={profile.full_name || ''}
+                  onChange={e => {
+                    setProfile({ ...profile, full_name: e.target.value });
+                    if (formErrors.full_name) setFormErrors({ ...formErrors, full_name: '' });
+                  }}
+                  className={`${inputClasses} ${formErrors.full_name ? 'border-palette-red text-palette-red' : ''}`}
+                />
+                {formErrors.full_name && <p className="text-[10px] font-bold text-palette-red ml-1">{formErrors.full_name}</p>}
               </div>
 
               <div className="space-y-2">
-                <label className="text-[12px] font-black text-palette-tan uppercase tracking-tight opacity-70">Kullanıcı Adı</label>
-                <input type="text" value={profile.username || ''} onChange={e => setProfile({ ...profile, username: e.target.value.toLowerCase().replace(' ', '_') })} className={inputClasses} />
+                <label className="text-[12px] font-black text-palette-tan uppercase tracking-tight opacity-70">Kullanıcı Adı <span className="text-palette-red">*</span></label>
+                <input
+                  type="text"
+                  value={profile.username || ''}
+                  onChange={e => {
+                    setProfile({ ...profile, username: e.target.value.toLowerCase().replace(' ', '_') });
+                    if (formErrors.username) setFormErrors({ ...formErrors, username: '' });
+                  }}
+                  className={`${inputClasses} ${formErrors.username ? 'border-palette-red text-palette-red' : ''}`}
+                />
+                {formErrors.username && <p className="text-[10px] font-bold text-palette-red ml-1">{formErrors.username}</p>}
               </div>
 
               <div className="space-y-2">
@@ -322,51 +374,63 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({ userId, onSuc
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-2 col-span-2">
-              <label className="text-[13px] font-black text-palette-maroon uppercase tracking-tight">Eski Şifre</label>
+              <label className="text-[13px] font-black text-palette-maroon uppercase tracking-tight">Eski Şifre <span className="text-palette-red">*</span></label>
               <div className="relative">
                 <input
                   type={showPassword.old ? "text" : "password"}
                   placeholder=".........."
                   value={passwords.old}
-                  onChange={e => setPasswords({ ...passwords, old: e.target.value })}
-                  className={inputClasses}
+                  onChange={e => {
+                    setPasswords({ ...passwords, old: e.target.value });
+                    if (formErrors.old) setFormErrors({ ...formErrors, old: '' });
+                  }}
+                  className={`${inputClasses} ${formErrors.old ? 'border-palette-red text-palette-red' : ''}`}
                 />
                 <button onClick={() => setShowPassword({ ...showPassword, old: !showPassword.old })} className="absolute right-4 top-1/2 -translate-y-1/2 text-palette-tan/40 hover:text-palette-maroon transition-colors">
                   <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>{showPassword.old ? 'visibility_off' : 'visibility'}</span>
                 </button>
               </div>
+              {formErrors.old && <p className="text-[10px] font-bold text-palette-red ml-1">{formErrors.old}</p>}
             </div>
 
             <div className="space-y-2">
-              <label className="text-[13px] font-black text-palette-maroon uppercase tracking-tight">Yeni Şifre</label>
+              <label className="text-[13px] font-black text-palette-maroon uppercase tracking-tight">Yeni Şifre <span className="text-palette-red">*</span></label>
               <div className="relative">
                 <input
                   type={showPassword.new ? "text" : "password"}
                   placeholder=".........."
                   value={passwords.new}
-                  onChange={e => setPasswords({ ...passwords, new: e.target.value })}
-                  className={inputClasses}
+                  onChange={e => {
+                    setPasswords({ ...passwords, new: e.target.value });
+                    if (formErrors.new) setFormErrors({ ...formErrors, new: '' });
+                  }}
+                  className={`${inputClasses} ${formErrors.new ? 'border-palette-red text-palette-red' : ''}`}
                 />
                 <button onClick={() => setShowPassword({ ...showPassword, new: !showPassword.new })} className="absolute right-4 top-1/2 -translate-y-1/2 text-palette-tan/40 hover:text-palette-maroon transition-colors">
                   <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>{showPassword.new ? 'visibility_off' : 'visibility'}</span>
                 </button>
               </div>
+              {formErrors.new && <p className="text-[10px] font-bold text-palette-red ml-1">{formErrors.new}</p>}
             </div>
 
             <div className="space-y-2">
-              <label className="text-[13px] font-black text-palette-maroon uppercase tracking-tight">Şifreyi Onayla</label>
+              <label className="text-[13px] font-black text-palette-maroon uppercase tracking-tight">Şifreyi Onayla <span className="text-palette-red">*</span></label>
               <div className="relative">
                 <input
                   type={showPassword.confirm ? "text" : "password"}
                   placeholder=".........."
                   value={passwords.confirm}
-                  onChange={e => setPasswords({ ...passwords, confirm: e.target.value })}
-                  className={inputClasses}
+                  onChange={e => {
+                    setPasswords({ ...passwords, confirm: e.target.value });
+                    if (formErrors.confirm) setFormErrors({ ...formErrors, confirm: '' });
+                  }}
+                  className={`${inputClasses} ${formErrors.confirm ? 'border-palette-red text-palette-red' : ''}`}
                 />
                 <button onClick={() => setShowPassword({ ...showPassword, confirm: !showPassword.confirm })} className="absolute right-4 top-1/2 -translate-y-1/2 text-palette-tan/40 hover:text-palette-maroon transition-colors">
                   <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>{showPassword.confirm ? 'visibility_off' : 'visibility'}</span>
                 </button>
               </div>
+              {formErrors.confirm && <p className="text-[10px] font-bold text-palette-red ml-1">{formErrors.confirm}</p>}
             </div>
           </div>
 
@@ -404,14 +468,14 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({ userId, onSuc
       {/* STATUS MODAL */}
       {statusModal.show && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-palette-maroon/20 backdrop-blur-[2px] animate-in fade-in" onClick={() => setStatusModal({ ...statusModal, show: false })} />
+          <div className="absolute inset-0 bg-palette-maroon/20 backdrop-blur-[2px] animate-in fade-in" onClick={handleCloseStatusModal} />
           <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-xs overflow-hidden animate-in slide-in-from-bottom-4 border border-palette-tan/15 p-8 text-center">
             <div className={`w-16 h-16 rounded-[3px] flex items-center justify-center mx-auto mb-6 ${statusModal.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
               {statusModal.type === 'error' ? <span className="material-symbols-rounded" style={{ fontSize: '28px' }}>close</span> : <span className="material-symbols-rounded" style={{ fontSize: '28px' }}>check_circle</span>}
             </div>
             <p className="text-base font-black text-palette-maroon mb-8 leading-relaxed">{statusModal.message}</p>
             <button
-              onClick={() => setStatusModal({ ...statusModal, show: false })}
+              onClick={handleCloseStatusModal}
               className="w-full py-4 bg-palette-tan text-white rounded-[3px] font-black text-[14px] tracking-widest hover:bg-palette-maroon transition-all shadow-lg active:scale-95"
             >
               {t('common.ok')}

@@ -16,6 +16,7 @@ const PublisherProfileSettings: React.FC<PublisherProfileSettingsProps> = ({ pub
     const [success, setSuccess] = useState(false);
     const [profile, setProfile] = useState<any>(null);
     const [statusModal, setStatusModal] = useState<{ show: boolean, type: 'error' | 'success', message: string }>({ show: false, type: 'success', message: '' });
+    const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
     useEffect(() => {
         fetchProfile();
@@ -65,8 +66,39 @@ const PublisherProfileSettings: React.FC<PublisherProfileSettingsProps> = ({ pub
     };
 
     const handleSave = async () => {
+        const errors: Record<string, string> = {};
+        if (!profile.full_name) errors.full_name = 'Alan zorunludur';
+        if (!profile.username) errors.username = 'Alan zorunludur';
+        if (!profile.email) errors.email = 'Alan zorunludur';
+
+        if (Object.keys(errors).length > 0) {
+            setFormErrors(errors);
+            return;
+        }
+
+        setFormErrors({});
         setSaving(true);
         try {
+            // Uniqueness check
+            const { data: conflicts } = await supabase
+                .from('profiles')
+                .select('username, email')
+                .or(`username.eq.${profile.username},email.eq.${profile.email}`)
+                .neq('id', profile.id);
+
+            if (conflicts && conflicts.length > 0) {
+                const errors: Record<string, string> = {};
+                conflicts.forEach(c => {
+                    if (c.username?.toLowerCase() === profile.username?.toLowerCase()) errors.username = 'Kullanıcı adı zaten kullanımda';
+                    if (c.email?.toLowerCase() === profile.email?.toLowerCase()) errors.email = 'E-posta zaten kullanımda';
+                });
+                if (Object.keys(errors).length > 0) {
+                    setFormErrors(errors);
+                    setSaving(false);
+                    return;
+                }
+            }
+
             const { error } = await supabase
                 .from('profiles')
                 .update({
@@ -88,15 +120,16 @@ const PublisherProfileSettings: React.FC<PublisherProfileSettingsProps> = ({ pub
 
             if (error) throw error;
             setSuccess(true);
-            setTimeout(() => {
-                setSuccess(false);
-                if (onSuccess) onSuccess();
-            }, 2000);
+            if (onSuccess) onSuccess();
         } catch (err: any) {
             setStatusModal({ show: true, type: 'error', message: t('admin.generic_error').replace('{error}', err.message) });
         } finally {
             setSaving(false);
         }
+    };
+
+    const handleCloseStatusModal = () => {
+        setStatusModal({ show: false, type: 'success', message: '' });
     };
 
     const updateSocial = (key: string, value: string) => {
@@ -161,16 +194,43 @@ const PublisherProfileSettings: React.FC<PublisherProfileSettingsProps> = ({ pub
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <label className="text-[11px] font-black text-palette-tan uppercase tracking-widest opacity-60 ml-1">Yayıncı İsmi</label>
-                            <input type="text" value={profile.full_name || ''} onChange={e => setProfile({ ...profile, full_name: e.target.value })} className={inputClasses} />
+                            <label className="text-[11px] font-black text-palette-tan uppercase tracking-widest opacity-60 ml-1">Yayıncı İsmi <span className="text-palette-red">*</span></label>
+                            <input
+                                type="text"
+                                value={profile.full_name || ''}
+                                onChange={e => {
+                                    setProfile({ ...profile, full_name: e.target.value });
+                                    if (formErrors.full_name) setFormErrors({ ...formErrors, full_name: '' });
+                                }}
+                                className={`${inputClasses} ${formErrors.full_name ? 'border-palette-red text-palette-red' : ''}`}
+                            />
+                            {formErrors.full_name && <p className="text-[10px] font-bold text-palette-red ml-1">{formErrors.full_name}</p>}
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[11px] font-black text-palette-tan uppercase tracking-widest opacity-60 ml-1">Kullanıcı Adı</label>
-                            <input type="text" value={profile.username || ''} onChange={e => setProfile({ ...profile, username: e.target.value })} className={inputClasses} />
+                            <label className="text-[11px] font-black text-palette-tan uppercase tracking-widest opacity-60 ml-1">Kullanıcı Adı <span className="text-palette-red">*</span></label>
+                            <input
+                                type="text"
+                                value={profile.username || ''}
+                                onChange={e => {
+                                    setProfile({ ...profile, username: e.target.value.toLowerCase().replace(' ', '_') });
+                                    if (formErrors.username) setFormErrors({ ...formErrors, username: '' });
+                                }}
+                                className={`${inputClasses} ${formErrors.username ? 'border-palette-red text-palette-red' : ''}`}
+                            />
+                            {formErrors.username && <p className="text-[10px] font-bold text-palette-red ml-1">{formErrors.username}</p>}
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[11px] font-black text-palette-tan uppercase tracking-widest opacity-60 ml-1">E-posta</label>
-                            <input type="email" value={profile.email || ''} onChange={e => setProfile({ ...profile, email: e.target.value })} className={inputClasses} />
+                            <label className="text-[11px] font-black text-palette-tan uppercase tracking-widest opacity-60 ml-1">E-posta <span className="text-palette-red">*</span></label>
+                            <input
+                                type="email"
+                                value={profile.email || ''}
+                                onChange={e => {
+                                    setProfile({ ...profile, email: e.target.value });
+                                    if (formErrors.email) setFormErrors({ ...formErrors, email: '' });
+                                }}
+                                className={`${inputClasses} ${formErrors.email ? 'border-palette-red text-palette-red' : ''}`}
+                            />
+                            {formErrors.email && <p className="text-[10px] font-bold text-palette-red ml-1">{formErrors.email}</p>}
                         </div>
                         <div className="space-y-2">
                             <label className="text-[11px] font-black text-palette-tan uppercase tracking-widest opacity-60 ml-1">Telefon</label>
@@ -281,14 +341,14 @@ const PublisherProfileSettings: React.FC<PublisherProfileSettingsProps> = ({ pub
             {/* STATUS MODAL */}
             {statusModal.show && (
                 <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-palette-maroon/20 backdrop-blur-[2px] animate-in fade-in" onClick={() => setStatusModal({ ...statusModal, show: false })} />
+                    <div className="absolute inset-0 bg-palette-maroon/20 backdrop-blur-[2px] animate-in fade-in" onClick={handleCloseStatusModal} />
                     <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-xs overflow-hidden animate-in slide-in-from-bottom-4 border border-palette-tan/15 p-8 text-center">
                         <div className={`w-16 h-16 rounded-[3px] flex items-center justify-center mx-auto mb-6 ${statusModal.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
                             {statusModal.type === 'error' ? <span className="material-symbols-rounded" style={{ fontSize: '28px' }}>close</span> : <span className="material-symbols-rounded" style={{ fontSize: '28px' }}>check_circle</span>}
                         </div>
                         <p className="text-base font-black text-palette-maroon mb-8 leading-relaxed uppercase">{statusModal.message}</p>
                         <button
-                            onClick={() => setStatusModal({ ...statusModal, show: false })}
+                            onClick={handleCloseStatusModal}
                             className="w-full py-2.5 bg-palette-tan text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-maroon transition-all shadow-lg active:scale-95 uppercase"
                         >
                             TAMAM

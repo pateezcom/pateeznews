@@ -10,6 +10,7 @@ export interface PostItem {
     mediaUrl?: string;
     mediaUrls?: string[]; // Multiple images for slider
     source?: string;
+    showOnHomepage?: boolean;
     createdAt?: number;
     orderNumber?: number;
     flipData?: {

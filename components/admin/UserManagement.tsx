@@ -53,8 +53,12 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
   const [statusModal, setStatusModal] = useState<{ show: boolean, type: 'error' | 'success', message: string }>({ show: false, type: 'success', message: '' });
 
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const multiSelectRef = useRef<HTMLDivElement>(null);
+  const userMultiSelectRef = useRef<HTMLDivElement>(null);
+  const individualPubSelectRef = useRef<HTMLDivElement>(null);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   const [filters, setFilters] = useState({
     role: 'Tümü',
@@ -69,6 +73,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
   const [activeMultiSelect, setActiveMultiSelect] = useState<'users' | 'publishers' | null>(null);
   const [userSearchTerm, setUserSearchTerm] = useState('');
   const [pubSearchTerm, setPubSearchTerm] = useState('');
+  const [currentUserRole, setCurrentUserRole] = useState<string>('');
 
   const [newUser, setNewUser] = useState({
     email: '',
@@ -92,6 +97,62 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
     reward_system: false
   });
 
+  const handleCloseAddModal = () => {
+    setShowAddModal(false);
+    setNewUser({
+      email: '',
+      password: '',
+      confirmPassword: '',
+      full_name: '',
+      username: '',
+      role: 'member',
+      reward_system: false
+    });
+    setFormErrors({});
+  };
+
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+    setEditUserData({
+      id: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      full_name: '',
+      username: '',
+      role: 'member',
+      status: 'Aktif',
+      reward_system: false
+    });
+    setFormErrors({});
+  };
+
+  const handleCloseDeleteModal = () => {
+    setShowDeleteModal(false);
+    setUserToDelete(null);
+  };
+
+  const handleClosePublisherModal = () => {
+    setShowPublisherModal(false);
+    setSelectedUsersForPublisher([]);
+    setSelectedPublishersForUser([]);
+    setUserSearchTerm('');
+    setPubSearchTerm('');
+    setActiveMultiSelect(null);
+  };
+
+  const handleCloseUserPublisherModal = () => {
+    setShowUserPublisherModal(false);
+    setTargetUserForPublishers(null);
+    setSelectedPublishersForUser([]);
+    setPubSearchTerm('');
+    setActiveMultiSelect(null);
+  };
+
+  const handleCloseStatusModal = () => {
+    setStatusModal({ show: false, type: 'success', message: '' });
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -102,7 +163,11 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
         setOpenDropdownId(null);
       }
       // Close custom multi-selects on outside click
-      if (activeMultiSelect && !(event.target as Element).closest('.group\\/select, .relative')) {
+      const isOutsideMultiSelect = multiSelectRef.current && !multiSelectRef.current.contains(event.target as Node);
+      const isOutsideUserMultiSelect = userMultiSelectRef.current && !userMultiSelectRef.current.contains(event.target as Node);
+      const isOutsideIndividualPubSelect = individualPubSelectRef.current && !individualPubSelectRef.current.contains(event.target as Node);
+
+      if (activeMultiSelect && isOutsideMultiSelect && isOutsideUserMultiSelect && isOutsideIndividualPubSelect) {
         setActiveMultiSelect(null);
       }
     };
@@ -115,45 +180,37 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
       setLoading(true);
       setErrorMsg(null);
 
-      const [profilesRes, rolesRes, publishersRes] = await Promise.allSettled([
-        supabase.from('profiles').select('*').neq('role', 'publisher').order('created_at', { ascending: false }),
+      const { data: { user } } = await supabase.auth.getUser();
+      let role = '';
+      if (user) {
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+        role = profile?.role || '';
+        setCurrentUserRole(role);
+      }
+
+      const [profilesRes, rolesRes, publishersRes] = await Promise.all([
+        supabase.from('profiles').select('*, publisher_users!publisher_users_user_id_fkey(publisher:profiles!publisher_users_publisher_id_fkey(id, full_name))').neq('role', 'publisher').order('created_at', { ascending: false }),
         supabase.from('roles').select('*').neq('name', 'publisher'),
         supabase.from('profiles').select('*').eq('role', 'publisher')
       ]);
 
-      if (profilesRes.status === 'fulfilled' && !profilesRes.value.error) {
-        const rawProfiles = profilesRes.value.data || [];
+      if (profilesRes.error) throw profilesRes.error;
+      const rawProfiles = profilesRes.data || [];
+      const rawPublishers = publishersRes.data || [];
 
-        // Fetch assignments
-        const { data: assignments } = await supabase
-          .from('publisher_users')
-          .select('user_id, publisher_id, profiles!publisher_id(full_name)');
+      // Transform nested response to flat structure
+      const enrichedProfiles = rawProfiles.map((p: any) => ({
+        ...p,
+        assigned_publishers: p.publisher_users?.map((pu: any) => ({
+          id: pu.publisher.id,
+          full_name: pu.publisher.full_name
+        })) || []
+      }));
 
-        const enrichedProfiles = rawProfiles.map(p => ({
-          ...p,
-          assigned_publishers: assignments?.filter(a => a.user_id === p.id).map(a => ({
-            id: a.publisher_id,
-            full_name: (a as any).profiles?.full_name
-          })) || []
-        }));
+      setProfiles(enrichedProfiles);
 
-        setProfiles(enrichedProfiles);
-      } else {
-        console.error("Profiles fetch error:", profilesRes.status === 'fulfilled' ? profilesRes.value.error : profilesRes.reason);
-      }
-
-      if (rolesRes.status === 'fulfilled' && !rolesRes.value.error) {
-        const fetchedRoles = rolesRes.value.data || [];
-        if (fetchedRoles.length > 0) {
-          setRoles(fetchedRoles);
-        }
-      } else {
-        console.error("Roles fetch error:", rolesRes.status === 'fulfilled' ? rolesRes.value.error : rolesRes.reason);
-      }
-
-      if (publishersRes.status === 'fulfilled' && !publishersRes.value.error) {
-        setPublishersList(publishersRes.value.data || []);
-      }
+      if (rolesRes.data) setRoles(rolesRes.data);
+      if (publishersRes.data) setPublishersList(publishersRes.data);
 
     } catch (err: any) {
       console.error("fetchData general error:", err);
@@ -177,19 +234,24 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
     ];
   }, [profiles]);
 
-  const filteredUsers = profiles.filter(user => {
-    const matchesSearch = (
-      user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    const matchesRole = filters.role === 'Tümü' || user.role === filters.role;
-    const matchesStatus = filters.status === 'Tümü' || user.status === filters.status;
-    const matchesReward = filters.reward_system === 'Tümü' ||
-      (filters.reward_system === 'Aktif' ? user.reward_system === true : user.reward_system === false);
+  const filteredUsers = useMemo(() => {
+    return profiles.filter(user => {
+      const matchesSearch = (
+        user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      const matchesRole = filters.role === 'Tümü' || user.role === filters.role;
+      const matchesStatus = filters.status === 'Tümü' || user.status === filters.status;
+      const matchesReward = filters.reward_system === 'Tümü' ||
+        (filters.reward_system === 'Aktif' ? user.reward_system === true : user.reward_system === false);
 
-    return matchesSearch && matchesRole && matchesStatus && matchesReward;
-  });
+      const matchesPublisher = filters.publisher === 'Tümü' ||
+        (user.assigned_publishers?.some(pub => pub.id === filters.publisher) ?? false);
+
+      return matchesSearch && matchesRole && matchesStatus && matchesReward && matchesPublisher;
+    });
+  }, [profiles, searchTerm, filters]);
 
   const getRoleLabel = (roleName: string) => {
     return roles.find(r => r.name === roleName)?.label || roleName;
@@ -197,12 +259,44 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
 
   const handleAddUser = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (newUser.password !== newUser.confirmPassword) {
-      setStatusModal({ show: true, type: 'error', message: 'Şifreler uyuşmuyor.' });
+    const errors: Record<string, string> = {};
+    if (!newUser.full_name) errors.full_name = 'Alan zorunludur';
+    if (!newUser.username) errors.username = 'Alan zorunludur';
+    if (!newUser.email) errors.email = 'Alan zorunludur';
+    if (!newUser.password) errors.password = 'Alan zorunludur';
+    if (!newUser.confirmPassword) errors.confirmPassword = 'Alan zorunludur';
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
       return;
     }
+
+    if (newUser.password !== newUser.confirmPassword) {
+      setFormErrors({ confirmPassword: 'Şifreler uyuşmuyor.' });
+      return;
+    }
+    setFormErrors({});
     setSaving(true);
     try {
+      // Uniqueness check
+      const { data: conflicts, error: checkError } = await supabase
+        .from('profiles')
+        .select('username, email')
+        .or(`username.eq.${newUser.username},email.eq.${newUser.email}`);
+
+      if (conflicts && conflicts.length > 0) {
+        const errors: Record<string, string> = {};
+        conflicts.forEach(c => {
+          if (c.username?.toLowerCase() === newUser.username.toLowerCase()) errors.username = 'Kullanıcı adı zaten kullanımda';
+          if (c.email?.toLowerCase() === newUser.email.toLowerCase()) errors.email = 'E-posta zaten kullanımda';
+        });
+        if (Object.keys(errors).length > 0) {
+          setFormErrors(errors);
+          setSaving(false);
+          return;
+        }
+      }
+
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: newUser.email,
         password: newUser.password,
@@ -227,12 +321,8 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
       }
 
       setSuccess(true);
-      setTimeout(() => {
-        setSuccess(false);
-        setShowAddModal(false);
-        setNewUser({ email: '', password: '', confirmPassword: '', full_name: '', username: '', role: 'member', reward_system: false });
-        fetchData();
-      }, 1500);
+      handleCloseAddModal();
+      fetchData();
     } catch (err: any) {
       setStatusModal({ show: true, type: 'error', message: t('admin.generic_error').replace('{error}', err.message) });
     } finally {
@@ -257,12 +347,42 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
 
   const handleUpdateUser = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (editUserData.password && editUserData.password !== editUserData.confirmPassword) {
-      setStatusModal({ show: true, type: 'error', message: 'Şifreler uyuşmuyor.' });
+    const errors: Record<string, string> = {};
+    if (!editUserData.full_name) errors.full_name = 'Alan zorunludur';
+    if (!editUserData.username) errors.username = 'Alan zorunludur';
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
       return;
     }
+
+    if (editUserData.password && editUserData.password !== editUserData.confirmPassword) {
+      setFormErrors({ confirmPassword: 'Şifreler uyuşmuyor.' });
+      return;
+    }
+    setFormErrors({});
     setSaving(true);
     try {
+      // Uniqueness check
+      const { data: conflicts, error: checkError } = await supabase
+        .from('profiles')
+        .select('username, email')
+        .or(`username.eq.${editUserData.username},email.eq.${editUserData.email}`)
+        .neq('id', editUserData.id);
+
+      if (conflicts && conflicts.length > 0) {
+        const errors: Record<string, string> = {};
+        conflicts.forEach(c => {
+          if (c.username?.toLowerCase() === editUserData.username.toLowerCase()) errors.username = 'Kullanıcı adı zaten kullanımda';
+          if (c.email?.toLowerCase() === editUserData.email.toLowerCase()) errors.email = 'E-posta zaten kullanımda';
+        });
+        if (Object.keys(errors).length > 0) {
+          setFormErrors(errors);
+          setSaving(false);
+          return;
+        }
+      }
+
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -277,11 +397,18 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
       if (error) throw error;
 
       setSuccess(true);
-      setTimeout(() => {
-        setSuccess(false);
-        setShowEditModal(false);
-        fetchData();
-      }, 1500);
+
+      // Update local state locally to avoid fetch
+      setProfiles(prev => prev.map(p => p.id === editUserData.id ? {
+        ...p,
+        full_name: editUserData.full_name,
+        username: editUserData.username,
+        role: editUserData.role,
+        status: editUserData.status,
+        reward_system: editUserData.reward_system
+      } : p));
+
+      handleCloseEditModal();
     } catch (err: any) {
       setStatusModal({ show: true, type: 'error', message: t('admin.generic_error').replace('{error}', err.message) });
     } finally {
@@ -291,17 +418,24 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
 
   const confirmDelete = async () => {
     if (!userToDelete) return;
-    setSaving(true);
+
+    // Optimistic Delete
+    const previousProfiles = [...profiles];
+    setProfiles(prev => prev.filter(p => p.id !== userToDelete.id));
+    handleCloseDeleteModal();
+
     try {
       const { error } = await supabase.from('profiles').delete().eq('id', userToDelete.id);
-      if (error) throw error;
-      setShowDeleteModal(false);
-      setUserToDelete(null);
-      fetchData();
+      if (error) {
+        // Revert
+        setProfiles(previousProfiles);
+        throw error;
+      }
+      // No need to fetch data, we already removed it
     } catch (err: any) {
       setStatusModal({ show: true, type: 'error', message: t('admin.generic_error').replace('{error}', err.message) });
-    } finally {
-      setSaving(false);
+      // Restore on error if not handled by above revert
+      setProfiles(previousProfiles);
     }
   };
 
@@ -358,7 +492,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
                       <option value="Tümü">Tümü</option>
                       {roles.length === 0 && <option disabled>Yükleniyor...</option>}
                       {filter.key === 'role' && roles.map(r => <option key={r.id} value={r.name}>{r.label}</option>)}
-                      {filter.key === 'publisher' && publishersList.map(p => <option key={p.id} value={p.username}>{p.full_name}</option>)}
+                      {filter.key === 'publisher' && publishersList.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
                       {filter.key === 'reward_system' && (
                         <>
                           <option value="Aktif">Aktif</option>
@@ -394,14 +528,16 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
                   <span className="material-symbols-rounded absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/30 pointer-events-none" style={{ fontSize: '18px' }}>expand_more</span>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => setShowPublisherModal(true)}
-                  className="flex items-center gap-2 px-4 h-11 text-[13px] font-black text-cyan-600 hover:bg-cyan-50/50 rounded-[3px] transition-all active:scale-95 group/pub"
-                >
-                  <span className="material-symbols-rounded text-cyan-500 group-hover/pub:scale-110 transition-transform" style={{ fontSize: '20px' }}>person_add</span>
-                  <span>Yayıncıları Ekle</span>
-                </button>
+                {currentUserRole === 'admin' && (
+                  <button
+                    type="button"
+                    onClick={() => setShowPublisherModal(true)}
+                    className="flex items-center gap-2 px-4 h-11 text-[13px] font-black text-cyan-600 hover:bg-cyan-50/50 rounded-[3px] transition-all active:scale-95 group/pub"
+                  >
+                    <span className="material-symbols-rounded text-cyan-500 group-hover/pub:scale-110 transition-transform" style={{ fontSize: '20px' }}>person_add</span>
+                    <span>Yayıncıları Ekle</span>
+                  </button>
+                )}
               </div>
 
               <div className="flex items-center gap-4 w-full md:w-auto">
@@ -495,16 +631,18 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
                                   {pub.full_name}
                                 </span>
                               ))}
-                              <button
-                                onClick={() => {
-                                  setTargetUserForPublishers(user);
-                                  setSelectedPublishersForUser(user.assigned_publishers?.map(p => p.id) || []);
-                                  setShowUserPublisherModal(true);
-                                }}
-                                className="text-palette-red hover:text-palette-maroon transition-colors"
-                              >
-                                <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>edit</span>
-                              </button>
+                              {currentUserRole === 'admin' && (
+                                <button
+                                  onClick={() => {
+                                    setTargetUserForPublishers(user);
+                                    setSelectedPublishersForUser(user.assigned_publishers?.map(p => p.id) || []);
+                                    setShowUserPublisherModal(true);
+                                  }}
+                                  className="text-palette-red hover:text-palette-maroon transition-colors"
+                                >
+                                  <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>edit</span>
+                                </button>
+                              )}
                             </>
                           ) : (
                             <span className="text-[11px] font-bold text-palette-tan/40"> - </span>
@@ -551,17 +689,19 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
                                 </button>
                                 <button
                                   onClick={async () => {
-                                    setSaving(true);
+                                    setOpenDropdownId(null);
+                                    // Optimistic Update
+                                    setProfiles(prev => prev.map(p => p.id === user.id ? { ...p, status: 'Aktif' } : p));
+
                                     try {
                                       const { error } = await supabase.from('profiles').update({ status: 'Aktif' }).eq('id', user.id);
-                                      if (error) throw error;
-                                      setStatusModal({ show: true, type: 'success', message: 'Kullanıcı durumu güncellendi.' });
-                                      fetchData();
+                                      if (error) {
+                                        // Revert on error
+                                        setProfiles(prev => prev.map(p => p.id === user.id ? { ...p, status: user.status } : p));
+                                        throw error;
+                                      }
                                     } catch (err: any) {
                                       setStatusModal({ show: true, type: 'error', message: err.message });
-                                    } finally {
-                                      setSaving(false);
-                                      setOpenDropdownId(null);
                                     }
                                   }}
                                   className="w-full px-5 py-3 text-left text-[13px] font-bold text-palette-maroon hover:bg-palette-beige/30 transition-all flex items-center gap-3"
@@ -571,17 +711,19 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
                                 </button>
                                 <button
                                   onClick={async () => {
-                                    setSaving(true);
+                                    setOpenDropdownId(null);
+                                    // Optimistic Update
+                                    setProfiles(prev => prev.map(p => p.id === user.id ? { ...p, status: 'Engelli' } : p));
+
                                     try {
                                       const { error } = await supabase.from('profiles').update({ status: 'Engelli' }).eq('id', user.id);
-                                      if (error) throw error;
-                                      setStatusModal({ show: true, type: 'success', message: 'Kullanıcı durduruldu.' });
-                                      fetchData();
+                                      if (error) {
+                                        // Revert on error
+                                        setProfiles(prev => prev.map(p => p.id === user.id ? { ...p, status: user.status } : p));
+                                        throw error;
+                                      }
                                     } catch (err: any) {
                                       setStatusModal({ show: true, type: 'error', message: err.message });
-                                    } finally {
-                                      setSaving(false);
-                                      setOpenDropdownId(null);
                                     }
                                   }}
                                   className="w-full px-5 py-3 text-left text-[13px] font-bold text-palette-maroon hover:bg-palette-beige/30 transition-all flex items-center gap-3"
@@ -591,17 +733,20 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
                                 </button>
                                 <button
                                   onClick={async () => {
-                                    setSaving(true);
+                                    setOpenDropdownId(null);
+                                    // Optimistic Update
+                                    const newRewardState = !user.reward_system;
+                                    setProfiles(prev => prev.map(p => p.id === user.id ? { ...p, reward_system: newRewardState } : p));
+
                                     try {
-                                      const { error } = await supabase.from('profiles').update({ reward_system: !user.reward_system }).eq('id', user.id);
-                                      if (error) throw error;
-                                      setStatusModal({ show: true, type: 'success', message: 'Ödül sistemi ayarı güncellendi.' });
-                                      fetchData();
+                                      const { error } = await supabase.from('profiles').update({ reward_system: newRewardState }).eq('id', user.id);
+                                      if (error) {
+                                        // Revert on error
+                                        setProfiles(prev => prev.map(p => p.id === user.id ? { ...p, reward_system: user.reward_system } : p));
+                                        throw error;
+                                      }
                                     } catch (err: any) {
                                       setStatusModal({ show: true, type: 'error', message: err.message });
-                                    } finally {
-                                      setSaving(false);
-                                      setOpenDropdownId(null);
                                     }
                                   }}
                                   className="w-full px-5 py-3 text-left text-[13px] font-bold text-palette-maroon hover:bg-palette-beige/30 transition-all flex items-center gap-3"
@@ -646,7 +791,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
           {/* Backdrop covers EVERYTHING because it's no longer inside the animated div */}
           <div
             className="absolute inset-0 bg-palette-maroon/90 backdrop-blur-md animate-in fade-in"
-            onClick={() => !saving && (showAddModal ? setShowAddModal(false) : setShowEditModal(false))}
+            onClick={() => !saving && (showAddModal ? handleCloseAddModal() : handleCloseEditModal())}
           />
 
           <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-xl overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 flex flex-col">
@@ -659,7 +804,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
                 {showEditModal ? 'Kullanıcıyı Düzenle' : 'Kullanıcı Ekle'}
               </h3>
               <button
-                onClick={() => showAddModal ? setShowAddModal(false) : setShowEditModal(false)}
+                onClick={() => showAddModal ? handleCloseAddModal() : handleCloseEditModal()}
                 className="p-1.5 text-palette-tan/40 hover:text-palette-red transition-colors flex items-center justify-center"
               >
                 <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>close</span>
@@ -668,37 +813,51 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
 
             <div className="p-8 space-y-5">
               <div className="space-y-1.5">
-                <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest">Adı Soyadı</label>
+                <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest">Adı Soyadı <span className="text-palette-red">*</span></label>
                 <input
                   type="text"
                   value={showAddModal ? newUser.full_name : editUserData.full_name}
-                  onChange={e => showAddModal ? setNewUser({ ...newUser, full_name: e.target.value }) : setEditUserData({ ...editUserData, full_name: e.target.value })}
+                  onChange={e => {
+                    if (showAddModal) setNewUser({ ...newUser, full_name: e.target.value });
+                    else setEditUserData({ ...editUserData, full_name: e.target.value });
+                    if (formErrors.full_name) setFormErrors({ ...formErrors, full_name: '' });
+                  }}
                   placeholder="John Doe"
-                  className={inputClasses}
+                  className={`${inputClasses} ${formErrors.full_name ? 'border-palette-red text-palette-red' : ''}`}
                 />
+                {formErrors.full_name && <p className="text-[10px] font-bold text-palette-red ml-1">{formErrors.full_name}</p>}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest">Kullanıcı Adı</label>
+                  <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest">Kullanıcı Adı <span className="text-palette-red">*</span></label>
                   <input
                     type="text"
                     value={showAddModal ? newUser.username : editUserData.username}
-                    onChange={e => showAddModal ? setNewUser({ ...newUser, username: e.target.value }) : setEditUserData({ ...editUserData, username: e.target.value })}
+                    onChange={e => {
+                      if (showAddModal) setNewUser({ ...newUser, username: e.target.value });
+                      else setEditUserData({ ...editUserData, username: e.target.value });
+                      if (formErrors.username) setFormErrors({ ...formErrors, username: '' });
+                    }}
                     placeholder="johndoe"
-                    className={inputClasses}
+                    className={`${inputClasses} ${formErrors.username ? 'border-palette-red text-palette-red' : ''}`}
                   />
+                  {formErrors.username && <p className="text-[10px] font-bold text-palette-red ml-1">{formErrors.username}</p>}
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest">E-posta</label>
+                  <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest">E-posta <span className="text-palette-red">*</span></label>
                   <input
                     type="email"
                     value={showAddModal ? newUser.email : editUserData.email}
-                    onChange={e => showAddModal && setNewUser({ ...newUser, email: e.target.value })}
+                    onChange={e => {
+                      if (showAddModal) setNewUser({ ...newUser, email: e.target.value });
+                      if (formErrors.email) setFormErrors({ ...formErrors, email: '' });
+                    }}
                     readOnly={showEditModal}
                     placeholder="example@domain.com"
-                    className={`${inputClasses} ${showEditModal ? 'bg-palette-beige/20 cursor-not-allowed' : ''}`}
+                    className={`${inputClasses} ${showEditModal ? 'bg-palette-beige/20 cursor-not-allowed' : ''} ${formErrors.email ? 'border-palette-red text-palette-red' : ''}`}
                   />
+                  {formErrors.email && <p className="text-[10px] font-bold text-palette-red ml-1">{formErrors.email}</p>}
                 </div>
               </div>
 
@@ -740,24 +899,34 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest">{showEditModal ? 'Şifre (Değiştir)' : 'Şifre'}</label>
+                  <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest">{showEditModal ? 'Şifre (Değiştir)' : 'Şifre'} {(!showEditModal || showAddModal) && <span className="text-palette-red">*</span>}</label>
                   <input
                     type="password"
                     value={showAddModal ? newUser.password : editUserData.password}
-                    onChange={e => showAddModal ? setNewUser({ ...newUser, password: e.target.value }) : setEditUserData({ ...editUserData, password: e.target.value })}
+                    onChange={e => {
+                      if (showAddModal) setNewUser({ ...newUser, password: e.target.value });
+                      else setEditUserData({ ...editUserData, password: e.target.value });
+                      if (formErrors.password) setFormErrors({ ...formErrors, password: '' });
+                    }}
                     placeholder="........"
-                    className={inputClasses}
+                    className={`${inputClasses} ${formErrors.password ? 'border-palette-red text-palette-red' : ''}`}
                   />
+                  {formErrors.password && <p className="text-[10px] font-bold text-palette-red ml-1">{formErrors.password}</p>}
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest">Onayla</label>
+                  <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest">Onayla {(!showEditModal || showAddModal) && <span className="text-palette-red">*</span>}</label>
                   <input
                     type="password"
                     value={showAddModal ? newUser.confirmPassword : editUserData.confirmPassword}
-                    onChange={e => showAddModal ? setNewUser({ ...newUser, confirmPassword: e.target.value }) : setEditUserData({ ...editUserData, confirmPassword: e.target.value })}
+                    onChange={e => {
+                      if (showAddModal) setNewUser({ ...newUser, confirmPassword: e.target.value });
+                      else setEditUserData({ ...editUserData, confirmPassword: e.target.value });
+                      if (formErrors.confirmPassword) setFormErrors({ ...formErrors, confirmPassword: '' });
+                    }}
                     placeholder="........"
-                    className={inputClasses}
+                    className={`${inputClasses} ${formErrors.confirmPassword ? 'border-palette-red text-palette-red' : ''}`}
                   />
+                  {formErrors.confirmPassword && <p className="text-[10px] font-bold text-palette-red ml-1">{formErrors.confirmPassword}</p>}
                 </div>
               </div>
 
@@ -777,7 +946,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
 
             <div className="px-8 py-6 border-t border-palette-beige bg-palette-beige/10 flex items-center justify-end gap-3">
               <button
-                onClick={() => showAddModal ? setShowAddModal(false) : setShowEditModal(false)}
+                onClick={() => showAddModal ? handleCloseAddModal() : handleCloseEditModal()}
                 className="px-5 py-2.5 font-black text-[11px] text-palette-tan/40 hover:text-palette-maroon tracking-widest uppercase"
               >
                 Vazgeç
@@ -831,18 +1000,20 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
       {/* PUBLISHER MODAL OUTSIDE ANIMATED DIV */}
       {showPublisherModal && (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-palette-maroon/90 backdrop-blur-md animate-in fade-in" onClick={() => !saving && setShowPublisherModal(false)} />
-          <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 flex flex-col">
-
+          <div className="absolute inset-0 bg-palette-maroon/90 backdrop-blur-md animate-in fade-in" onClick={handleClosePublisherModal} />
+          <div
+            className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-xl overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 flex flex-col"
+            onClick={() => setActiveMultiSelect(null)}
+          >
             <div className="px-8 py-6 border-b border-palette-tan/15 flex items-center justify-between bg-palette-beige/10">
               <h3 className="text-lg font-black text-palette-maroon tracking-tight flex items-center gap-2">
                 <div className="p-1.5 bg-palette-red rounded-[3px] text-white shadow-md flex items-center justify-center">
-                  <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>business_center</span>
+                  <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>edit_square</span>
                 </div>
                 Yayıncı Ekle
               </h3>
               <button
-                onClick={() => setShowPublisherModal(false)}
+                onClick={handleClosePublisherModal}
                 className="p-1.5 text-palette-tan/40 hover:text-palette-red transition-colors flex items-center justify-center"
               >
                 <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>close</span>
@@ -851,13 +1022,13 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
 
             <div className="p-8 space-y-7">
               {/* Kullanıcı Seçimi */}
-              <div className="space-y-2 relative">
+              <div className="space-y-2 relative" ref={userMultiSelectRef}>
                 <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest flex items-center gap-1.5">
                   Kullanıcıları Seçin <span className="text-palette-red">*</span>
                 </label>
                 <div
                   className={`min-h-[44px] p-2 bg-palette-beige/30 border ${activeMultiSelect === 'users' ? 'border-palette-red ring-4 ring-palette-red/5' : 'border-palette-tan/10'} rounded-[3px] transition-all flex flex-wrap gap-2 items-center cursor-text relative group`}
-                  onClick={() => setActiveMultiSelect('users')}
+                  onClick={(e) => { e.stopPropagation(); setActiveMultiSelect('users'); }}
                 >
                   {selectedUsersForPublisher.map(id => {
                     const u = profiles.find(p => p.id === id);
@@ -888,33 +1059,32 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
                       <span className="material-symbols-rounded text-[18px]">close</span>
                     </button>
                   )}
+                  {activeMultiSelect === 'users' && (
+                    <div className="absolute top-[calc(100%+2px)] left-0 right-0 bg-white border border-palette-tan/20 rounded-[3px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-[200] max-h-60 overflow-y-auto py-2 animate-in fade-in slide-in-from-top-1">
+                      {profiles.filter(u => !selectedUsersForPublisher.includes(u.id) && (u.full_name?.toLowerCase().includes(userSearchTerm.toLowerCase()) || u.email?.toLowerCase().includes(userSearchTerm.toLowerCase()))).length === 0 ? (
+                        <div className="px-5 py-4 text-center text-palette-tan/40 text-[12px] font-bold uppercase tracking-widest italic">Sonuç bulunamadı</div>
+                      ) : (
+                        profiles.filter(u => !selectedUsersForPublisher.includes(u.id) && (u.full_name?.toLowerCase().includes(userSearchTerm.toLowerCase()) || u.email?.toLowerCase().includes(userSearchTerm.toLowerCase()))).map(u => (
+                          <button
+                            key={u.id}
+                            onClick={() => { setSelectedUsersForPublisher(prev => [...prev, u.id]); setUserSearchTerm(''); setActiveMultiSelect(null); }}
+                            className="w-full px-5 py-3 text-left text-[13px] font-bold text-palette-maroon hover:bg-palette-beige/30 transition-all flex items-center justify-between group/item"
+                          >
+                            <div className="flex flex-col">
+                              <span className="group-hover/item:text-palette-red transition-colors">{u.full_name}</span>
+                              <span className="text-[10px] text-palette-tan/40">@{u.username} • {u.email}</span>
+                            </div>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  )}
                 </div>
                 <p className="text-[10px] font-bold text-palette-tan/40 ml-1">Lütfen en az bir kullanıcı seçin</p>
-
-                {activeMultiSelect === 'users' && (
-                  <div className="absolute top-[calc(100%+4px)] left-0 right-0 bg-white border border-palette-tan/20 rounded-[3px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-[200] max-h-60 overflow-y-auto py-2 animate-in fade-in slide-in-from-top-2">
-                    {profiles.filter(u => !selectedUsersForPublisher.includes(u.id) && (u.full_name?.toLowerCase().includes(userSearchTerm.toLowerCase()) || u.email?.toLowerCase().includes(userSearchTerm.toLowerCase()))).length === 0 ? (
-                      <div className="px-5 py-4 text-center text-palette-tan/40 text-[12px] font-bold uppercase tracking-widest italic">Sonuç bulunamadı</div>
-                    ) : (
-                      profiles.filter(u => !selectedUsersForPublisher.includes(u.id) && (u.full_name?.toLowerCase().includes(userSearchTerm.toLowerCase()) || u.email?.toLowerCase().includes(userSearchTerm.toLowerCase()))).map(u => (
-                        <button
-                          key={u.id}
-                          onClick={() => { setSelectedUsersForPublisher(prev => [...prev, u.id]); setUserSearchTerm(''); setActiveMultiSelect(null); }}
-                          className="w-full px-5 py-3 text-left text-[13px] font-bold text-palette-maroon hover:bg-palette-beige/30 transition-all flex items-center justify-between group/item"
-                        >
-                          <div className="flex flex-col">
-                            <span className="group-hover/item:text-palette-red transition-colors">{u.full_name}</span>
-                            <span className="text-[10px] text-palette-tan/40">@{u.username} • {u.email}</span>
-                          </div>
-                        </button>
-                      ))
-                    )}
-                  </div>
-                )}
               </div>
 
               {/* Yayıncı Seçimi */}
-              <div className="space-y-2 relative pt-2">
+              <div className="space-y-2 relative pt-2" ref={multiSelectRef}>
                 <div className="flex items-center justify-between mb-1">
                   <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest flex items-center gap-1.5">
                     Yayıncıları Seçin <span className="text-palette-red">*</span>
@@ -929,7 +1099,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
                 </div>
                 <div
                   className={`min-h-[44px] p-2 bg-palette-beige/30 border ${activeMultiSelect === 'publishers' ? 'border-palette-red ring-4 ring-palette-red/5' : 'border-palette-tan/10'} rounded-[3px] transition-all flex flex-wrap gap-2 items-center cursor-text relative group`}
-                  onClick={() => setActiveMultiSelect('publishers')}
+                  onClick={(e) => { e.stopPropagation(); setActiveMultiSelect('publishers'); }}
                 >
                   {selectedPublishersForUser.map(id => {
                     const p = publishersList.find(i => i.id === id);
@@ -960,28 +1130,27 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
                       <span className="material-symbols-rounded text-[18px]">close</span>
                     </button>
                   )}
+                  {activeMultiSelect === 'publishers' && (
+                    <div className="absolute top-[calc(100%+2px)] left-0 right-0 bg-white border border-palette-tan/20 rounded-[3px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-[200] max-h-60 overflow-y-auto py-2 animate-in fade-in slide-in-from-top-2">
+                      {publishersList.filter(p => !selectedPublishersForUser.includes(p.id) && (p.full_name?.toLowerCase().includes(pubSearchTerm.toLowerCase()) || p.email?.toLowerCase().includes(pubSearchTerm.toLowerCase()))).length === 0 ? (
+                        <div className="px-5 py-4 text-center text-palette-tan/40 text-[12px] font-bold uppercase tracking-widest italic">Sonuç bulunamadı</div>
+                      ) : (
+                        publishersList.filter(p => !selectedPublishersForUser.includes(p.id) && (p.full_name?.toLowerCase().includes(pubSearchTerm.toLowerCase()) || p.email?.toLowerCase().includes(pubSearchTerm.toLowerCase()))).map(p => (
+                          <button
+                            key={p.id}
+                            onClick={() => { setSelectedPublishersForUser(prev => [...prev, p.id]); setPubSearchTerm(''); setActiveMultiSelect(null); }}
+                            className="w-full px-5 py-3 text-left text-[13px] font-bold text-palette-maroon hover:bg-palette-beige/30 transition-all flex items-center justify-between group/item"
+                          >
+                            <div className="flex flex-col">
+                              <span className="group-hover/item:text-palette-red transition-colors">{p.full_name}</span>
+                              <span className="text-[10px] text-palette-tan/40">{p.email}</span>
+                            </div>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  )}
                 </div>
-
-                {activeMultiSelect === 'publishers' && (
-                  <div className="absolute top-[calc(100%+4px)] left-0 right-0 bg-white border border-palette-tan/20 rounded-[3px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-[200] max-h-60 overflow-y-auto py-2 animate-in fade-in slide-in-from-top-2">
-                    {publishersList.filter(p => !selectedPublishersForUser.includes(p.id) && (p.full_name?.toLowerCase().includes(pubSearchTerm.toLowerCase()) || p.email?.toLowerCase().includes(pubSearchTerm.toLowerCase()))).length === 0 ? (
-                      <div className="px-5 py-4 text-center text-palette-tan/40 text-[12px] font-bold uppercase tracking-widest italic">Sonuç bulunamadı</div>
-                    ) : (
-                      publishersList.filter(p => !selectedPublishersForUser.includes(p.id) && (p.full_name?.toLowerCase().includes(pubSearchTerm.toLowerCase()) || p.email?.toLowerCase().includes(pubSearchTerm.toLowerCase()))).map(p => (
-                        <button
-                          key={p.id}
-                          onClick={() => { setSelectedPublishersForUser(prev => [...prev, p.id]); setPubSearchTerm(''); setActiveMultiSelect(null); }}
-                          className="w-full px-5 py-3 text-left text-[13px] font-bold text-palette-maroon hover:bg-palette-beige/30 transition-all flex items-center justify-between group/item"
-                        >
-                          <div className="flex flex-col">
-                            <span className="group-hover/item:text-palette-red transition-colors">{p.full_name}</span>
-                            <span className="text-[10px] text-palette-tan/40">{p.email}</span>
-                          </div>
-                        </button>
-                      ))
-                    )}
-                  </div>
-                )}
               </div>
 
               <div className="bg-palette-beige/20 p-4 rounded-[3px] border border-palette-tan/5 mt-4">
@@ -993,8 +1162,8 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
 
             <div className="px-8 py-6 border-t border-palette-beige bg-palette-beige/10 flex items-center justify-end gap-3">
               <button
-                onClick={() => setShowPublisherModal(false)}
-                className="px-5 py-2.5 font-black text-[11px] text-palette-tan/40 hover:text-palette-maroon tracking-widest uppercase transition-colors"
+                onClick={handleClosePublisherModal}
+                className="px-5 py-2.5 font-black text-[11px] text-palette-tan/40 hover:text-palette-maroon tracking-widest uppercase"
               >
                 Vazgeç
               </button>
@@ -1006,8 +1175,6 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
                   }
                   setSaving(true);
                   try {
-                    // This logic assumes a 'publisher_users' table exists as suggested in SQL.
-                    // If not, it will error, which ensures the user runs the SQL.
                     for (const userId of selectedUsersForPublisher) {
                       for (const pubId of selectedPublishersForUser) {
                         await supabase.from('publisher_users').upsert({
@@ -1017,7 +1184,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
                       }
                     }
                     setStatusModal({ show: true, type: 'success', message: 'Yayıncı atamaları başarıyla gerçekleştirildi.' });
-                    setShowPublisherModal(false);
+                    handleClosePublisherModal();
                     fetchData();
                   } catch (err: any) {
                     setStatusModal({ show: true, type: 'error', message: err.message });
@@ -1039,25 +1206,27 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
 
       {showUserPublisherModal && targetUserForPublishers && (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-palette-maroon/90 backdrop-blur-md animate-in fade-in" onClick={() => !saving && setShowUserPublisherModal(false)} />
-          <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-xl overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 flex flex-col">
-
+          <div className="absolute inset-0 bg-palette-maroon/90 backdrop-blur-md animate-in fade-in" onClick={handleCloseUserPublisherModal} />
+          <div
+            className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-xl overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 flex flex-col"
+            onClick={() => setActiveMultiSelect(null)}
+          >
             <div className="px-8 py-6 border-b border-palette-tan/15 flex items-center justify-between bg-palette-beige/10">
-              <h3 className="text-xl font-black text-palette-maroon tracking-tight flex items-center gap-2">
+              <h3 className="text-lg font-black text-palette-maroon tracking-tight flex items-center gap-2">
+                <div className="p-1.5 bg-palette-red rounded-[3px] text-white shadow-md flex items-center justify-center">
+                  <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>edit_square</span>
+                </div>
                 Kullanıcı Yayıncılarını Düzenle
               </h3>
               <button
-                onClick={() => setShowUserPublisherModal(false)}
-                className="p-1.5 text-palette-tan/40 hover:text-palette-red transition-colors"
+                onClick={handleCloseUserPublisherModal}
+                className="p-1.5 text-palette-tan/40 hover:text-palette-red transition-colors flex items-center justify-center"
               >
                 <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>close</span>
               </button>
             </div>
 
             <div className="p-8 space-y-6">
-              <div className="text-center mb-2">
-                <p className="text-[13px] font-bold text-palette-tan/60 tracking-tight">Seçili kullanıcı için yayıncıları düzenleyin</p>
-              </div>
 
               <div className="bg-cyan-50/50 border border-cyan-100 p-4 rounded-[3px] flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
                 <div className="w-8 h-8 rounded-full bg-cyan-100 flex items-center justify-center text-cyan-600">
@@ -1068,7 +1237,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
                 </p>
               </div>
 
-              <div className="space-y-2 relative">
+              <div className="space-y-2 relative" ref={individualPubSelectRef}>
                 <div className="flex items-center justify-between mb-1">
                   <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest flex items-center gap-1.5">
                     Yayıncıları Seçin <span className="text-palette-red">*</span>
@@ -1083,7 +1252,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
                 </div>
                 <div
                   className={`min-h-[44px] p-2 bg-palette-beige/30 border ${activeMultiSelect === 'publishers' ? 'border-palette-red ring-4 ring-palette-red/5' : 'border-palette-tan/10'} rounded-[3px] transition-all flex flex-wrap gap-2 items-center cursor-text relative group`}
-                  onClick={() => setActiveMultiSelect('publishers')}
+                  onClick={(e) => { e.stopPropagation(); setActiveMultiSelect('publishers'); }}
                 >
                   {selectedPublishersForUser.map(id => {
                     const p = publishersList.find(i => i.id === id);
@@ -1114,28 +1283,27 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
                       <span className="material-symbols-rounded text-[18px]">close</span>
                     </button>
                   )}
+                  {activeMultiSelect === 'publishers' && (
+                    <div className="absolute top-[calc(100%+2px)] left-0 right-0 bg-white border border-palette-tan/20 rounded-[3px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-[200] max-h-60 overflow-y-auto py-2 animate-in fade-in slide-in-from-top-1">
+                      {publishersList.filter(p => !selectedPublishersForUser.includes(p.id) && (p.full_name?.toLowerCase().includes(pubSearchTerm.toLowerCase()) || p.email?.toLowerCase().includes(pubSearchTerm.toLowerCase()))).length === 0 ? (
+                        <div className="px-5 py-4 text-center text-palette-tan/40 text-[12px] font-bold uppercase tracking-widest italic">Sonuç bulunamadı</div>
+                      ) : (
+                        publishersList.filter(p => !selectedPublishersForUser.includes(p.id) && (p.full_name?.toLowerCase().includes(pubSearchTerm.toLowerCase()) || p.email?.toLowerCase().includes(pubSearchTerm.toLowerCase()))).map(p => (
+                          <button
+                            key={p.id}
+                            onClick={() => { setSelectedPublishersForUser(prev => [...prev, p.id]); setPubSearchTerm(''); setActiveMultiSelect(null); }}
+                            className="w-full px-5 py-3 text-left text-[13px] font-bold text-palette-maroon hover:bg-palette-beige/30 transition-all flex items-center justify-between group/item"
+                          >
+                            <div className="flex flex-col">
+                              <span className="group-hover/item:text-palette-red transition-colors">{p.full_name}</span>
+                              <span className="text-[10px] text-palette-tan/40">{p.email}</span>
+                            </div>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  )}
                 </div>
-
-                {activeMultiSelect === 'publishers' && (
-                  <div className="absolute top-[calc(100%+4px)] left-0 right-0 bg-white border border-palette-tan/20 rounded-[3px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-[200] max-h-60 overflow-y-auto py-2 animate-in fade-in slide-in-from-top-2">
-                    {publishersList.filter(p => !selectedPublishersForUser.includes(p.id) && (p.full_name?.toLowerCase().includes(pubSearchTerm.toLowerCase()) || p.email?.toLowerCase().includes(pubSearchTerm.toLowerCase()))).length === 0 ? (
-                      <div className="px-5 py-4 text-center text-palette-tan/40 text-[12px] font-bold uppercase tracking-widest italic">Sonuç bulunamadı</div>
-                    ) : (
-                      publishersList.filter(p => !selectedPublishersForUser.includes(p.id) && (p.full_name?.toLowerCase().includes(pubSearchTerm.toLowerCase()) || p.email?.toLowerCase().includes(pubSearchTerm.toLowerCase()))).map(p => (
-                        <button
-                          key={p.id}
-                          onClick={() => { setSelectedPublishersForUser(prev => [...prev, p.id]); setPubSearchTerm(''); setActiveMultiSelect(null); }}
-                          className="w-full px-5 py-3 text-left text-[13px] font-bold text-palette-maroon hover:bg-palette-beige/30 transition-all flex items-center justify-between group/item"
-                        >
-                          <div className="flex flex-col">
-                            <span className="group-hover/item:text-palette-red transition-colors">{p.full_name}</span>
-                            <span className="text-[10px] text-palette-tan/40">{p.email}</span>
-                          </div>
-                        </button>
-                      ))
-                    )}
-                  </div>
-                )}
                 <p className="text-[10px] font-bold text-palette-tan/40 ml-1">Kullanıcı için Yayıncıları Seçin</p>
               </div>
 
@@ -1146,15 +1314,18 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
               </div>
             </div>
 
-            <div className="px-8 py-8 border-t border-palette-beige bg-palette-beige/10 flex items-center justify-center gap-4">
+            <div className="px-8 py-6 border-t border-palette-beige bg-palette-beige/10 flex items-center justify-end gap-3">
+              <button
+                onClick={handleCloseUserPublisherModal}
+                className="px-5 py-2.5 font-black text-[11px] text-palette-tan/40 hover:text-palette-maroon tracking-widest uppercase"
+              >
+                Vazgeç
+              </button>
               <button
                 onClick={async () => {
                   setSaving(true);
                   try {
-                    // Delete existing relations for this user
                     await supabase.from('publisher_users').delete().eq('user_id', targetUserForPublishers.id);
-
-                    // Insert new relations
                     if (selectedPublishersForUser.length > 0) {
                       const inserts = selectedPublishersForUser.map(pubId => ({
                         user_id: targetUserForPublishers.id,
@@ -1163,9 +1334,8 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
                       const { error } = await supabase.from('publisher_users').insert(inserts);
                       if (error) throw error;
                     }
-
                     setStatusModal({ show: true, type: 'success', message: 'Kullanıcı yayıncıları başarıyla güncellendi.' });
-                    setShowUserPublisherModal(false);
+                    handleCloseUserPublisherModal();
                     fetchData();
                   } catch (err: any) {
                     setStatusModal({ show: true, type: 'error', message: err.message });
@@ -1174,15 +1344,10 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
                   }
                 }}
                 disabled={saving}
-                className="min-w-[140px] px-8 py-3 bg-palette-red text-white rounded-[3px] font-black text-[14px] tracking-widest hover:bg-palette-maroon shadow-xl active:scale-95 transition-all uppercase"
+                className="flex items-center justify-center gap-2 px-6 py-2 bg-palette-tan text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-maroon shadow-xl active:scale-95 disabled:opacity-40 transition-all uppercase"
               >
-                {saving ? 'KAYDEDİLİYOR...' : 'KAYDET'}
-              </button>
-              <button
-                onClick={() => setShowUserPublisherModal(false)}
-                className="min-w-[140px] px-8 py-3 bg-[#E5E7EB] text-palette-tan font-black text-[14px] tracking-widest hover:bg-[#D1D5DB] rounded-[3px] transition-all uppercase"
-              >
-                İPTAL
+                {saving ? <span className="material-symbols-rounded animate-spin" style={{ fontSize: '16px' }}>progress_activity</span> : <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>save</span>}
+                <span>Kaydet</span>
               </button>
             </div>
 
@@ -1193,14 +1358,14 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
       {/* STATUS MODAL OUTSIDE ANIMATED DIV */}
       {statusModal.show && (
         <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-palette-maroon/20 backdrop-blur-[2px] animate-in fade-in" onClick={() => setStatusModal({ ...statusModal, show: false })} />
+          <div className="absolute inset-0 bg-palette-maroon/20 backdrop-blur-[2px] animate-in fade-in" onClick={handleCloseStatusModal} />
           <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-xs overflow-hidden animate-in slide-in-from-bottom-4 border border-palette-tan/15 p-8 text-center">
             <div className={`w-16 h-16 rounded-[3px] flex items-center justify-center mx-auto mb-6 ${statusModal.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
               {statusModal.type === 'error' ? <span className="material-symbols-rounded" style={{ fontSize: '28px' }}>close</span> : <span className="material-symbols-rounded" style={{ fontSize: '28px' }}>check_circle</span>}
             </div>
             <p className="text-base font-black text-palette-maroon mb-8 leading-relaxed">{statusModal.message}</p>
             <button
-              onClick={() => setStatusModal({ ...statusModal, show: false })}
+              onClick={handleCloseStatusModal}
               className="w-full py-2.5 bg-palette-tan text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-maroon transition-all shadow-lg active:scale-95 uppercase"
             >
               {t('common.ok')}

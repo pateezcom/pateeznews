@@ -169,9 +169,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
     handleTabChange('edit_publisher', publisherId);
   };
 
+  const handleEditPost = (postId: string) => {
+    handleTabChange('edit_post', postId);
+  };
+
   const renderContent = () => {
     if (activeTab === 'users' && !hasPermission('manage_users')) return <AccessDenied />;
     if (activeTab === 'posts' && !hasPermission('manage_content')) return <AccessDenied />;
+    if (activeTab === 'edit_post' && !hasPermission('manage_content')) return <AccessDenied />;
     if (activeTab === 'stories' && !hasPermission('manage_content')) return <AccessDenied />;
     if (activeTab === 'navigation' && !hasPermission('manage_navigation')) return <AccessDenied />;
     if (activeTab === 'settings' && !hasPermission('view_settings')) return <AccessDenied />;
@@ -187,8 +192,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
         {(() => {
           switch (activeTab) {
             case 'users': return <UserManagement onEditUser={handleEditUser} />;
-            case 'posts': return <PostManagement />;
-            case 'news_list': return <PostList />;
+            case 'posts': return <PostManagement onBack={() => handleTabChange('news_list')} />;
+            case 'news_list': return <PostList onEditPost={handleEditPost} />;
+            case 'edit_post': return <PostManagement postId={editingUserId || undefined} onBack={() => handleTabChange('news_list')} />;
             case 'stories': return <StoryManagement />;
             case 'navigation': return <NavigationSettings />;
             case 'languages': return <LanguageSettings />;
@@ -294,7 +300,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
             <h1 className="text-[22px] font-bold text-palette-maroon tracking-tight">
               {activeTab === 'edit_user' ? t('users.role_modal.title') :
                 activeTab === 'edit_publisher' ? "Yayıncıyı Düzenle" :
-                  (menuItems.find(i => i.id === activeTab)?.label || t('admin.sidebar.overview'))}
+                  activeTab === 'edit_post' ? (t('admin.post.edit_title') || "Haberi Düzenle") :
+                    (menuItems.find(i => i.id === activeTab)?.label || t('admin.sidebar.overview'))}
             </h1>
             <p className="text-[13px] text-palette-tan font-bold mt-0.5">
               {new Date().toLocaleDateString(t('admin.date_format'), { day: 'numeric', month: 'long', year: 'numeric' })}

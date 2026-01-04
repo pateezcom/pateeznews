@@ -50,8 +50,9 @@ const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublish
 
     const dropdownRef = useRef<HTMLDivElement>(null);
     const [saving, setSaving] = useState(false);
+    const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-    const [formData, setFormData] = useState<Publisher>({
+    const initialFormData: Publisher = {
         id: '',
         username: '',
         full_name: '',
@@ -71,7 +72,30 @@ const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublish
         reward_system: true,
         password: '',
         confirmPassword: ''
-    });
+    };
+
+    const [formData, setFormData] = useState<Publisher>(initialFormData);
+
+    const handleCloseAddModal = () => {
+        setShowAddModal(false);
+        setFormData(initialFormData);
+        setFormErrors({});
+    };
+
+    const handleCloseEditModal = () => {
+        setShowEditModal(false);
+        setFormData(initialFormData);
+        setFormErrors({});
+    };
+
+    const handleCloseDeleteModal = () => {
+        setShowDeleteModal(false);
+        setPublisherToDelete(null);
+    };
+
+    const handleCloseStatusModal = () => {
+        setStatusModal({ show: false, type: 'success', message: '' });
+    };
 
     useEffect(() => {
         fetchData();
@@ -79,55 +103,83 @@ const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublish
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+            if (openDropdownId && dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setOpenDropdownId(null);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+    }, [openDropdownId]);
 
     const fetchData = async () => {
         try {
             setLoading(true);
             setErrorMsg(null);
 
-            // Fetch publishers (profiles with role = 'publisher')
-            const { data: pubData, error: pubError } = await supabase
+            // 1. Fetch publishers (profiles with role = 'publisher')
+            const profilesPromise = supabase
                 .from('profiles')
                 .select('*')
                 .eq('role', 'publisher')
                 .order('created_at', { ascending: false });
 
-            if (pubError) throw pubError;
+            // 2. Fetch all publisher_users relations
+            const usersPromise = supabase
+                .from('publisher_users')
+                .select('publisher_id, profiles(id, full_name)');
 
-            // Fetch relations for each publisher
-            const enrichedData = await Promise.all((pubData || []).map(async (pub) => {
-                // Fetch assigned users
-                const { data: userData } = await supabase
-                    .from('publisher_users')
-                    .select('profiles(id, full_name)')
-                    .eq('publisher_id', pub.id);
+            // 3. Fetch all publisher_categories relations
+            const categoriesPromise = supabase
+                .from('publisher_categories')
+                .select('publisher_id, navigation_items(id, label)');
 
-                // Fetch assigned categories (from navigation_items)
-                const { data: catData } = await supabase
-                    .from('publisher_categories')
-                    .select('navigation_items(id, label)')
-                    .eq('publisher_id', pub.id);
+            // 4. Fetch post counts via RPC or raw query if possible. 
+            // Since we can't easily do GROUP BY in simple client query without a view, 
+            // we will fetch just ID and AUTHOR_ID of all posts to count in memory.
+            // This is faster than N requests for moderate datasets.
+            const postsPromise = supabase
+                .from('posts')
+                .select('id, author_id');
 
-                // Fetch post count (mocked for now as we don't have the relation easily countable in one query here)
-                // In a production app, you might use a VIEW or a RPC call.
-                const { count: postCount } = await supabase
-                    .from('posts')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('author_id', pub.id); // Assuming author_id links to publisher profile
+            const [profilesRes, usersRes, categoriesRes, postsRes] = await Promise.all([
+                profilesPromise,
+                usersPromise,
+                categoriesPromise,
+                postsPromise
+            ]);
 
-                return {
-                    ...pub,
-                    assigned_users: userData?.map((u: any) => u.profiles) || [],
-                    assigned_categories: catData?.map((c: any) => ({ id: c.navigation_items.id, name: c.navigation_items.label })) || [],
-                    post_count: postCount || 0
-                };
+            if (profilesRes.error) throw profilesRes.error;
+
+            const publishersList = profilesRes.data || [];
+            const allUsers = usersRes.data || [];
+            const allCategories = categoriesRes.data || [];
+            const allPosts = postsRes.data || [];
+
+            // Group relations in memory
+            const userMap: Record<string, any[]> = {};
+            allUsers.forEach((u: any) => {
+                if (!userMap[u.publisher_id]) userMap[u.publisher_id] = [];
+                if (u.profiles) userMap[u.publisher_id].push(u.profiles);
+            });
+
+            const categoryMap: Record<string, any[]> = {};
+            allCategories.forEach((c: any) => {
+                if (!categoryMap[c.publisher_id]) categoryMap[c.publisher_id] = [];
+                if (c.navigation_items) categoryMap[c.publisher_id].push({ id: c.navigation_items.id, name: c.navigation_items.label });
+            });
+
+            const postCountMap: Record<string, number> = {};
+            allPosts.forEach((p: any) => {
+                if (p.author_id) {
+                    postCountMap[p.author_id] = (postCountMap[p.author_id] || 0) + 1;
+                }
+            });
+
+            const enrichedData = publishersList.map(pub => ({
+                ...pub,
+                assigned_users: userMap[pub.id] || [],
+                assigned_categories: categoryMap[pub.id] || [],
+                post_count: postCountMap[pub.id] || 0
             }));
 
             setPublishers(enrichedData);
@@ -166,23 +218,20 @@ const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublish
 
     const confirmDelete = async () => {
         if (!publisherToDelete) return;
-        setSaving(true);
-        try {
-            // Option A: Just change role to 'member'
-            // Option B: Delete profile (this will cascade delete users/categories relations)
-            // We'll go with changing role or deleting if confirmed. 
-            // In many systems, we just deactivate.
-            const { error } = await supabase.from('profiles').delete().eq('id', publisherToDelete.id);
-            if (error) throw error;
 
-            setShowDeleteModal(false);
-            setPublisherToDelete(null);
-            fetchData();
-            setStatusModal({ show: true, type: 'success', message: 'Yayıncı başarıyla silindi.' });
+        // Optimistic Delete
+        const previousPublishers = [...publishers];
+        setPublishers(prev => prev.filter(p => p.id !== publisherToDelete.id));
+        handleCloseDeleteModal();
+
+        try {
+            const { error } = await supabase.from('profiles').delete().eq('id', publisherToDelete.id);
+            if (error) {
+                setPublishers(previousPublishers);
+                throw error;
+            }
         } catch (err: any) {
             setStatusModal({ show: true, type: 'error', message: err.message });
-        } finally {
-            setSaving(false);
         }
     };
 
@@ -394,17 +443,20 @@ const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublish
                                                                 </button>
                                                                 <button
                                                                     onClick={async () => {
-                                                                        setSaving(true);
+                                                                        setOpenDropdownId(null);
+                                                                        // Optimistic update
+                                                                        const newReward = !pub.reward_system;
+                                                                        setPublishers(prev => prev.map(p => p.id === pub.id ? { ...p, reward_system: newReward } : p));
+
                                                                         try {
-                                                                            const { error } = await supabase.from('profiles').update({ reward_system: !pub.reward_system }).eq('id', pub.id);
-                                                                            if (error) throw error;
-                                                                            setStatusModal({ show: true, type: 'success', message: 'Ödül sistemi güncellendi.' });
-                                                                            fetchData();
+                                                                            const { error } = await supabase.from('profiles').update({ reward_system: newReward }).eq('id', pub.id);
+                                                                            if (error) {
+                                                                                // Revert
+                                                                                setPublishers(prev => prev.map(p => p.id === pub.id ? { ...p, reward_system: pub.reward_system } : p));
+                                                                                throw error;
+                                                                            }
                                                                         } catch (err: any) {
                                                                             setStatusModal({ show: true, type: 'error', message: err.message });
-                                                                        } finally {
-                                                                            setSaving(false);
-                                                                            setOpenDropdownId(null);
                                                                         }
                                                                     }}
                                                                     className="w-full px-5 py-3 text-left text-[13px] font-bold text-palette-maroon hover:bg-palette-beige/30 transition-all flex items-center gap-3"
@@ -414,18 +466,20 @@ const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublish
                                                                 </button>
                                                                 <button
                                                                     onClick={async () => {
-                                                                        setSaving(true);
+                                                                        setOpenDropdownId(null);
+                                                                        // Optimistic update
+                                                                        const newStatus = pub.status === 'Aktif' ? 'Engelli' : 'Aktif';
+                                                                        setPublishers(prev => prev.map(p => p.id === pub.id ? { ...p, status: newStatus } : p));
+
                                                                         try {
-                                                                            const newStatus = pub.status === 'Aktif' ? 'Engelli' : 'Aktif';
                                                                             const { error } = await supabase.from('profiles').update({ status: newStatus }).eq('id', pub.id);
-                                                                            if (error) throw error;
-                                                                            setStatusModal({ show: true, type: 'success', message: `Yayıncı ${newStatus === 'Aktif' ? 'Aktifleştirildi' : 'Durduruldu'}.` });
-                                                                            fetchData();
+                                                                            if (error) {
+                                                                                // Revert
+                                                                                setPublishers(prev => prev.map(p => p.id === pub.id ? { ...p, status: pub.status } : p));
+                                                                                throw error;
+                                                                            }
                                                                         } catch (err: any) {
                                                                             setStatusModal({ show: true, type: 'error', message: err.message });
-                                                                        } finally {
-                                                                            setSaving(false);
-                                                                            setOpenDropdownId(null);
                                                                         }
                                                                     }}
                                                                     className="w-full px-5 py-3 text-left text-[13px] font-bold text-palette-maroon hover:bg-palette-beige/30 transition-all flex items-center gap-3"
@@ -459,86 +513,133 @@ const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublish
             {/* MODALS RENDERED OUTSIDE FOR PERFECT BLUR */}
             {
                 (showAddModal || showEditModal) && (
-                    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
-                        <div className="absolute inset-0 bg-palette-maroon/90 backdrop-blur-md animate-in fade-in" onClick={() => !saving && (showAddModal ? setShowAddModal(false) : setShowEditModal(false))} />
+                    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 overflow-hidden">
+                        <div className="absolute inset-0 bg-palette-maroon/90 backdrop-blur-md animate-in fade-in" onClick={() => !saving && (showAddModal ? handleCloseAddModal() : handleCloseEditModal())} />
 
-                        <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 flex flex-col">
+                        <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-xl overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 flex flex-col">
 
-                            <div className="px-8 py-6 border-b border-palette-tan/15 flex items-center justify-between bg-palette-beige/10 sticky top-0 z-10">
-                                <h3 className="text-lg font-black text-palette-maroon tracking-tight flex items-center gap-3">
+                            <div className="px-8 py-6 border-b border-palette-tan/15 flex items-center justify-between bg-palette-beige/10">
+                                <h3 className="text-lg font-black text-palette-maroon tracking-tight flex items-center gap-2">
                                     <div className="p-1.5 bg-palette-red rounded-[3px] text-white shadow-md flex items-center justify-center">
-                                        <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>business_center</span>
+                                        {showEditModal ? <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>edit_square</span> : <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>add</span>}
                                     </div>
-                                    {showAddModal ? t('publishers.form.title') : t('publishers.form.edit_title')}
+                                    {showEditModal ? 'Yayıncıyı Düzenle' : 'Yayıncı Ekle'}
                                 </h3>
                                 <button
-                                    onClick={() => showAddModal ? setShowAddModal(false) : setShowEditModal(false)}
+                                    onClick={() => showAddModal ? handleCloseAddModal() : handleCloseEditModal()}
                                     className="p-1.5 text-palette-tan/40 hover:text-palette-red transition-colors flex items-center justify-center"
                                 >
                                     <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>close</span>
                                 </button>
                             </div>
 
-                            <div className="p-8 overflow-y-auto scrollbar-thin scrollbar-thumb-palette-tan/10 space-y-5">
-                                <div className="text-center">
-                                    <p className="text-[14px] font-bold text-palette-tan/40 uppercase tracking-widest">{showAddModal ? 'Yeni yayıncı bilgilerini ekleyin' : 'Yayıncı bilgilerini güncelleyin'}</p>
-                                </div>
+                            <div className="p-8 overflow-y-auto max-h-[70vh] scrollbar-thin scrollbar-thumb-palette-tan/10 space-y-5">
 
                                 {/* FIELDS matches Image 2 & 3 */}
                                 <div className="space-y-6">
                                     <div className="space-y-1.5">
-                                        <label className="text-[11px] font-black text-palette-tan/60 uppercase tracking-widest ml-1">{t('publishers.form.name')} <span className="text-palette-red">*</span></label>
-                                        <input type="text" value={formData.full_name} onChange={e => setFormData({ ...formData, full_name: e.target.value })} placeholder="Yayıncı Adı" className={inputClasses} />
+                                        <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest">{t('publishers.form.name')} <span className="text-palette-red">*</span></label>
+                                        <input
+                                            type="text"
+                                            value={formData.full_name}
+                                            onChange={e => {
+                                                setFormData({ ...formData, full_name: e.target.value });
+                                                if (formErrors.full_name) setFormErrors({ ...formErrors, full_name: '' });
+                                            }}
+                                            placeholder="Yayıncı Adı"
+                                            className={`${inputClasses} ${formErrors.full_name ? 'border-palette-red text-palette-red' : ''}`}
+                                        />
+                                        {formErrors.full_name && <p className="text-[10px] font-bold text-palette-red ml-1">{formErrors.full_name}</p>}
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-1.5">
-                                            <label className="text-[11px] font-black text-palette-tan/60 uppercase tracking-widest ml-1">{t('publishers.form.username')} <span className="text-palette-red">*</span></label>
-                                            <input type="text" value={formData.username} onChange={e => setFormData({ ...formData, username: e.target.value })} placeholder="Kullanıcı Adı" className={inputClasses} />
+                                            <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest">{t('publishers.form.username')} <span className="text-palette-red">*</span></label>
+                                            <input
+                                                type="text"
+                                                value={formData.username}
+                                                onChange={e => {
+                                                    setFormData({ ...formData, username: e.target.value.toLowerCase().replace(' ', '_') });
+                                                    if (formErrors.username) setFormErrors({ ...formErrors, username: '' });
+                                                }}
+                                                placeholder="Kullanıcı Adı"
+                                                className={`${inputClasses} ${formErrors.username ? 'border-palette-red text-palette-red' : ''}`}
+                                            />
+                                            {formErrors.username && <p className="text-[10px] font-bold text-palette-red ml-1">{formErrors.username}</p>}
                                         </div>
                                         <div className="space-y-1.5">
-                                            <label className="text-[11px] font-black text-palette-tan/60 uppercase tracking-widest ml-1">{t('publishers.form.email')} <span className="text-palette-red">*</span></label>
-                                            <input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} placeholder="yayinci@ornek.com" className={inputClasses} />
+                                            <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest">{t('publishers.form.email')} <span className="text-palette-red">*</span></label>
+                                            <input
+                                                type="email"
+                                                value={formData.email}
+                                                onChange={e => {
+                                                    setFormData({ ...formData, email: e.target.value });
+                                                    if (formErrors.email) setFormErrors({ ...formErrors, email: '' });
+                                                }}
+                                                placeholder="yayinci@ornek.com"
+                                                className={`${inputClasses} ${formErrors.email ? 'border-palette-red text-palette-red' : ''}`}
+                                            />
+                                            {formErrors.email && <p className="text-[10px] font-bold text-palette-red ml-1">{formErrors.email}</p>}
                                         </div>
                                     </div>
 
                                     {showAddModal && (
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-1.5">
-                                                <label className="text-[11px] font-black text-palette-tan/60 uppercase tracking-widest ml-1">Şifre <span className="text-palette-red">*</span></label>
-                                                <input type="password" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} placeholder="••••••••" className={inputClasses} />
+                                                <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest">Şifre <span className="text-palette-red">*</span></label>
+                                                <input
+                                                    type="password"
+                                                    value={formData.password}
+                                                    onChange={e => {
+                                                        setFormData({ ...formData, password: e.target.value });
+                                                        if (formErrors.password) setFormErrors({ ...formErrors, password: '' });
+                                                    }}
+                                                    placeholder="••••••••"
+                                                    className={`${inputClasses} ${formErrors.password ? 'border-palette-red text-palette-red' : ''}`}
+                                                />
+                                                {formErrors.password && <p className="text-[10px] font-bold text-palette-red ml-1">{formErrors.password}</p>}
                                             </div>
                                             <div className="space-y-1.5">
-                                                <label className="text-[11px] font-black text-palette-tan/60 uppercase tracking-widest ml-1">Şifre Onayla <span className="text-palette-red">*</span></label>
-                                                <input type="password" value={formData.confirmPassword} onChange={e => setFormData({ ...formData, confirmPassword: e.target.value })} placeholder="••••••••" className={inputClasses} />
+                                                <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest">Şifre Onayla <span className="text-palette-red">*</span></label>
+                                                <input
+                                                    type="password"
+                                                    value={formData.confirmPassword}
+                                                    onChange={e => {
+                                                        setFormData({ ...formData, confirmPassword: e.target.value });
+                                                        if (formErrors.confirmPassword) setFormErrors({ ...formErrors, confirmPassword: '' });
+                                                    }}
+                                                    placeholder="••••••••"
+                                                    className={`${inputClasses} ${formErrors.confirmPassword ? 'border-palette-red text-palette-red' : ''}`}
+                                                />
+                                                {formErrors.confirmPassword && <p className="text-[10px] font-bold text-palette-red ml-1">{formErrors.confirmPassword}</p>}
                                             </div>
                                         </div>
                                     )}
 
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-1.5">
-                                            <label className="text-[11px] font-black text-palette-tan/60 uppercase tracking-widest ml-1">{t('publishers.form.phone')}</label>
+                                            <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest">{t('publishers.form.phone')}</label>
                                             <input type="text" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} placeholder="+90 555 000 00 00" className={inputClasses} />
                                         </div>
                                         <div className="space-y-1.5">
-                                            <label className="text-[11px] font-black text-palette-tan/60 uppercase tracking-widest ml-1">{t('publishers.form.website')}</label>
+                                            <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest">{t('publishers.form.website')}</label>
                                             <input type="text" value={formData.website} onChange={e => setFormData({ ...formData, website: e.target.value })} placeholder="https://ornek.com" className={inputClasses} />
                                         </div>
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-1.5">
-                                            <label className="text-[11px] font-black text-palette-tan/60 uppercase tracking-widest ml-1">{t('publishers.form.address')}</label>
+                                            <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest">{t('publishers.form.address')}</label>
                                             <input type="text" value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} placeholder="Yayıncı Adresi" className={inputClasses} />
                                         </div>
                                         <div className="space-y-1.5">
-                                            <label className="text-[11px] font-black text-palette-tan/60 uppercase tracking-widest ml-1">{t('publishers.form.expertise')}</label>
+                                            <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest">{t('publishers.form.expertise')}</label>
                                             <input type="text" value={formData.expertise} onChange={e => setFormData({ ...formData, expertise: e.target.value })} placeholder="Teknoloji, Haber, Spor..." className={inputClasses} />
                                         </div>
                                     </div>
 
                                     <div className="space-y-1.5 w-1/2">
-                                        <label className="text-[11px] font-black text-palette-tan/60 uppercase tracking-widest ml-1">{t('publishers.form.foundation')}</label>
+                                        <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest">{t('publishers.form.foundation')}</label>
                                         <div className="relative group">
                                             <input type="text" value={formData.foundation_date} onChange={e => setFormData({ ...formData, foundation_date: e.target.value })} placeholder="gg.aa.yyyy" className={inputClasses} />
                                             <span className="material-symbols-rounded absolute right-4 top-1/2 -translate-y-1/2 text-palette-tan/40" style={{ fontSize: '18px' }}>calendar_month</span>
@@ -546,48 +647,89 @@ const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublish
                                     </div>
 
                                     <div className="space-y-1.5">
-                                        <label className="text-[11px] font-black text-palette-tan/60 uppercase tracking-widest ml-1">{t('publishers.form.description')}</label>
+                                        <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest">{t('publishers.form.description')}</label>
                                         <textarea rows={4} value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} placeholder="Yayıncı açıklaması..." className="w-full p-4 bg-palette-beige/30 border border-palette-tan/10 rounded-[3px] text-sm font-bold text-palette-maroon outline-none focus:bg-white focus:border-palette-tan focus:ring-4 focus:ring-palette-tan/5 transition-all resize-none" />
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-1.5">
-                                            <label className="text-[11px] font-black text-palette-tan/60 uppercase tracking-widest ml-1">{t('publishers.form.meta_title')}</label>
+                                            <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest">{t('publishers.form.meta_title')}</label>
                                             <input type="text" value={formData.meta_title} onChange={e => setFormData({ ...formData, meta_title: e.target.value })} placeholder="Meta Başlık" className={inputClasses} />
                                         </div>
                                         <div className="space-y-1.5">
-                                            <label className="text-[11px] font-black text-palette-tan/60 uppercase tracking-widest ml-1">{t('publishers.form.meta_keywords')}</label>
+                                            <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest">{t('publishers.form.meta_keywords')}</label>
                                             <input type="text" value={formData.meta_keywords} onChange={e => setFormData({ ...formData, meta_keywords: e.target.value })} placeholder="anahtar kelime1, anahtar kelime2" className={inputClasses} />
                                         </div>
                                     </div>
 
                                     <div className="space-y-1.5">
-                                        <label className="text-[11px] font-black text-palette-tan/60 uppercase tracking-widest ml-1">{t('publishers.form.meta_desc')}</label>
+                                        <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest">{t('publishers.form.meta_desc')}</label>
                                         <textarea rows={2} value={formData.meta_description} onChange={e => setFormData({ ...formData, meta_description: e.target.value })} placeholder="Meta Açıklama" className="w-full p-4 bg-palette-beige/30 border border-palette-tan/10 rounded-[3px] text-sm font-bold text-palette-maroon outline-none focus:bg-white focus:border-palette-tan focus:ring-4 focus:ring-palette-tan/5 transition-all resize-none" />
                                     </div>
 
                                     <div className="space-y-1.5 w-1/2">
-                                        <label className="text-[11px] font-black text-palette-tan/60 uppercase tracking-widest ml-1">{t('publishers.form.canonical')}</label>
+                                        <label className="text-[11px] font-black text-palette-tan/50 ml-1 uppercase tracking-widest">{t('publishers.form.canonical')}</label>
                                         <input type="text" value={formData.canonical_url} onChange={e => setFormData({ ...formData, canonical_url: e.target.value })} placeholder="Kanonik URL" className={inputClasses} />
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="px-8 py-6 border-t border-palette-beige bg-palette-beige/10 flex items-center justify-end gap-3 sticky bottom-0 z-10">
+                            <div className="px-8 py-6 border-t border-palette-beige bg-palette-beige/10 flex items-center justify-end gap-3">
                                 <button
-                                    onClick={() => showAddModal ? setShowAddModal(false) : setShowEditModal(false)}
-                                    className="px-5 py-2.5 font-black text-[13px] text-palette-tan/40 hover:text-palette-maroon tracking-widest uppercase transition-colors"
+                                    onClick={() => showAddModal ? handleCloseAddModal() : handleCloseEditModal()}
+                                    className="px-5 py-2.5 font-black text-[11px] text-palette-tan/40 hover:text-palette-maroon tracking-widest uppercase transition-colors"
                                 >
-                                    {t('common.cancel')}
+                                    Vazgeç
                                 </button>
                                 <button
                                     onClick={async () => {
-                                        if (!formData.full_name || !formData.username) {
-                                            setStatusModal({ show: true, type: 'error', message: 'Lütfen zorunlu alanları doldurun.' });
+                                        const errors: Record<string, string> = {};
+                                        if (!formData.full_name) errors.full_name = 'Alan zorunludur';
+                                        if (!formData.username) errors.username = 'Alan zorunludur';
+                                        if (!formData.email) errors.email = 'Alan zorunludur';
+
+                                        if (showAddModal) {
+                                            if (!formData.password) errors.password = 'Alan zorunludur';
+                                            if (!formData.confirmPassword) errors.confirmPassword = 'Alan zorunludur';
+
+                                            if (!errors.password && !errors.confirmPassword && formData.password !== formData.confirmPassword) {
+                                                errors.confirmPassword = 'Şifreler uyuşmuyor.';
+                                            }
+                                        }
+
+                                        if (Object.keys(errors).length > 0) {
+                                            setFormErrors(errors);
                                             return;
                                         }
+
+                                        setFormErrors({});
                                         setSaving(true);
                                         try {
+                                            // Uniqueness check
+                                            const query = supabase
+                                                .from('profiles')
+                                                .select('username, email')
+                                                .or(`username.eq.${formData.username},email.eq.${formData.email}`);
+
+                                            if (showEditModal && formData.id) {
+                                                query.neq('id', formData.id);
+                                            }
+
+                                            const { data: conflicts } = await query;
+
+                                            if (conflicts && conflicts.length > 0) {
+                                                const errors: Record<string, string> = {};
+                                                conflicts.forEach(c => {
+                                                    if (c.username?.toLowerCase() === formData.username?.toLowerCase()) errors.username = 'Kullanıcı adı zaten kullanımda';
+                                                    if (c.email?.toLowerCase() === formData.email?.toLowerCase()) errors.email = 'E-posta zaten kullanımda';
+                                                });
+                                                if (Object.keys(errors).length > 0) {
+                                                    setFormErrors(errors);
+                                                    setSaving(false);
+                                                    return;
+                                                }
+                                            }
+
                                             const payload = {
                                                 full_name: formData.full_name,
                                                 username: formData.username,
@@ -638,10 +780,23 @@ const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublish
                                                 }
                                             }
 
-                                            setShowAddModal(false);
-                                            setShowEditModal(false);
-                                            setStatusModal({ show: true, type: 'success', message: 'Yayıncı başarıyla kaydedildi.' });
-                                            fetchData();
+                                            // Local update for edit
+                                            if (showEditModal && formData.id) {
+                                                setPublishers(prev => prev.map(p => p.id === formData.id ? {
+                                                    ...p,
+                                                    ...formData,
+                                                    // Preserve relations
+                                                    assigned_users: p.assigned_users,
+                                                    assigned_categories: p.assigned_categories,
+                                                    post_count: p.post_count
+                                                } : p));
+                                            } else {
+                                                // For Add, we still fetch to be safe about triggers/IDs
+                                                fetchData();
+                                            }
+
+                                            handleCloseAddModal();
+                                            handleCloseEditModal();
                                         } catch (err: any) {
                                             setStatusModal({ show: true, type: 'error', message: err.message });
                                         } finally {
@@ -665,7 +820,7 @@ const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublish
             {
                 showDeleteModal && (
                     <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
-                        <div className="absolute inset-0 bg-palette-maroon/40 backdrop-blur-md animate-in fade-in" onClick={() => !saving && setShowDeleteModal(false)} />
+                        <div className="absolute inset-0 bg-palette-maroon/40 backdrop-blur-md animate-in fade-in" onClick={() => !saving && handleCloseDeleteModal()} />
                         <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 p-8 text-center">
                             <div className="w-20 h-20 bg-red-50 text-palette-red rounded-[3px] flex items-center justify-center mx-auto mb-6 shadow-inner">
                                 <span className="material-symbols-rounded" style={{ fontSize: '32px' }}>delete</span>
@@ -684,7 +839,7 @@ const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublish
                                     SİLİNSİN
                                 </button>
                                 <button
-                                    onClick={() => setShowDeleteModal(false)}
+                                    onClick={handleCloseDeleteModal}
                                     className="w-full h-10 bg-palette-beige/30 text-palette-tan rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-beige/50 transition-all uppercase"
                                 >
                                     {t('common.cancel')}
@@ -699,14 +854,14 @@ const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublish
             {
                 statusModal.show && (
                     <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
-                        <div className="absolute inset-0 bg-palette-maroon/20 backdrop-blur-[2px] animate-in fade-in" onClick={() => setStatusModal({ ...statusModal, show: false })} />
+                        <div className="absolute inset-0 bg-palette-maroon/20 backdrop-blur-[2px] animate-in fade-in" onClick={handleCloseStatusModal} />
                         <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-xs overflow-hidden animate-in slide-in-from-bottom-4 border border-palette-tan/15 p-8 text-center">
                             <div className={`w-16 h-16 rounded-[3px] flex items-center justify-center mx-auto mb-6 ${statusModal.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
                                 {statusModal.type === 'error' ? <span className="material-symbols-rounded" style={{ fontSize: '28px' }}>close</span> : <span className="material-symbols-rounded" style={{ fontSize: '28px' }}>check_circle</span>}
                             </div>
                             <p className="text-[14px] font-black text-palette-maroon mb-8 leading-relaxed uppercase">{statusModal.message}</p>
                             <button
-                                onClick={() => setStatusModal({ ...statusModal, show: false })}
+                                onClick={handleCloseStatusModal}
                                 className="w-full py-2.5 bg-palette-tan text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-maroon transition-all shadow-lg active:scale-95 uppercase"
                             >
                                 TAMAM

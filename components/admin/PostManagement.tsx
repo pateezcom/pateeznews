@@ -466,13 +466,18 @@ interface Language {
     name: string;
 }
 
-const PostManagement: React.FC = () => {
+interface PostManagementProps {
+    postId?: string;
+    onBack?: () => void;
+}
+
+const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack }) => {
     const { t } = useLanguage();
     const [formData, setFormData] = useState({
         id: '',
         title: '',
         summary: '',
-        category: 'Gündem',
+        category: '',
         thumbnail: '',
         seoTitle: '',
         seoDescription: '',
@@ -481,6 +486,7 @@ const PostManagement: React.FC = () => {
         factChecked: false,
         schemaType: 'NewsArticle',
         publishAt: '',
+        publisher_id: '',
         items: [] as PostItem[]
     });
 
@@ -507,6 +513,87 @@ const PostManagement: React.FC = () => {
     const [selectedLanguage, setSelectedLanguage] = useState('tr');
     const [selectedParentId, setSelectedParentId] = useState<string>('');
     const [selectedSubId, setSelectedSubId] = useState<string>('');
+    const [publishers, setPublishers] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchUserAndPublishers = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+                const role = profile?.role;
+
+                if (role === 'admin') {
+                    const { data } = await supabase.from('profiles').select('id, full_name').eq('role', 'publisher');
+                    setPublishers(data || []);
+                } else {
+                    const { data: assignments } = await supabase
+                        .from('publisher_users')
+                        .select('publisher_id')
+                        .eq('user_id', user.id);
+
+                    if (assignments && assignments.length > 0) {
+                        const ids = assignments.map(a => a.publisher_id);
+                        const { data } = await supabase.from('profiles').select('id, full_name').in('id', ids);
+                        setPublishers(data || []);
+                    }
+                }
+            }
+        };
+        fetchUserAndPublishers();
+    }, []);
+
+    useEffect(() => {
+        if (postId) {
+            const fetchPostData = async () => {
+                try {
+                    const { data, error } = await supabase
+                        .from('posts')
+                        .select('*')
+                        .eq('id', postId)
+                        .single();
+
+                    if (error) throw error;
+                    if (data) {
+                        setFormData({
+                            id: data.id,
+                            title: data.title || '',
+                            summary: data.summary || '',
+                            category: data.category || '',
+                            thumbnail: data.thumbnail_url || '',
+                            seoTitle: data.seo_title || '',
+                            seoDescription: data.seo_description || '',
+                            keywords: data.keywords || '',
+                            slug: data.slug || '',
+                            factChecked: data.fact_checked || false,
+                            schemaType: data.schema_type || 'NewsArticle',
+                            publishAt: data.published_at || '',
+                            publisher_id: data.publisher_id || '',
+                            items: data.items || []
+                        });
+                        setSelectedLanguage(data.language_code || 'tr');
+                        setActiveDetailTab(data.type as any || 'article');
+
+                        // Set parent and sub category if possible
+                        if (data.category && categories.length > 0) {
+                            const foundCat = categories.find(c => c.label === data.category);
+                            if (foundCat) {
+                                if (foundCat.parent_id) {
+                                    setSelectedParentId(foundCat.parent_id);
+                                    setSelectedSubId(foundCat.id);
+                                } else {
+                                    setSelectedParentId(foundCat.id);
+                                    setSelectedSubId('');
+                                }
+                            }
+                        }
+                    }
+                } catch (err) {
+                    console.error("Error fetching post:", err);
+                }
+            };
+            fetchPostData();
+        }
+    }, [postId, categories]);
 
     useEffect(() => {
         fetchMedia();
@@ -514,12 +601,13 @@ const PostManagement: React.FC = () => {
     }, []);
 
     useEffect(() => {
+        if (postId && formData.items.length > 0) return;
+
         if (activeDetailTab === 'article') {
             const hasQuiz = formData.items.some(item => item.type === 'quiz' as any);
             const hasPoll = formData.items.some(item => item.type === 'poll');
             const hasVideo = formData.items.some(item => item.type === 'video');
 
-            // Eğer özel bir tabdan (Quiz/Poll/Video) Article'a geçiliyorsa veya boşsa temizleyip metin bloğu ekle
             if (hasQuiz || (formData.items.length === 1 && (hasPoll || hasVideo)) || formData.items.length === 0) {
                 if (hasQuiz || hasPoll || hasVideo || formData.items.length === 0) {
                     const newItem: PostItem = {
@@ -867,13 +955,15 @@ const PostManagement: React.FC = () => {
 
     useEffect(() => {
         if (selectedLanguage) {
-            fetchCategories(selectedLanguage);
-            // Dil değiştiğinde kategori seçimlerini sıfırla (eğer manuel değişimse)
-            if (formData.id === '') { // Sadece yeni haber eklerken sıfırla, düzenlerken baştan yüklenecek
+            const timer = setTimeout(() => {
+                fetchCategories(selectedLanguage);
+            }, 300);
+            if (formData.id === '' && !postId) {
                 setSelectedParentId('');
                 setSelectedSubId('');
                 setFormData(prev => ({ ...prev, category: '' }));
             }
+            return () => clearTimeout(timer);
         }
     }, [selectedLanguage]);
 
@@ -903,15 +993,29 @@ const PostManagement: React.FC = () => {
                     .order('order_index', { ascending: true });
                 setCategories(itemData || []);
 
-                // If editing and category exists, try to pre-populate dropdowns
-                if (formData.category && itemData) {
-                    const matchedItem = itemData.find(i => i.label === formData.category);
+                if (itemData && itemData.length > 0) {
+                    // 1. Try to find the existing category
+                    let matchedItem = formData.category
+                        ? itemData.find(i => i.label === formData.category)
+                        : null;
+
+                    // 2. If no category set or not found, pick the first PARENT category (Default)
+                    if (!matchedItem) {
+                        matchedItem = itemData.find(i => !i.parent_id);
+                    }
+
                     if (matchedItem) {
                         if (matchedItem.parent_id) {
                             setSelectedParentId(matchedItem.parent_id);
                             setSelectedSubId(matchedItem.id);
                         } else {
                             setSelectedParentId(matchedItem.id);
+                            setSelectedSubId('');
+                        }
+
+                        // Sync formData if needed (e.g. setting the default)
+                        if (formData.category !== matchedItem.label) {
+                            setFormData(prev => ({ ...prev, category: matchedItem!.label }));
                         }
                     }
                 }
@@ -1317,12 +1421,27 @@ const PostManagement: React.FC = () => {
     };
 
     const handleUpdateItem = (id: string, field: keyof PostItem, value: any) => {
-        setFormData(prev => ({
-            ...prev,
-            items: prev.items.map(item =>
-                item.id === id ? { ...item, [field]: value } : item
-            )
-        }));
+        setFormData(prev => {
+            let updatedItems;
+
+            if (field === 'showOnHomepage' && value === true) {
+                // Eğer bu item ana sayfada gösterilecekse, diğer hepsini kapat
+                updatedItems = prev.items.map(item => ({
+                    ...item,
+                    showOnHomepage: item.id === id ? true : false
+                }));
+            } else {
+                // Diğer güncellemeler normal şekilde devam etsin
+                updatedItems = prev.items.map(item =>
+                    item.id === id ? { ...item, [field]: value } : item
+                );
+            }
+
+            return {
+                ...prev,
+                items: updatedItems
+            };
+        });
     };
 
     const handleAddVSItem = () => {
@@ -1514,15 +1633,93 @@ const PostManagement: React.FC = () => {
         });
     };
 
+    const handleSave = async (status: 'published' | 'draft') => {
+        if (!formData.title) {
+            alert(t('admin.post.title_required') || 'Başlık zorunludur');
+            return;
+        }
+        if (!formData.publisher_id) {
+            alert(t('admin.post.publisher_required') || 'Yayıncı seçimi zorunludur');
+            return;
+        }
+
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                alert('Oturum açmanız gerekiyor');
+                return;
+            }
+
+            const slug = formData.slug || formData.title.toLowerCase()
+                .replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's').replace(/ı/g, 'i').replace(/ö/g, 'o').replace(/ç/g, 'c')
+                .replace(/[^a-z0-9\s-]/g, '')
+                .replace(/\s+/g, '-')
+                .trim();
+
+            const postData = {
+                title: formData.title,
+                summary: formData.summary,
+                category: formData.category,
+                type: activeDetailTab,
+                thumbnail_url: formData.thumbnail,
+                items: formData.items,
+                slug: slug,
+                seo_title: formData.seoTitle,
+                seo_description: formData.seoDescription,
+                keywords: formData.keywords,
+                status: status,
+                publisher_id: formData.publisher_id,
+                language_code: selectedLanguage,
+                published_at: status === 'published' ? (formData.publishAt || new Date().toISOString()) : null,
+                updated_at: new Date().toISOString(),
+                // Default counts for new posts
+                ...(formData.id ? {} : { likes_count: 0, shares_count: 0, comments_count: 0 })
+            };
+
+            if (formData.id) {
+                // Update
+                const { error } = await supabase
+                    .from('posts')
+                    .update(postData)
+                    .eq('id', formData.id);
+                if (error) throw error;
+                alert(t('admin.post.save_success') || 'Haber başarıyla güncellendi');
+            } else {
+                // Insert
+                const { data, error } = await supabase
+                    .from('posts')
+                    .insert([postData])
+                    .select()
+                    .single();
+                if (error) throw error;
+                if (data) {
+                    setFormData(prev => ({ ...prev, id: data.id }));
+                    alert(t('admin.post.save_success') || 'Haber başarıyla kaydedildi');
+                }
+            }
+        } catch (error: any) {
+            console.error('Save error:', error);
+            alert('Hata: ' + error.message);
+        }
+    };
+
     return (
         <div className="animate-in fade-in duration-500 admin-font">
             <style dangerouslySetInnerHTML={{ __html: QUILL_CUSTOM_STYLE }} />
             {/* MODERN COMPACT HEADER */}
             <div className="flex items-center justify-between mb-6 bg-white p-4 rounded-[3px] border border-palette-tan/20 shadow-sm">
                 <div className="flex items-center gap-4">
+                    {onBack && (
+                        <button
+                            onClick={onBack}
+                            className="w-10 h-10 flex items-center justify-center rounded-[3px] bg-palette-beige/50 text-palette-maroon border border-palette-tan/20 hover:bg-palette-tan/10 transition-all"
+                        >
+                            <span className="material-symbols-rounded">arrow_back</span>
+                        </button>
+                    )}
                     <div>
                         <h2 className="text-xl font-bold text-palette-maroon">
-                            {formData.id ? t('admin.post.edit_title') : t('admin.post.new_title')}
+                            {postId ? t('admin.post.edit_title') : t('admin.post.new_title')}
                         </h2>
                         <p className="text-[13px] font-bold text-palette-tan/50 tracking-wider">{t('admin.post.panel_desc')}</p>
                     </div>
@@ -2365,6 +2562,35 @@ const PostManagement: React.FC = () => {
                         </div>
                     </div>
 
+                    {/* YAYINCI SEÇİMİ (Publisher Selection) */}
+                    <div className="bg-white p-6 rounded-[3px] border border-palette-tan/20 shadow-sm space-y-5">
+                        <h4 className="text-[13px] font-bold text-palette-tan ml-1 border-b border-palette-tan/15 pb-2 uppercase tracking-widest flex items-center justify-between">
+                            {t('admin.publisher_management')}
+                            <span className="material-symbols-rounded text-palette-tan/30" style={{ fontSize: '14px' }}>badge</span>
+                        </h4>
+
+                        <div className="space-y-4">
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-black text-palette-tan/60 ml-1 flex items-center gap-1.5">
+                                    <span className="material-symbols-rounded" style={{ fontSize: '12px' }}>account_circle</span> {t('admin.select_publisher')}
+                                </label>
+                                <div className="relative group">
+                                    <select
+                                        value={formData.publisher_id}
+                                        onChange={(e) => setFormData({ ...formData, publisher_id: e.target.value })}
+                                        className="w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] p-3 text-sm font-bold text-palette-maroon outline-none appearance-none cursor-pointer focus:border-palette-red transition-all"
+                                    >
+                                        <option value="">{t('admin.select_publisher')}</option>
+                                        {publishers.map(pub => (
+                                            <option key={pub.id} value={pub.id}>{pub.full_name}</option>
+                                        ))}
+                                    </select>
+                                    <span className="material-symbols-rounded absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/40 pointer-events-none group-hover:text-palette-maroon transition-colors" style={{ fontSize: '16px' }}>expand_more</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="bg-white p-6 rounded-[3px] border border-palette-tan/20 shadow-sm space-y-5">
                         <div className="space-y-4">
                             <h4 className="text-[13px] font-bold text-palette-tan ml-1 border-b border-palette-tan/15 pb-2 uppercase tracking-widest">{t('admin.post.publishing')}</h4>
@@ -2391,10 +2617,16 @@ const PostManagement: React.FC = () => {
 
                             <div className="pt-4 space-y-2">
                                 <div className="grid grid-cols-2 gap-2">
-                                    <button className="flex items-center justify-center gap-2 py-2.5 bg-palette-red text-white rounded-[3px] font-black text-[11px] tracking-widest hover:opacity-90 transition-all shadow-lg shadow-palette-red/10">
+                                    <button
+                                        onClick={() => handleSave('published')}
+                                        className="flex items-center justify-center gap-2 py-2.5 bg-palette-red text-white rounded-[3px] font-black text-[11px] tracking-widest hover:opacity-90 transition-all shadow-lg shadow-palette-red/10"
+                                    >
                                         {t('admin.post.publish_btn')}
                                     </button>
-                                    <button className="flex items-center justify-center gap-2 py-2.5 bg-palette-maroon text-white rounded-[3px] font-black text-[11px] tracking-widest hover:opacity-90 transition-all shadow-lg shadow-palette-maroon/10">
+                                    <button
+                                        onClick={() => handleSave('draft')}
+                                        className="flex items-center justify-center gap-2 py-2.5 bg-palette-maroon text-white rounded-[3px] font-black text-[11px] tracking-widest hover:opacity-90 transition-all shadow-lg shadow-palette-maroon/10"
+                                    >
                                         {t('admin.post.draft_btn')}
                                     </button>
                                 </div>
