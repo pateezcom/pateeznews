@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { CheckCircle2, Heart, MessageCircle, Bookmark, Share2 } from 'lucide-react';
 import { NewsItem, NewsType } from '../types';
 import CommentSection from './CommentSection';
@@ -139,6 +139,23 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
     setShowShareMenu(!showShareMenu);
   };
 
+  const shareMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (shareMenuRef.current && !shareMenuRef.current.contains(event.target as Node)) {
+        setShowShareMenu(false);
+      }
+    };
+
+    if (showShareMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showShareMenu]);
+
   // Paylaşım URL'i
   const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/post/${data.id}` : '';
   const shareText = data.title;
@@ -164,8 +181,25 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
     setShowShareMenu(false);
   };
 
-  const shareToLinkedIn = () => {
-    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`, '_blank');
+  const shareToInstagram = () => {
+    window.open(`https://www.instagram.com/`, '_blank');
+    setShowShareMenu(false);
+  };
+
+  const shareToTikTok = () => {
+    window.open(`https://www.tiktok.com/`, '_blank');
+    setShowShareMenu(false);
+  };
+
+  const shareToSocial = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: shareText,
+        url: shareUrl,
+      }).catch(() => { });
+    } else {
+      copyLink();
+    }
     setShowShareMenu(false);
   };
 
@@ -281,54 +315,69 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
             {/* Paylaş Menüsü */}
             {showShareMenu && (
               <div
-                className="absolute bottom-full left-0 mb-2 bg-white rounded-[10px] shadow-xl border border-gray-100 p-2 min-w-[200px] z-50 animate-in fade-in slide-in-from-bottom-2 duration-200"
+                ref={shareMenuRef}
+                className="absolute bottom-full left-0 mb-4 bg-white/95 backdrop-blur-xl rounded-[12px] shadow-[0_25px_60px_rgba(24,37,64,0.2)] border border-palette-beige/30 p-1.5 min-w-[220px] z-[9999] animate-in fade-in zoom-in-95 slide-in-from-bottom-2 duration-300"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="text-[10px] font-bold text-palette-tan/50 uppercase tracking-widest px-3 py-1 mb-1">Paylaş</div>
+                <div className="flex items-center justify-between px-3 py-2 border-b border-palette-beige/10 mb-1">
+                  <span className="text-[9px] font-[900] text-palette-tan/40 uppercase tracking-[0.2em]">Haber Paylaş</span>
+                  <button
+                    onClick={() => setShowShareMenu(false)}
+                    className="w-6 h-6 flex items-center justify-center text-palette-tan/20 hover:text-palette-red transition-all active:scale-95 hover:bg-palette-red/5 rounded-full"
+                  >
+                    <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>close</span>
+                  </button>
+                </div>
 
-                <button onClick={shareToWhatsApp} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[5px] hover:bg-green-50 transition-colors group">
-                  <div className="w-8 h-8 bg-green-500 rounded-[5px] flex items-center justify-center">
-                    <span className="material-symbols-rounded text-white" style={{ fontSize: '18px' }}>chat</span>
-                  </div>
-                  <span className="text-sm font-bold text-gray-700 group-hover:text-green-600">WhatsApp</span>
-                </button>
+                <div className="px-1 py-1 mb-1">
+                  <button onClick={() => setShowShareMenu(false)} className="w-8 h-8 flex items-center justify-center rounded-[8px] hover:bg-palette-beige/10 text-palette-tan/60 hover:text-gray-900 transition-all active:scale-90">
+                    <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>arrow_back</span>
+                  </button>
+                </div>
 
-                <button onClick={shareToTelegram} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[5px] hover:bg-blue-50 transition-colors group">
-                  <div className="w-8 h-8 bg-blue-500 rounded-[5px] flex items-center justify-center">
-                    <span className="material-symbols-rounded text-white" style={{ fontSize: '18px' }}>send</span>
-                  </div>
-                  <span className="text-sm font-bold text-gray-700 group-hover:text-blue-600">Telegram</span>
-                </button>
+                <div className="grid grid-cols-1 gap-0.5">
+                  <button onClick={shareToWhatsApp} className="w-full h-[38px] flex items-center gap-3 px-3 rounded-[8px] hover:bg-[#25D366]/5 transition-all duration-300 group">
+                    <span className="material-symbols-rounded text-[#25D366]/70 group-hover:text-[#25D366] group-hover:scale-110 transition-all" style={{ fontSize: '18px' }}>chat</span>
+                    <span className="text-[11px] font-bold text-gray-600 group-hover:text-gray-900 transition-colors">WhatsApp</span>
+                  </button>
 
-                <button onClick={shareToTwitter} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[5px] hover:bg-gray-100 transition-colors group">
-                  <div className="w-8 h-8 bg-black rounded-[5px] flex items-center justify-center">
-                    <span className="material-symbols-rounded text-white" style={{ fontSize: '18px' }}>tag</span>
-                  </div>
-                  <span className="text-sm font-bold text-gray-700 group-hover:text-black">X (Twitter)</span>
-                </button>
+                  <button onClick={shareToTelegram} className="w-full h-[38px] flex items-center gap-3 px-3 rounded-[8px] hover:bg-[#0088cc]/5 transition-all duration-300 group">
+                    <span className="material-symbols-rounded text-[#0088cc]/70 group-hover:text-[#0088cc] group-hover:scale-110 transition-all" style={{ fontSize: '18px' }}>send</span>
+                    <span className="text-[11px] font-bold text-gray-600 group-hover:text-gray-900 transition-colors">Telegram</span>
+                  </button>
 
-                <button onClick={shareToFacebook} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[5px] hover:bg-blue-50 transition-colors group">
-                  <div className="w-8 h-8 bg-[#1877F2] rounded-[5px] flex items-center justify-center">
-                    <span className="material-symbols-rounded text-white" style={{ fontSize: '18px' }}>thumb_up</span>
-                  </div>
-                  <span className="text-sm font-bold text-gray-700 group-hover:text-[#1877F2]">Facebook</span>
-                </button>
+                  <button onClick={shareToTwitter} className="w-full h-[38px] flex items-center gap-3 px-3 rounded-[8px] hover:bg-black/5 transition-all duration-300 group">
+                    <span className="material-symbols-rounded text-black/70 group-hover:text-black group-hover:scale-110 transition-all" style={{ fontSize: '18px' }}>tag</span>
+                    <span className="text-[11px] font-bold text-gray-600 group-hover:text-gray-900 transition-colors">X (Twitter)</span>
+                  </button>
 
-                <button onClick={shareToLinkedIn} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[5px] hover:bg-blue-50 transition-colors group">
-                  <div className="w-8 h-8 bg-[#0A66C2] rounded-[5px] flex items-center justify-center">
-                    <span className="material-symbols-rounded text-white" style={{ fontSize: '18px' }}>work</span>
-                  </div>
-                  <span className="text-sm font-bold text-gray-700 group-hover:text-[#0A66C2]">LinkedIn</span>
-                </button>
+                  <button onClick={shareToFacebook} className="w-full h-[38px] flex items-center gap-3 px-3 rounded-[8px] hover:bg-[#1877F2]/5 transition-all duration-300 group">
+                    <span className="material-symbols-rounded text-[#1877F2]/70 group-hover:text-[#1877F2] group-hover:scale-110 transition-all" style={{ fontSize: '18px' }}>thumb_up</span>
+                    <span className="text-[11px] font-bold text-gray-600 group-hover:text-gray-900 transition-colors">Facebook</span>
+                  </button>
 
-                <div className="border-t border-gray-100 my-1"></div>
+                  <button onClick={shareToInstagram} className="w-full h-[38px] flex items-center gap-3 px-3 rounded-[8px] hover:bg-[#E4405F]/5 transition-all duration-300 group">
+                    <span className="material-symbols-rounded text-[#E4405F]/70 group-hover:text-[#E4405F] group-hover:scale-110 transition-all" style={{ fontSize: '18px' }}>camera_alt</span>
+                    <span className="text-[11px] font-bold text-gray-600 group-hover:text-gray-900 transition-colors">Instagram</span>
+                  </button>
 
-                <button onClick={copyLink} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[5px] hover:bg-palette-red/5 transition-colors group">
-                  <div className="w-8 h-8 bg-palette-red rounded-[5px] flex items-center justify-center">
-                    <span className="material-symbols-rounded text-white" style={{ fontSize: '18px' }}>link</span>
-                  </div>
-                  <span className="text-sm font-bold text-gray-700 group-hover:text-palette-red">Link Kopyala</span>
-                </button>
+                  <button onClick={shareToTikTok} className="w-full h-[38px] flex items-center gap-3 px-3 rounded-[8px] hover:bg-black/5 transition-all duration-300 group">
+                    <span className="material-symbols-rounded text-black/70 group-hover:text-black group-hover:scale-110 transition-all" style={{ fontSize: '18px' }}>music_note</span>
+                    <span className="text-[11px] font-bold text-gray-600 group-hover:text-gray-900 transition-colors">TikTok</span>
+                  </button>
+
+                  <button onClick={shareToSocial} className="w-full h-[38px] flex items-center gap-3 px-3 rounded-[8px] hover:bg-palette-red/5 transition-all duration-300 group">
+                    <span className="material-symbols-rounded text-palette-red/70 group-hover:text-palette-red group-hover:scale-110 transition-all" style={{ fontSize: '18px' }}>share</span>
+                    <span className="text-[11px] font-bold text-gray-600 group-hover:text-gray-900 transition-colors">Sosyal</span>
+                  </button>
+
+                  <div className="h-px bg-palette-beige/10 my-1 mx-2"></div>
+
+                  <button onClick={copyLink} className="w-full h-[38px] flex items-center gap-3 px-3 rounded-[8px] hover:bg-palette-beige/10 transition-all duration-300 group">
+                    <span className="material-symbols-rounded text-palette-tan/60 group-hover:text-palette-tan group-hover:scale-110 transition-all" style={{ fontSize: '18px' }}>link</span>
+                    <span className="text-[11px] font-bold text-gray-600 group-hover:text-gray-900 transition-colors">Bağlantıyı kopyala</span>
+                  </button>
+                </div>
               </div>
             )}
 
