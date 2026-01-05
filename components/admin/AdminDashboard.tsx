@@ -193,7 +193,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
           switch (activeTab) {
             case 'users': return <UserManagement onEditUser={handleEditUser} initialSearchTerm={editingUserId || undefined} />;
             case 'posts': return <PostManagement onBack={() => handleTabChange('news_list')} />;
-            case 'news_list': return <PostList onEditPost={handleEditPost} />;
+            case 'news_list': return <PostList onEditPost={handleEditPost} onAddPost={() => handleTabChange('posts')} />;
             case 'edit_post': return <PostManagement postId={editingUserId || undefined} onBack={() => handleTabChange('news_list')} />;
             case 'stories': return <StoryManagement />;
             case 'navigation': return <NavigationSettings />;

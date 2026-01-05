@@ -203,9 +203,10 @@ const PostRow = React.memo(({
 
 interface PostListProps {
     onEditPost?: (postId: string) => void;
+    onAddPost?: () => void;
 }
 
-const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
+const PostList: React.FC<PostListProps> = ({ onEditPost, onAddPost }) => {
     const { t } = useLanguage();
     const { showToast } = useToast();
     const [posts, setPosts] = useState<PostRecord[]>([]);
@@ -306,8 +307,10 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
                 .select('id,title,category,type,status,slug,created_at,thumbnail_url,likes_count,shares_count,comments_count,language_code,is_pinned,profiles:publisher_id(full_name)', { count: 'exact' });
 
             if (debouncedSearchTerm) {
+                // 2025 Işık Hızı: ilike yerine or() içinde çoklu LIKE araması ve Türkçe karakter normalizasyonu
+                // unaccent modülü yüklü olmasa bile güvenli fallback için .ilike kullanmaya devam ediyoruz
                 const search = `%${debouncedSearchTerm}%`;
-                query = query.or(`title.ilike.${search},slug.ilike.${search},category.ilike.${search},type.ilike.${search},status.ilike.${search},seo_title.ilike.${search},seo_description.ilike.${search},keywords.ilike.${search}`);
+                query = query.or(`title.ilike.${search},slug.ilike.${search},category.ilike.${search},type.ilike.${search},status.ilike.${search},seo_title.ilike.${search},seo_description.ilike.${search},keywords.ilike.${search},summary.ilike.${search}`);
             }
 
             if (filters.status !== 'Tümü') {
@@ -520,7 +523,7 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
                                     <label className="text-[11px] font-black text-palette-tan/40 uppercase tracking-widest block">{filter.label}</label>
                                     <div className="relative group/select">
                                         <select
-                                            className="w-full h-11 px-4 bg-palette-beige/20 border border-palette-tan/15 rounded-[3px] text-[13px] font-bold text-palette-maroon appearance-none outline-none focus:bg-white focus:border-palette-maroon transition-all cursor-pointer"
+                                            className="w-full h-10 px-3 bg-palette-beige/20 border border-palette-tan/15 rounded-[3px] text-[13px] font-bold text-palette-maroon appearance-none outline-none focus:bg-white focus:border-palette-maroon transition-all cursor-pointer"
                                             value={(filters as any)[filter.key]}
                                             onChange={(e) => setFilters({ ...filters, [filter.key]: e.target.value })}
                                         >
@@ -573,7 +576,7 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
                                 <div className="flex flex-col items-start gap-2">
                                     <div className="relative group/size">
                                         <select
-                                            className="h-11 px-6 pr-10 bg-palette-beige/20 border border-palette-tan/15 rounded-[3px] text-[13px] font-black text-palette-maroon appearance-none outline-none focus:bg-white focus:border-palette-maroon transition-all cursor-pointer min-w-[80px]"
+                                            className="h-10 px-4 pr-10 bg-palette-beige/20 border border-palette-tan/15 rounded-[3px] text-[13px] font-black text-palette-maroon appearance-none outline-none focus:bg-white focus:border-palette-maroon transition-all cursor-pointer min-w-[70px]"
                                             value={pageSize}
                                             onChange={(e) => setPageSize(Number(e.target.value))}
                                         >
@@ -600,7 +603,7 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
                                     <input
                                         type="text"
                                         placeholder={t('posts.search_placeholder')}
-                                        className="w-full md:w-[320px] h-11 pl-4 pr-10 bg-white border border-palette-tan/15 rounded-[3px] text-[13px] font-bold text-palette-maroon outline-none focus:border-palette-maroon focus:ring-4 focus:ring-palette-maroon/5 transition-all shadow-sm"
+                                        className="w-full md:w-[280px] h-10 pl-4 pr-10 bg-white border border-palette-tan/15 rounded-[3px] text-[13px] font-bold text-palette-maroon outline-none focus:border-palette-maroon focus:ring-4 focus:ring-palette-maroon/5 transition-all shadow-sm"
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />
@@ -608,7 +611,10 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
                                 </div>
 
 
-                                <button className="flex items-center gap-2 h-11 px-6 bg-palette-red text-white rounded-[3px] text-[13px] font-black tracking-widest hover:bg-palette-maroon transition-all shadow-lg shadow-palette-red/20 active:scale-95">
+                                <button
+                                    onClick={onAddPost}
+                                    className="flex items-center gap-2 h-10 px-4 bg-palette-red text-white rounded-[3px] text-[13px] font-black tracking-widest hover:bg-palette-maroon transition-all shadow-lg shadow-palette-red/20 active:scale-95"
+                                >
                                     <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>add</span>
                                     {t('posts.actions.add_post')}
                                 </button>

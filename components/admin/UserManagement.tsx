@@ -179,31 +179,65 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const [totalCount, setTotalCount] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+
+  // 2025 Debounce Mimari
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+      setCurrentPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   const fetchData = async () => {
     try {
       setLoading(true);
       setErrorMsg(null);
 
-      const { data: { user } } = await supabase.auth.getUser();
-      let role = '';
-      if (user) {
-        const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
-        role = profile?.role || '';
-        setCurrentUserRole(role);
+      // Rollere ve yayıncı listesine sadece ilk açılışta veya ihtiyaç duyulduğunda bakalım
+      if (roles.length <= 4 || publishersList.length === 0) {
+        const [rRes, pRes] = await Promise.all([
+          supabase.from('roles').select('*').neq('name', 'publisher'),
+          supabase.from('profiles').select('*').eq('role', 'publisher')
+        ]);
+        if (rRes.data) setRoles(rRes.data);
+        if (pRes.data) setPublishersList(pRes.data as unknown as Profile[]);
       }
 
-      const [profilesRes, rolesRes, publishersRes] = await Promise.all([
-        supabase.from('profiles').select('*, publisher_users!publisher_users_user_id_fkey(publisher:profiles!publisher_users_publisher_id_fkey(id, full_name))').neq('role', 'publisher').order('created_at', { ascending: false }),
-        supabase.from('roles').select('*').neq('name', 'publisher'),
-        supabase.from('profiles').select('*').eq('role', 'publisher')
-      ]);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user && !currentUserRole) {
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+        setCurrentUserRole(profile?.role || '');
+      }
 
-      if (profilesRes.error) throw profilesRes.error;
-      const rawProfiles = profilesRes.data || [];
-      const rawPublishers = publishersRes.data || [];
+      const from = (currentPage - 1) * pageSize;
+      const to = from + pageSize - 1;
 
-      // Transform nested response to flat structure
-      const enrichedProfiles = rawProfiles.map((p: any) => ({
+      // IŞIK HIZI: Sadece bu sayfadaki kişileri ve onların yayıncılarını çekiyoruz
+      let query = supabase.from('profiles')
+        .select('*, publisher_users!publisher_users_user_id_fkey(publisher:profiles!publisher_users_publisher_id_fkey(id, full_name))', { count: 'exact' })
+        .neq('role', 'publisher');
+
+      if (debouncedSearchTerm) {
+        const s = `%${debouncedSearchTerm}%`;
+        query = query.or(`full_name.ilike.${s},username.ilike.${s},email.ilike.${s}`);
+      }
+
+      if (filters.role !== 'Tümü') query = query.eq('role', filters.role);
+      if (filters.status !== 'Tümü') query = query.eq('status', filters.status);
+      if (filters.reward_system !== 'Tümü') query = query.eq('reward_system', filters.reward_system === 'Aktif');
+
+      const { data: rawProfiles, count, error } = await query
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+      if (error) throw error;
+      setTotalCount(count || 0);
+
+      const enrichedProfiles = (rawProfiles || []).map((p: any) => ({
         ...p,
         assigned_publishers: p.publisher_users?.map((pu: any) => ({
           id: pu.publisher.id,
@@ -213,49 +247,29 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
 
       setProfiles(enrichedProfiles);
 
-      if (rolesRes.data) setRoles(rolesRes.data);
-      if (publishersRes.data) setPublishersList(publishersRes.data);
-
     } catch (err: any) {
-      console.error("fetchData general error:", err);
-      setErrorMsg(err.message);
+      setErrorMsg(err.code === 'PGRST116' ? null : (err as Error).message);
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchData();
+  }, [currentPage, pageSize, debouncedSearchTerm, filters]);
+
   const stats = useMemo(() => {
-    const totalUsers = profiles.length;
-    const rewardActive = profiles.filter(p => p.reward_system).length;
-    const activeUsers = profiles.filter(p => p.status === 'Aktif').length;
-    const waitingUsers = profiles.filter(p => p.status === 'Beklemede' || p.status === 'Bekleyen' || p.status === 'Pasif').length;
-
+    const activeProfilesCount = profiles.filter(p => p.status === 'Aktif').length;
+    const waitingProfilesCount = profiles.filter(p => p.status !== 'Aktif').length;
     return [
-      { label: 'Oturum', value: totalUsers, change: '+0%', desc: 'Toplam Kullanıcılar', icon: 'groups', color: 'bg-red-50 text-red-600', iconBg: 'bg-red-50' },
-      { label: 'Ödül Sistemi', value: rewardActive, change: '+0%', desc: 'Geçen hafta analitiği', icon: 'shield_person', color: 'bg-red-50 text-red-600', iconBg: 'bg-red-50' },
-      { label: 'Aktif Kullanıcılar', value: activeUsers, change: '+0%', desc: 'Geçen hafta analitiği', icon: 'person_outline', color: 'bg-emerald-50 text-emerald-600', iconBg: 'bg-emerald-50' },
-      { label: 'Bekleyen Kullanıcılar', value: waitingUsers, change: '+0%', desc: 'Geçen hafta analitiği', icon: 'person_add', color: 'bg-orange-50 text-orange-600', iconBg: 'bg-orange-50' },
+      { label: 'Oturum', value: totalCount, change: '+0%', desc: 'Toplam Kullanıcılar', icon: 'groups', color: 'bg-red-50 text-red-600', iconBg: 'bg-red-50' },
+      { label: 'Ödül Sistemi', value: profiles.filter(p => p.reward_system).length, change: '+0%', desc: 'Aktif Sistemler', icon: 'shield_person', color: 'bg-red-50 text-red-600', iconBg: 'bg-red-50' },
+      { label: 'Aktif Kullanıcılar', value: activeProfilesCount, change: '+0%', desc: 'Sistemde Aktif', icon: 'person_outline', color: 'bg-emerald-50 text-emerald-600', iconBg: 'bg-emerald-50' },
+      { label: 'Bekleyen Kullanıcılar', value: waitingProfilesCount, change: '+0%', desc: 'Onay Bekleyen', icon: 'person_add', color: 'bg-orange-50 text-orange-600', iconBg: 'bg-orange-50' },
     ];
-  }, [profiles]);
+  }, [profiles, totalCount]);
 
-  const filteredUsers = useMemo(() => {
-    return profiles.filter(user => {
-      const matchesSearch = (
-        user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      const matchesRole = filters.role === 'Tümü' || user.role === filters.role;
-      const matchesStatus = filters.status === 'Tümü' || user.status === filters.status;
-      const matchesReward = filters.reward_system === 'Tümü' ||
-        (filters.reward_system === 'Aktif' ? user.reward_system === true : user.reward_system === false);
-
-      const matchesPublisher = filters.publisher === 'Tümü' ||
-        (user.assigned_publishers?.some(pub => pub.id === filters.publisher) ?? false);
-
-      return matchesSearch && matchesRole && matchesStatus && matchesReward && matchesPublisher;
-    });
-  }, [profiles, searchTerm, filters]);
+  const filteredUsers = useMemo(() => profiles, [profiles]);
 
   const getRoleLabel = (roleName: string) => {
     return roles.find(r => r.name === roleName)?.label || roleName;
@@ -489,7 +503,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
                   <label className="text-[11px] font-black text-palette-tan/40 uppercase tracking-widest block">{filter.label}</label>
                   <div className="relative group/select">
                     <select
-                      className="w-full h-11 px-4 bg-palette-beige/20 border border-palette-tan/15 rounded-[3px] text-[13px] font-bold text-palette-maroon appearance-none outline-none focus:bg-white focus:border-palette-maroon transition-all cursor-pointer"
+                      className="w-full h-10 px-3 bg-palette-beige/20 border border-palette-tan/15 rounded-[3px] text-[13px] font-bold text-palette-maroon appearance-none outline-none focus:bg-white focus:border-palette-maroon transition-all cursor-pointer"
                       value={(filters as any)[filter.key]}
                       onChange={(e) => setFilters({ ...filters, [filter.key]: e.target.value })}
                     >
@@ -521,7 +535,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
               <div className="flex items-center gap-6 w-full md:w-auto">
                 <div className="relative group/size">
                   <select
-                    className="h-11 px-6 pr-10 bg-palette-beige/20 border border-palette-tan/15 rounded-[3px] text-[13px] font-black text-palette-maroon appearance-none outline-none focus:bg-white focus:border-palette-maroon transition-all cursor-pointer min-w-[80px]"
+                    className="h-10 px-4 pr-10 bg-palette-beige/20 border border-palette-tan/15 rounded-[3px] text-[13px] font-black text-palette-maroon appearance-none outline-none focus:bg-white focus:border-palette-maroon transition-all cursor-pointer min-w-[70px]"
                     value={pageSize}
                     onChange={(e) => setPageSize(Number(e.target.value))}
                   >
@@ -536,7 +550,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
                   <button
                     type="button"
                     onClick={() => setShowPublisherModal(true)}
-                    className="flex items-center gap-2 px-4 h-11 text-[13px] font-black text-cyan-600 hover:bg-cyan-50/50 rounded-[3px] transition-all active:scale-95 group/pub"
+                    className="flex items-center gap-2 px-3 h-10 text-[13px] font-black text-cyan-600 hover:bg-cyan-50/50 rounded-[3px] transition-all active:scale-95 group/pub"
                   >
                     <span className="material-symbols-rounded text-cyan-500 group-hover/pub:scale-110 transition-transform" style={{ fontSize: '20px' }}>person_add</span>
                     <span>Yayıncıları Ekle</span>
@@ -549,7 +563,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
                   <input
                     type="text"
                     placeholder="Kullanıcı Ara ..."
-                    className="w-full md:w-[250px] h-11 pl-4 pr-10 bg-white border border-palette-tan/15 rounded-[3px] text-[13px] font-bold text-palette-maroon outline-none focus:border-palette-maroon focus:ring-4 focus:ring-palette-maroon/5 transition-all shadow-sm"
+                    className="w-full md:w-[220px] h-10 pl-4 pr-10 bg-white border border-palette-tan/15 rounded-[3px] text-[13px] font-bold text-palette-maroon outline-none focus:border-palette-maroon focus:ring-4 focus:ring-palette-maroon/5 transition-all shadow-sm"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
@@ -558,7 +572,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
 
                 <button
                   onClick={() => setShowAddModal(true)}
-                  className="flex items-center gap-2 h-11 px-4 bg-palette-red text-white rounded-[3px] text-[13px] font-black tracking-widest hover:bg-palette-maroon transition-all shadow-lg shadow-palette-red/20 active:scale-95"
+                  className="flex items-center gap-2 h-10 px-4 bg-palette-red text-white rounded-[3px] text-[13px] font-black tracking-widest hover:bg-palette-maroon transition-all shadow-lg shadow-palette-red/20 active:scale-95"
                 >
                   <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>add</span>
                   Kullanıcı Ekle
@@ -773,14 +787,39 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
           <div className="p-8 border-t border-palette-tan/10 bg-palette-beige/5 flex items-center justify-between font-black text-[11px] tracking-widest text-palette-tan/40 uppercase relative z-0">
             <span>
               {t('common.results_found')
-                .replace('{from}', '1')
-                .replace('{to}', String(Math.min(filteredUsers.length, pageSize)))
-                .replace('{total}', String(filteredUsers.length))}
+                .replace('{from}', String((currentPage - 1) * pageSize + 1))
+                .replace('{to}', String(Math.min(currentPage * pageSize, totalCount)))
+                .replace('{total}', String(totalCount))}
             </span>
             <div className="flex items-center gap-1">
-              <button className="w-8 h-8 flex items-center justify-center rounded-[3px] border border-palette-tan/10 opacity-30 cursor-not-allowed"><span className="material-symbols-rounded" style={{ fontSize: '16px' }}>chevron_left</span></button>
-              <button className="w-8 h-8 flex items-center justify-center rounded-[3px] bg-palette-red text-white">1</button>
-              <button className="w-8 h-8 flex items-center justify-center rounded-[3px] border border-palette-tan/10"><span className="material-symbols-rounded" style={{ fontSize: '16px' }}>chevron_right</span></button>
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1 || loading}
+                className="w-8 h-8 flex items-center justify-center rounded-[3px] border border-palette-tan/10 hover:bg-white hover:text-palette-maroon transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>chevron_left</span>
+              </button>
+
+              {Array.from({ length: Math.min(5, Math.ceil(totalCount / pageSize)) }).map((_, i) => {
+                const pageNum = i + 1;
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`w-8 h-8 flex items-center justify-center rounded-[3px] transition-all ${currentPage === pageNum ? 'bg-palette-red text-white shadow-lg' : 'border border-palette-tan/10 text-palette-tan hover:bg-white hover:text-palette-maroon'}`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+
+              <button
+                onClick={() => setCurrentPage(p => p + 1)}
+                disabled={currentPage >= Math.ceil(totalCount / pageSize) || loading}
+                className="w-8 h-8 flex items-center justify-center rounded-[3px] border border-palette-tan/10 hover:bg-white hover:text-palette-maroon transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>chevron_right</span>
+              </button>
             </div>
           </div>
         </div>

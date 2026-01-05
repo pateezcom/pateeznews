@@ -40,7 +40,19 @@ const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublish
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [pageSize, setPageSize] = useState(10);
+    const [totalCount, setTotalCount] = useState(0);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+    // 2025 Debounce Mimari
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearchTerm(searchTerm);
+            setCurrentPage(1);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
 
     const [showAddModal, setShowAddModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -117,50 +129,53 @@ const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublish
             setLoading(true);
             setErrorMsg(null);
 
-            // 1. Fetch publishers (profiles with role = 'publisher')
-            const profilesPromise = supabase
+            const from = (currentPage - 1) * pageSize;
+            const to = from + pageSize - 1;
+
+            // 1. IŞIK HIZI: Sadece bu sayfadaki yayıncıları çekiyoruz
+            let query = supabase
                 .from('profiles')
-                .select('*')
-                .eq('role', 'publisher')
-                .order('created_at', { ascending: false });
+                .select('*', { count: 'exact' })
+                .eq('role', 'publisher');
 
-            // 2. Fetch all publisher_users relations - Explicitly joining correct profiles
-            const usersPromise = supabase
-                .from('publisher_users')
-                .select('publisher_id, profiles!publisher_users_user_id_fkey(id, full_name, username)');
+            if (debouncedSearchTerm) {
+                const s = `%${debouncedSearchTerm}%`;
+                query = query.or(`full_name.ilike.${s},username.ilike.${s},email.ilike.${s}`);
+            }
 
-            // 3. Fetch all publisher_categories relations
-            const categoriesPromise = supabase
-                .from('publisher_categories')
-                .select('publisher_id, navigation_items(id, label)');
+            const { data: pubData, count, error: pubError } = await query
+                .order('created_at', { ascending: false })
+                .range(from, to);
 
-            // 4. Fetch post counts via publisher_id instead of author_id
-            const postsPromise = supabase
-                .from('posts')
-                .select('publisher_id');
+            if (pubError) throw pubError;
+            setTotalCount(count || 0);
 
-            const [profilesRes, usersRes, categoriesRes, postsRes] = await Promise.all([
-                profilesPromise,
-                usersPromise,
-                categoriesPromise,
-                postsPromise
+            if (!pubData || pubData.length === 0) {
+                setPublishers([]);
+                return;
+            }
+
+            const pubIds = pubData.map(p => p.id);
+
+            // 2. TARGETED FETCH: Sadece bu sayfadaki yayıncıların ilişkilerini çekiyoruz
+            const [usersRes, categoriesRes, postsRes] = await Promise.all([
+                supabase.from('publisher_users')
+                    .select('publisher_id, profiles!publisher_users_user_id_fkey(id, full_name, username)')
+                    .in('publisher_id', pubIds),
+                supabase.from('publisher_categories')
+                    .select('publisher_id, navigation_items(id, label)')
+                    .in('publisher_id', pubIds),
+                // Post sayısı için tüm tablo yerine id üzerinden hızlı bir sayım alıyoruz
+                supabase.from('posts').select('publisher_id').in('publisher_id', pubIds)
             ]);
 
-            if (profilesRes.error) throw profilesRes.error;
-            if (usersRes.error) console.error("Users join error:", usersRes.error);
-            if (categoriesRes.error) console.error("Categories join error:", categoriesRes.error);
-            if (postsRes.error) console.error("Posts fetch error:", postsRes.error);
-
-            const publishersList = profilesRes.data || [];
             const allUsers = usersRes.data || [];
             const allCategories = categoriesRes.data || [];
             const allPosts = postsRes.data || [];
 
-            // Group relations in memory
             const userMap: Record<string, any[]> = {};
             allUsers.forEach((u: any) => {
                 if (!userMap[u.publisher_id]) userMap[u.publisher_id] = [];
-                // profiles!publisher_users_user_id_fkey returns profiles object
                 if (u.profiles) userMap[u.publisher_id].push(u.profiles);
             });
 
@@ -177,7 +192,7 @@ const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublish
                 }
             });
 
-            const enrichedData = publishersList.map(pub => ({
+            const enrichedData = pubData.map(pub => ({
                 ...pub,
                 assigned_users: userMap[pub.id] || [],
                 assigned_categories: categoryMap[pub.id] || [],
@@ -192,6 +207,10 @@ const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublish
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        fetchData();
+    }, [currentPage, pageSize, debouncedSearchTerm]);
 
     // REAL-TIME SYNC: Listen to changes in posts and publisher_users for instant updates
     useEffect(() => {
@@ -211,23 +230,19 @@ const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublish
     }, []);
 
     const stats = useMemo(() => {
-        const totalPubs = publishers.length;
         const totalPosts = publishers.reduce((acc, pub) => acc + (pub.post_count || 0), 0);
         const activePubs = publishers.filter(p => p.status === 'Aktif').length;
         const passivePubs = publishers.filter(p => p.status !== 'Aktif').length;
 
         return [
-            { label: t('publishers.stats.session'), value: totalPubs, change: '+0%', desc: 'Toplam Yayıncılar', icon: 'business', color: 'bg-red-50 text-red-600', iconBg: 'bg-red-50' },
+            { label: t('publishers.stats.session'), value: totalCount, change: '+0%', desc: 'Toplam Yayıncılar', icon: 'business', color: 'bg-red-50 text-red-600', iconBg: 'bg-red-50' },
             { label: t('publishers.stats.total_posts'), value: totalPosts, change: '+0%', desc: 'Geçen hafta analitiği', icon: 'description', color: 'bg-red-50 text-red-600', iconBg: 'bg-red-50' },
             { label: t('publishers.stats.active'), value: activePubs, change: '+0%', desc: 'Geçen hafta analitiği', icon: 'check_circle', color: 'bg-emerald-50 text-emerald-600', iconBg: 'bg-emerald-50' },
             { label: t('publishers.stats.passive'), value: passivePubs, change: '+0%', desc: 'Geçen hafta analitiği', icon: 'schedule', color: 'bg-orange-50 text-orange-600', iconBg: 'bg-orange-50' },
         ];
-    }, [publishers, t]);
+    }, [publishers, t, totalCount]);
 
-    const filteredPublishers = publishers.filter(pub =>
-        pub.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pub.username?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredPublishers = publishers;
 
     const handleEditClick = (pub: Publisher) => {
         setFormData(pub);
@@ -292,7 +307,7 @@ const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublish
                             <div className="flex items-center gap-6 w-full md:w-auto">
                                 <div className="relative group/size">
                                     <select
-                                        className="h-11 px-6 pr-10 bg-palette-beige/20 border border-palette-tan/15 rounded-[3px] text-[13px] font-black text-palette-maroon appearance-none outline-none focus:bg-white focus:border-palette-maroon transition-all cursor-pointer min-w-[80px]"
+                                        className="h-10 px-4 pr-10 bg-palette-beige/20 border border-palette-tan/15 rounded-[3px] text-[13px] font-black text-palette-maroon appearance-none outline-none focus:bg-white focus:border-palette-maroon transition-all cursor-pointer min-w-[70px]"
                                         value={pageSize}
                                         onChange={(e) => setPageSize(Number(e.target.value))}
                                     >
@@ -309,7 +324,7 @@ const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublish
                                     <input
                                         type="text"
                                         placeholder={t('publishers.search_placeholder')}
-                                        className="w-full md:w-[250px] h-11 pl-4 pr-10 bg-white border border-palette-tan/15 rounded-[3px] text-[13px] font-bold text-palette-maroon outline-none focus:border-palette-maroon focus:ring-4 focus:ring-palette-maroon/5 transition-all shadow-sm"
+                                        className="w-full md:w-[220px] h-10 pl-4 pr-10 bg-white border border-palette-tan/15 rounded-[3px] text-[13px] font-bold text-palette-maroon outline-none focus:border-palette-maroon focus:ring-4 focus:ring-palette-maroon/5 transition-all shadow-sm"
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />
@@ -341,7 +356,7 @@ const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublish
                                         });
                                         setShowAddModal(true);
                                     }}
-                                    className="flex items-center gap-2 h-11 px-4 bg-palette-red text-white rounded-[3px] text-[13px] font-black tracking-widest hover:bg-palette-maroon transition-all shadow-lg shadow-palette-red/20 active:scale-95"
+                                    className="flex items-center gap-2 h-10 px-4 bg-palette-red text-white rounded-[3px] text-[13px] font-black tracking-widest hover:bg-palette-maroon transition-all shadow-lg shadow-palette-red/20 active:scale-95"
                                 >
                                     <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>add</span>
                                     Yayıncı Ekle
@@ -530,17 +545,42 @@ const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublish
                         </table>
                     </div>
 
-                    <div className="p-8 border-t border-palette-tan/10 bg-palette-beige/5 flex items-center justify-between font-black text-[11px] tracking-widest text-palette-tan/40 uppercase relative z-0">
+                    <div className="p-8 border-t border-palette-tan/10 bg-palette-beige/5 flex items-center justify-between font-black text-[11px] tracking-widest text-palette-tan/40 uppercase">
                         <span>
                             {t('common.results_found')
-                                .replace('{from}', '1')
-                                .replace('{to}', String(Math.min(filteredPublishers.length, pageSize)))
-                                .replace('{total}', String(filteredPublishers.length))}
+                                .replace('{from}', String((currentPage - 1) * pageSize + 1))
+                                .replace('{to}', String(Math.min(currentPage * pageSize, totalCount)))
+                                .replace('{total}', String(totalCount))}
                         </span>
                         <div className="flex items-center gap-1">
-                            <button className="w-8 h-8 flex items-center justify-center rounded-[3px] border border-palette-tan/10 opacity-30 cursor-not-allowed"><span className="material-symbols-rounded" style={{ fontSize: '16px' }}>chevron_left</span></button>
-                            <button className="w-8 h-8 flex items-center justify-center rounded-[3px] bg-palette-red text-white">1</button>
-                            <button className="w-8 h-8 flex items-center justify-center rounded-[3px] border border-palette-tan/10"><span className="material-symbols-rounded" style={{ fontSize: '16px' }}>chevron_right</span></button>
+                            <button
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                disabled={currentPage === 1 || loading}
+                                className="w-8 h-8 flex items-center justify-center rounded-[3px] border border-palette-tan/10 hover:bg-white hover:text-palette-maroon transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                                <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>chevron_left</span>
+                            </button>
+
+                            {Array.from({ length: Math.min(5, Math.ceil(totalCount / pageSize)) }).map((_, i) => {
+                                const pageNum = i + 1;
+                                return (
+                                    <button
+                                        key={pageNum}
+                                        onClick={() => setCurrentPage(pageNum)}
+                                        className={`w-8 h-8 flex items-center justify-center rounded-[3px] transition-all ${currentPage === pageNum ? 'bg-palette-red text-white shadow-lg' : 'border border-palette-tan/10 text-palette-tan hover:bg-white hover:text-palette-maroon'}`}
+                                    >
+                                        {pageNum}
+                                    </button>
+                                );
+                            })}
+
+                            <button
+                                onClick={() => setCurrentPage(p => p + 1)}
+                                disabled={currentPage >= Math.ceil(totalCount / pageSize) || loading}
+                                className="w-8 h-8 flex items-center justify-center rounded-[3px] border border-palette-tan/10 hover:bg-white hover:text-palette-maroon transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                                <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>chevron_right</span>
+                            </button>
                         </div>
                     </div>
                 </div>
