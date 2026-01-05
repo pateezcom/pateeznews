@@ -23,6 +23,184 @@ interface PostRecord {
     } | null;
 }
 
+// 2025 Senkronizasyon Mimari: Memoized Row for zero-lag rendering
+const PostRow = React.memo(({
+    post,
+    index,
+    t,
+    onEditPost,
+    onToggleStatus,
+    onTogglePinned,
+    onDelete,
+    openDropdownId,
+    setOpenDropdownId,
+    dropdownRef,
+    getCategoryDisplay,
+    isLast,
+    isSelected,
+    onSelectRow
+}: {
+    post: PostRecord;
+    index: number;
+    t: any;
+    onEditPost?: (id: string) => void;
+    onToggleStatus: (post: PostRecord) => void;
+    onTogglePinned: (post: PostRecord) => void;
+    onDelete: (post: PostRecord) => void;
+    openDropdownId: string | null;
+    setOpenDropdownId: (id: string | null) => void;
+    dropdownRef: React.RefObject<HTMLDivElement | null>;
+    getCategoryDisplay: (label: string) => React.ReactNode;
+    isLast: boolean;
+    isSelected: boolean;
+    onSelectRow: (id: string) => void;
+}) => {
+    return (
+        <tr className={`hover:bg-palette-beige/5 transition-all group h-[92px] ${openDropdownId === post.id ? 'relative z-[100]' : 'relative z-1'}`}>
+            <td className="px-4 py-0 align-middle">
+                <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => onSelectRow(post.id)}
+                    className="w-4 h-4 rounded-[2px] border-palette-tan/30 text-palette-maroon focus:ring-palette-maroon cursor-pointer"
+                />
+            </td>
+            <td className="px-2 py-0 align-middle text-[13px] font-bold text-palette-tan/60">{post.id.slice(0, 5).toUpperCase()}</td>
+            <td className="px-2 py-0 align-middle">
+                <div className="flex items-center gap-4 min-w-0">
+                    <div className="w-[60px] h-[60px] flex-shrink-0 bg-palette-beige rounded-[3px] overflow-hidden border border-palette-tan/10 shadow-sm relative group-hover:shadow-md transition-all">
+                        {post.thumbnail_url ? (
+                            <img src={post.thumbnail_url} className="w-full h-full object-contain object-center group-hover:scale-105 transition-transform duration-700" alt="" />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center text-palette-tan/20">
+                                <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>image</span>
+                            </div>
+                        )}
+                    </div>
+                    <div className="space-y-0.5 min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                            {post.is_pinned && (
+                                <span className="material-symbols-rounded text-amber-500 fill-current flex-shrink-0" style={{ fontSize: '18px' }}>push_pin</span>
+                            )}
+                            <p className="font-bold text-palette-maroon text-[14px] leading-tight group-hover:text-palette-red transition-colors whitespace-normal break-words line-clamp-2">
+                                {post.title}
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            {(() => {
+                                const translation = t(`admin.post.tab.${post.type}`);
+                                const displayType = translation && translation !== `admin.post.tab.${post.type}`
+                                    ? translation
+                                    : (post.type.charAt(0).toUpperCase() + post.type.slice(1).toLowerCase());
+                                return (
+                                    <span className="text-[10px] font-black text-white bg-palette-maroon/80 px-1.5 py-0.5 rounded-[2px] tracking-tighter">
+                                        {displayType}
+                                    </span>
+                                );
+                            })()}
+                        </div>
+                    </div>
+                </div>
+            </td>
+            <td className="px-3 py-0 align-middle text-center overflow-hidden">
+                {getCategoryDisplay(post.category)}
+            </td>
+            <td className="px-3 py-0 align-middle text-center">
+                <span className={`text-[10px] font-black px-2 py-1 rounded-[2px] uppercase tracking-widest inline-block ${post.status === 'published'
+                    ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                    : 'bg-palette-tan/10 text-palette-tan border border-palette-tan/10'
+                    }`}>
+                    {post.status === 'published' ? 'Yayında' : 'Taslak'}
+                </span>
+            </td>
+            <td className="px-3 py-0 align-middle text-center">
+                <span className="text-[11px] font-black text-white bg-palette-tan/40 px-2 py-1 rounded-[2px] uppercase tracking-widest">{post.language_code || 'tr'}</span>
+            </td>
+            <td className="px-3 py-0 align-middle text-center">
+                <span className="text-[12px] font-bold text-palette-maroon/70">{post.profiles?.full_name || '-'}</span>
+            </td>
+            <td className="px-3 py-0 align-middle text-center">
+                <div className="flex flex-col items-center">
+                    <span className="text-[14px] font-black text-palette-maroon">{post.likes_count || 0}</span>
+                </div>
+            </td>
+            <td className="px-3 py-0 align-middle text-center">
+                <div className="flex flex-col items-center">
+                    <span className="text-[14px] font-black text-palette-maroon">{post.comments_count || 0}</span>
+                </div>
+            </td>
+            <td className="px-4 py-0 align-middle text-right">
+                <div className="text-[11px] font-bold text-palette-tan flex flex-col items-end">
+                    <span>{new Date(post.created_at).toLocaleDateString(t('admin.date_format'))}</span>
+                    <span className="text-[9px] text-palette-tan/40 opacity-70 mt-0.5 uppercase tracking-tighter">{new Date(post.created_at).toLocaleTimeString(t('admin.date_format'), { hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+            </td>
+            <td className="px-4 py-0 align-middle text-right">
+                <div className="relative inline-block text-left" ref={openDropdownId === post.id ? (dropdownRef as any) : null}>
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenDropdownId(openDropdownId === post.id ? null : post.id);
+                        }}
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-palette-tan/40 hover:bg-palette-beige hover:text-palette-maroon transition-all active:scale-90"
+                    >
+                        <span className="material-symbols-rounded">more_vert</span>
+                    </button>
+
+                    {openDropdownId === post.id && (
+                        <div className={`absolute right-0 ${isLast && index > 0 ? 'bottom-full mb-2' : 'top-full mt-2'} w-48 bg-white border border-palette-tan/20 rounded-[3px] shadow-2xl z-[100] py-2 animate-in fade-in zoom-in-95 duration-200`}>
+                            <button
+                                onClick={() => {
+                                    if (onEditPost) onEditPost(post.id);
+                                    setOpenDropdownId(null);
+                                }}
+                                className="w-full px-5 py-3 text-left text-[13px] font-bold text-palette-maroon hover:bg-palette-beige/30 transition-all flex items-center gap-3 group/item"
+                            >
+                                <span className="material-symbols-rounded text-palette-tan group-hover/item:text-palette-maroon transition-colors" style={{ fontSize: '18px' }}>edit</span>
+                                {t('common.edit')}
+                            </button>
+                            <button
+                                onClick={() => {
+                                    onToggleStatus(post);
+                                    setOpenDropdownId(null);
+                                }}
+                                className="w-full px-5 py-3 text-left text-[13px] font-bold text-palette-maroon hover:bg-palette-beige/30 transition-all flex items-center gap-3 group/item"
+                            >
+                                <span className="material-symbols-rounded text-palette-tan group-hover/item:text-palette-maroon transition-colors" style={{ fontSize: '18px' }}>
+                                    {post.status === 'published' ? 'unpublished' : 'check_circle'}
+                                </span>
+                                {post.status === 'published' ? t('admin.post.unpublish') || 'Yayından Kaldır' : t('admin.post.publish_btn')}
+                            </button>
+                            <button
+                                onClick={() => {
+                                    onTogglePinned(post);
+                                    setOpenDropdownId(null);
+                                }}
+                                className="w-full px-5 py-3 text-left text-[13px] font-bold text-palette-maroon hover:bg-palette-beige/30 transition-all flex items-center gap-3 group/item"
+                            >
+                                <span className="material-symbols-rounded text-palette-tan group-hover/item:text-palette-maroon transition-colors" style={{ fontSize: '18px' }}>
+                                    {post.is_pinned ? 'keep_off' : 'push_pin'}
+                                </span>
+                                {post.is_pinned ? t('admin.post.unpin') : t('admin.post.pin_to_top')}
+                            </button>
+                            <button
+                                onClick={() => {
+                                    onDelete(post);
+                                    setOpenDropdownId(null);
+                                }}
+                                className="w-full px-5 py-3 text-left text-[13px] font-bold text-red-600 hover:bg-red-50 transition-all flex items-center gap-3 group/item"
+                            >
+                                <span className="material-symbols-rounded text-red-400 group-hover/item:text-red-600 transition-colors" style={{ fontSize: '18px' }}>delete</span>
+                                {t('common.delete')}
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </td>
+        </tr>
+    );
+});
+
 interface PostListProps {
     onEditPost?: (postId: string) => void;
 }
@@ -34,6 +212,7 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
     const [loading, setLoading] = useState(true);
     const [totalCount, setTotalCount] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(25);
     const [filters, setFilters] = useState({
@@ -44,24 +223,49 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
         publisher: 'Tümü'
     });
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
     const [postToDelete, setPostToDelete] = useState<PostRecord | null>(null);
     const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
     const [navItems, setNavItems] = useState<any[]>([]);
     const [languages, setLanguages] = useState<any[]>([]);
+    const [publishers, setPublishers] = useState<any[]>([]);
+    const [usedFilters, setUsedFilters] = useState({
+        categories: [] as string[],
+        types: [] as string[],
+        publisherIds: [] as string[]
+    });
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
+    // Paralel Veri Çekme (Jet Hızında Açılış)
     useEffect(() => {
-        const fetchNavItems = async () => {
-            const { data } = await supabase.from('navigation_items').select('*');
-            if (data) setNavItems(data);
+        const fetchMetadata = async () => {
+            await Promise.all([
+                supabase.from('navigation_items').select('*').then(({ data }) => data && setNavItems(data)),
+                supabase.from('languages').select('*').then(({ data }) => data && setLanguages(data)),
+                supabase.from('profiles').select('id, full_name').not('full_name', 'is', null).then(({ data }) => data && setPublishers(data)),
+                supabase.from('posts').select('category, type, publisher_id').then(({ data }) => {
+                    if (data) {
+                        setUsedFilters({
+                            categories: Array.from(new Set(data.map(p => p.category).filter(Boolean))),
+                            types: Array.from(new Set(data.map(p => p.type).filter(Boolean))),
+                            publisherIds: Array.from(new Set(data.map(p => p.publisher_id).filter(Boolean)))
+                        });
+                    }
+                })
+            ]);
         };
-        const fetchLanguages = async () => {
-            const { data } = await supabase.from('languages').select('*');
-            if (data) setLanguages(data);
-        };
-        fetchNavItems();
-        fetchLanguages();
+        fetchMetadata();
     }, []);
+
+    // Optimized Debounce (300ms - Gecikmesiz Arama Hissi)
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearchTerm(searchTerm);
+            setCurrentPage(1);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
 
     // REAL-TIME SYNC (2025 Standard)
     useEffect(() => {
@@ -79,7 +283,7 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
 
     useEffect(() => {
         fetchPosts();
-    }, [currentPage, pageSize, searchTerm, filters]);
+    }, [currentPage, pageSize, debouncedSearchTerm, filters]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -101,18 +305,26 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
                 .from('posts')
                 .select('id,title,category,type,status,slug,created_at,thumbnail_url,likes_count,shares_count,comments_count,language_code,is_pinned,profiles:publisher_id(full_name)', { count: 'exact' });
 
-            // Server-side filtering (High performance)
-            if (searchTerm) {
-                query = query.ilike('title', `%${searchTerm}%`);
+            if (debouncedSearchTerm) {
+                const search = `%${debouncedSearchTerm}%`;
+                query = query.or(`title.ilike.${search},slug.ilike.${search},category.ilike.${search},type.ilike.${search},status.ilike.${search},seo_title.ilike.${search},seo_description.ilike.${search},keywords.ilike.${search}`);
             }
+
             if (filters.status !== 'Tümü') {
-                query = query.eq('status', filters.status.toLowerCase() === 'yayında' ? 'published' : 'draft');
+                query = query.eq('status', filters.status === 'Yayında' ? 'published' : 'draft');
             }
             if (filters.category !== 'Tümü') {
                 query = query.eq('category', filters.category);
             }
             if (filters.language !== 'Tümü') {
-                query = query.eq('language_code', filters.language === 'Turkish' ? 'tr' : filters.language.toLowerCase());
+                const lang = languages.find(l => l.name === filters.language);
+                if (lang) query = query.eq('language_code', lang.code);
+            }
+            if (filters.type !== 'Tümü') {
+                query = query.eq('type', filters.type);
+            }
+            if (filters.publisher !== 'Tümü') {
+                query = query.eq('publisher_id', filters.publisher);
             }
 
             const { data, error, count } = await query
@@ -168,7 +380,7 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
                 .eq('id', post.id);
 
             if (error) throw error;
-            showToast(t('admin.post.publish_now'), 'success');
+            showToast(newStatus === 'published' ? t('admin.post.publish_now') : t('admin.post.unpublish_now'), 'success');
         } catch (err: any) {
             setPosts(previousPosts);
             showToast(t('admin.error.fetch_failed') + ": " + err.message, 'error');
@@ -216,6 +428,42 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
         }
     };
 
+    const handleBulkDelete = async () => {
+        if (selectedIds.length === 0) return;
+
+        const previousPosts = [...posts];
+        setPosts(posts.filter(p => !selectedIds.includes(p.id)));
+        setShowBulkDeleteModal(false);
+
+        try {
+            const { error } = await supabase.from('posts').delete().in('id', selectedIds);
+            if (error) throw error;
+            setSelectedIds([]);
+            showToast(`${selectedIds.length} ${t('admin.post.delete_success')}`, 'success');
+        } catch (err: any) {
+            setPosts(previousPosts);
+            showToast(err.message, 'error');
+        }
+    };
+
+    const handleSelectRow = (id: string) => {
+        setSelectedIds(prev =>
+            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+        );
+    };
+
+    const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.checked) {
+            setSelectedIds(posts.map(p => p.id));
+        } else {
+            setSelectedIds([]);
+        }
+    };
+
+    useEffect(() => {
+        setSelectedIds([]);
+    }, [posts]);
+
     const filteredPosts = posts; // Search and filters are now server-side
 
     const stats = useMemo(() => {
@@ -259,15 +507,13 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
                     <h2 className="text-xl font-black text-palette-maroon uppercase tracking-tight">{t('posts.page_title')}</h2>
 
                     {/* FILTER GRID */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                         {[
                             { label: t('posts.filters.language'), key: 'language' },
                             { label: t('posts.filters.category'), key: 'category' },
                             { label: t('posts.filters.type'), key: 'type' },
                             { label: t('posts.filters.status'), key: 'status' },
-                            { label: t('posts.filters.options'), key: 'options' },
                             { label: t('posts.filters.publisher'), key: 'publisher' },
-                            { label: t('posts.filters.items'), key: 'items' },
                         ].map((filter) => (
                             <div key={filter.key} className="space-y-1.5">
                                 <label className="text-[11px] font-black text-palette-tan/40 uppercase tracking-widest block">{filter.label}</label>
@@ -281,23 +527,38 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
                                         {filter.key === 'language' && languages.map(lang => (
                                             <option key={lang.code} value={lang.name}>{lang.name}</option>
                                         ))}
-                                        {filter.key === 'category' && navItems.map(item => {
-                                            const parent = item.parent_id ? navItems.find(p => p.id === item.parent_id) : null;
-                                            return (
-                                                <option key={item.id} value={item.label}>
-                                                    {parent ? `${parent.label} > ` : ''}{item.label}
-                                                </option>
-                                            );
+                                        {filter.key === 'category' && navItems
+                                            .filter(item => usedFilters.categories.includes(item.label))
+                                            .map(item => {
+                                                const parent = item.parent_id ? navItems.find(p => p.id === item.parent_id) : null;
+                                                return (
+                                                    <option key={item.id} value={item.label}>
+                                                        {parent ? `${parent.label} > ` : ''}{item.label}
+                                                    </option>
+                                                );
+                                            })
+                                        }
+                                        {filter.key === 'type' && usedFilters.types.map(tType => {
+                                            const translation = t(`admin.post.tab.${tType}`);
+                                            // Fallback: capitalized first letter if translation is missing or is the key itself
+                                            const displayLabel = translation && translation !== `admin.post.tab.${tType}`
+                                                ? translation
+                                                : tType.charAt(0).toUpperCase() + tType.slice(1).toLowerCase();
+
+                                            return <option key={tType} value={tType}>{displayLabel}</option>
                                         })}
-                                        {filter.key === 'type' && ['article', 'quiz', 'poll', 'video', 'contents', 'recipe'].map(t => (
-                                            <option key={t} value={t}>{t.toUpperCase()}</option>
-                                        ))}
                                         {filter.key === 'status' && (
                                             <>
                                                 <option value="Yayında">Yayında</option>
                                                 <option value="Taslak">Taslak</option>
                                             </>
                                         )}
+                                        {filter.key === 'publisher' && publishers
+                                            .filter(pub => usedFilters.publisherIds.includes(pub.id))
+                                            .map(pub => (
+                                                <option key={pub.id} value={pub.id}>{pub.full_name}</option>
+                                            ))
+                                        }
                                     </select>
                                     <span className="material-symbols-rounded absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/30 pointer-events-none group-hover/select:text-palette-maroon transition-colors" style={{ fontSize: '18px' }}>expand_more</span>
                                 </div>
@@ -308,17 +569,28 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
                     {/* TOP ACTIONS */}
                     <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-4 border-t border-palette-tan/5">
                         <div className="flex items-center gap-4 w-full md:w-auto">
-                            <div className="relative group/size">
-                                <select
-                                    className="h-11 px-6 pr-10 bg-palette-beige/20 border border-palette-tan/15 rounded-[3px] text-[13px] font-black text-palette-maroon appearance-none outline-none focus:bg-white focus:border-palette-maroon transition-all cursor-pointer min-w-[80px]"
-                                    value={pageSize}
-                                    onChange={(e) => setPageSize(Number(e.target.value))}
-                                >
-                                    <option value={25}>25</option>
-                                    <option value={50}>50</option>
-                                    <option value={100}>100</option>
-                                </select>
-                                <span className="material-symbols-rounded absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/30 pointer-events-none" style={{ fontSize: '18px' }}>expand_more</span>
+                            <div className="flex flex-col items-start gap-2">
+                                <div className="relative group/size">
+                                    <select
+                                        className="h-11 px-6 pr-10 bg-palette-beige/20 border border-palette-tan/15 rounded-[3px] text-[13px] font-black text-palette-maroon appearance-none outline-none focus:bg-white focus:border-palette-maroon transition-all cursor-pointer min-w-[80px]"
+                                        value={pageSize}
+                                        onChange={(e) => setPageSize(Number(e.target.value))}
+                                    >
+                                        <option value={25}>25</option>
+                                        <option value={50}>50</option>
+                                        <option value={100}>100</option>
+                                    </select>
+                                    <span className="material-symbols-rounded absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/30 pointer-events-none" style={{ fontSize: '18px' }}>expand_more</span>
+                                </div>
+                                {selectedIds.length > 0 && (
+                                    <button
+                                        onClick={() => setShowBulkDeleteModal(true)}
+                                        className="flex items-center justify-center gap-1 px-3 py-1 bg-red-50 text-palette-red border border-palette-red/10 rounded-[2px] text-[10px] font-black tracking-tight hover:bg-palette-red hover:text-white transition-all animate-in fade-in slide-in-from-top-1 whitespace-nowrap shadow-sm"
+                                    >
+                                        <span className="material-symbols-rounded" style={{ fontSize: '13px' }}>delete_sweep</span>
+                                        {t('common.delete_selected')} ({selectedIds.length})
+                                    </button>
+                                )}
                             </div>
                         </div>
 
@@ -334,11 +606,6 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
                                 <span className="material-symbols-rounded absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/40" style={{ fontSize: '18px' }}>search</span>
                             </div>
 
-                            <button className="flex items-center gap-2 h-11 px-5 bg-palette-beige/40 text-palette-maroon border border-palette-tan/15 rounded-[3px] text-[13px] font-black tracking-widest hover:bg-palette-tan hover:text-white transition-all active:scale-95 group">
-                                <span className="material-symbols-rounded text-palette-tan/60 group-hover:text-white transition-colors" style={{ fontSize: '18px' }}>upload</span>
-                                {t('posts.actions.export')}
-                                <span className="material-symbols-rounded text-palette-tan/30 group-hover:text-white/40" style={{ fontSize: '16px' }}>expand_more</span>
-                            </button>
 
                             <button className="flex items-center gap-2 h-11 px-6 bg-palette-red text-white rounded-[3px] text-[13px] font-black tracking-widest hover:bg-palette-maroon transition-all shadow-lg shadow-palette-red/20 active:scale-95">
                                 <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>add</span>
@@ -348,216 +615,110 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
                     </div>
                 </div>
 
-                {/* TABLE SECTION */}
-                <div className="flex-1 relative z-10 overflow-x-auto md:overflow-visible scrollbar-thin scrollbar-thumb-palette-tan/10">
-                    <table className="w-full text-left border-collapse">
+                {/* TABLE SECTION (STABILIZED) */}
+                <div className="flex-1 relative z-10">
+                    <table className="w-full text-left border-collapse table-fixed">
                         <thead>
-                            <tr className="bg-palette-beige/10 border-b border-palette-tan/10">
-                                <th className="w-12 px-8 py-5">
-                                    <input type="checkbox" className="w-4 h-4 rounded-[2px] border-palette-tan/30 text-palette-maroon focus:ring-palette-maroon cursor-pointer" />
+                            <tr className="bg-palette-beige/10 border-b border-palette-tan/10 h-[60px]">
+                                <th className="w-[50px] px-4 py-0 align-middle">
+                                    <input
+                                        type="checkbox"
+                                        checked={posts.length > 0 && selectedIds.length === posts.length}
+                                        onChange={handleSelectAll}
+                                        className="w-4 h-4 rounded-[2px] border-palette-tan/30 text-palette-maroon focus:ring-palette-maroon cursor-pointer"
+                                    />
                                 </th>
-                                <th className="w-20 px-4 py-5 text-[12px] font-black text-palette-tan uppercase tracking-widest">{t('posts.table.id')}</th>
-                                <th className="px-4 py-5 text-[12px] font-black text-palette-tan uppercase tracking-widest">{t('posts.table.post')}</th>
-                                <th className="px-6 py-5 text-[12px] font-black text-palette-tan uppercase tracking-widest text-center">{t('posts.table.category')}</th>
-                                <th className="px-6 py-5 text-[12px] font-black text-palette-tan uppercase tracking-widest text-center">{t('posts.filters.status')}</th>
-                                <th className="px-6 py-5 text-[12px] font-black text-palette-tan uppercase tracking-widest text-center">{t('posts.table.language')}</th>
-                                <th className="px-6 py-5 text-[12px] font-black text-palette-tan uppercase tracking-widest text-center">{t('posts.table.author')}</th>
-                                <th className="px-6 py-5 text-[12px] font-black text-palette-tan uppercase tracking-widest text-center">{t('posts.table.views')}</th>
-                                <th className="px-6 py-5 text-[12px] font-black text-palette-tan uppercase tracking-widest text-center">{t('posts.table.comments')}</th>
-                                <th className="px-8 py-5 text-[12px] font-black text-palette-tan uppercase tracking-widest text-right">{t('posts.table.date')}</th>
-                                <th className="w-20 px-8 py-5 text-[12px] font-black text-palette-tan uppercase tracking-widest text-right">{t('posts.table.actions')}</th>
+                                <th className="w-[60px] px-2 py-0 align-middle text-[12px] font-black text-palette-tan uppercase tracking-widest">{t('posts.table.id')}</th>
+                                <th className="px-2 py-0 align-middle text-[12px] font-black text-palette-tan uppercase tracking-widest">{t('posts.table.post')}</th>
+                                <th className="w-[130px] px-3 py-0 align-middle text-[12px] font-black text-palette-tan uppercase tracking-widest text-center">{t('posts.table.category')}</th>
+                                <th className="w-[100px] px-3 py-0 align-middle text-[12px] font-black text-palette-tan uppercase tracking-widest text-center">{t('posts.filters.status')}</th>
+                                <th className="w-[50px] px-3 py-0 align-middle text-[12px] font-black text-palette-tan uppercase tracking-widest text-center">{t('posts.table.language')}</th>
+                                <th className="w-[110px] px-3 py-0 align-middle text-[12px] font-black text-palette-tan uppercase tracking-widest text-center">{t('posts.table.author')}</th>
+                                <th className="w-[70px] px-3 py-0 align-middle text-[12px] font-black text-palette-tan uppercase tracking-widest text-center">{t('posts.table.views')}</th>
+                                <th className="w-[70px] px-3 py-0 align-middle text-[12px] font-black text-palette-tan uppercase tracking-widest text-center">{t('posts.table.comments')}</th>
+                                <th className="w-[110px] px-4 py-0 align-middle text-[12px] font-black text-palette-tan uppercase tracking-widest text-right">{t('posts.table.date')}</th>
+                                <th className="w-[80px] px-4 py-0 align-middle text-[12px] font-black text-palette-tan uppercase tracking-widest text-right">{t('posts.table.actions')}</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-palette-tan/5">
-                            {loading ? (
+                        <tbody className="divide-y divide-palette-tan/5 transition-opacity duration-200" style={{ opacity: loading ? 0.7 : 1 }}>
+                            {loading && posts.length === 0 ? (
                                 Array(pageSize).fill(0).map((_, i) => (
-                                    <tr key={i} className="animate-pulse">
-                                        <td className="px-8 py-6"><div className="w-4 h-4 bg-palette-beige rounded-[2px]" /></td>
-                                        <td className="px-4 py-6"><div className="h-4 bg-palette-beige rounded-[3px] w-8" /></td>
-                                        <td className="px-4 py-6">
+                                    <tr key={i} className="animate-pulse h-[92px]">
+                                        <td className="px-4 py-0 align-middle"><div className="w-4 h-4 bg-palette-beige rounded-[2px]" /></td>
+                                        <td className="px-2 py-0 align-middle"><div className="h-4 bg-palette-beige rounded-[3px] w-8" /></td>
+                                        <td className="px-2 py-0 align-middle">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-[60px] h-[60px] bg-palette-beige rounded-[3px]" />
+                                                <div className="w-[60px] h-[60px] bg-palette-beige rounded-[3px] flex-shrink-0" />
                                                 <div className="space-y-2 flex-1">
                                                     <div className="h-4 bg-palette-beige rounded-[3px] w-3/4" />
                                                     <div className="h-3 bg-palette-beige rounded-[3px] w-1/4 opacity-50" />
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-6"><div className="h-4 bg-palette-beige rounded-[3px] w-16 mx-auto" /></td>
-                                        <td className="px-6 py-6"><div className="h-6 bg-palette-beige rounded-[3px] w-20 mx-auto" /></td>
-                                        <td className="px-6 py-6"><div className="h-6 bg-palette-beige rounded-[3px] w-8 mx-auto opacity-50" /></td>
-                                        <td className="px-6 py-6"><div className="h-4 bg-palette-beige rounded-[3px] w-20 mx-auto" /></td>
-                                        <td className="px-6 py-6"><div className="h-8 bg-palette-beige rounded-[3px] w-12 mx-auto" /></td>
-                                        <td className="px-6 py-6"><div className="h-8 bg-palette-beige rounded-[3px] w-12 mx-auto" /></td>
-                                        <td className="px-8 py-6"><div className="h-8 bg-palette-beige rounded-[3px] w-24 ml-auto" /></td>
-                                        <td className="px-8 py-6"><div className="w-10 h-10 bg-palette-beige rounded-full ml-auto" /></td>
+                                        <td className="px-3 py-0 align-middle"><div className="h-4 bg-palette-beige rounded-[3px] w-16 mx-auto" /></td>
+                                        <td className="px-3 py-0 align-middle"><div className="h-6 bg-palette-beige rounded-[3px] w-20 mx-auto" /></td>
+                                        <td className="px-3 py-0 align-middle"><div className="h-6 bg-palette-beige rounded-[3px] w-8 mx-auto opacity-50" /></td>
+                                        <td className="px-3 py-0 align-middle"><div className="h-4 bg-palette-beige rounded-[3px] w-20 mx-auto" /></td>
+                                        <td className="px-3 py-0 align-middle"><div className="h-8 bg-palette-beige rounded-[3px] w-12 mx-auto" /></td>
+                                        <td className="px-3 py-0 align-middle"><div className="h-8 bg-palette-beige rounded-[3px] w-12 mx-auto" /></td>
+                                        <td className="px-4 py-0 align-middle"><div className="h-8 bg-palette-beige rounded-[3px] w-24 ml-auto" /></td>
+                                        <td className="px-4 py-0 align-middle"><div className="w-10 h-10 bg-palette-beige rounded-full ml-auto" /></td>
                                     </tr>
                                 ))
-                            ) : filteredPosts.length === 0 ? (
+                            ) : posts.length === 0 ? (
                                 <tr>
-                                    <td colSpan={10} className="px-8 py-32 text-center text-palette-tan/40 font-bold uppercase tracking-widest text-sm">
+                                    <td colSpan={11} className="px-8 py-32 text-center text-palette-tan/40 font-bold uppercase tracking-widest text-sm h-[400px]">
                                         {t('feed.empty')}
                                     </td>
                                 </tr>
                             ) : (
-                                filteredPosts.map((post, index) => (
-                                    <tr key={post.id} className={`hover:bg-palette-beige/5 transition-all group ${openDropdownId === post.id ? 'relative z-[100]' : 'relative z-1'}`}>
-                                        <td className="px-8 py-6">
-                                            <input type="checkbox" className="w-4 h-4 rounded-[2px] border-palette-tan/30 text-palette-maroon focus:ring-palette-maroon cursor-pointer" />
-                                        </td>
-                                        <td className="px-4 py-6 text-[13px] font-bold text-palette-tan/60">{post.id.slice(0, 5).toUpperCase()}</td>
-                                        <td className="px-4 py-6">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-[60px] h-[60px] flex-shrink-0 bg-palette-beige rounded-[3px] overflow-hidden border border-palette-tan/10 shadow-sm relative group-hover:shadow-md transition-all">
-                                                    {post.thumbnail_url ? (
-                                                        <img src={post.thumbnail_url} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt="" />
-                                                    ) : (
-                                                        <div className="w-full h-full flex items-center justify-center text-palette-tan/20">
-                                                            <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>image</span>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div className="space-y-0.5">
-                                                    <div className="flex items-center gap-2">
-                                                        {post.is_pinned && (
-                                                            <span className="material-symbols-rounded text-amber-500 fill-current" style={{ fontSize: '18px' }}>push_pin</span>
-                                                        )}
-                                                        <p className="font-bold text-palette-maroon text-[14px] leading-tight group-hover:text-palette-red transition-colors whitespace-normal break-words">
-                                                            {post.title}
-                                                        </p>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-[10px] font-black text-white bg-palette-maroon/80 px-1.5 py-0.5 rounded-[2px] uppercase tracking-tighter">{post.type}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-6 text-center">
-                                            {getCategoryDisplay(post.category)}
-                                        </td>
-                                        <td className="px-6 py-6 text-center">
-                                            <span className={`text-[10px] font-black px-2 py-1 rounded-[2px] uppercase tracking-widest ${post.status === 'published'
-                                                ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
-                                                : 'bg-palette-tan/10 text-palette-tan border border-palette-tan/10'
-                                                }`}>
-                                                {post.status === 'published' ? 'Yayında' : 'Taslak'}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-6 text-center">
-                                            <span className="text-[11px] font-black text-white bg-palette-tan/40 px-2 py-1 rounded-[2px] uppercase tracking-widest">{post.language_code || 'tr'}</span>
-                                        </td>
-                                        <td className="px-6 py-6 text-center">
-                                            <span className="text-[12px] font-bold text-palette-maroon/70">{post.profiles?.full_name || '-'}</span>
-                                        </td>
-                                        <td className="px-6 py-6 text-center">
-                                            <div className="flex flex-col items-center">
-                                                <span className="text-[14px] font-black text-palette-maroon">{post.likes_count || 0}</span>
-                                                <span className="text-[9px] font-black text-palette-tan/40 uppercase tracking-tighter">{t('admin.stats.views')}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-6 text-center">
-                                            <div className="flex flex-col items-center">
-                                                <span className="text-[14px] font-black text-palette-maroon">{post.comments_count || 0}</span>
-                                                <span className="text-[9px] font-black text-palette-tan/40 uppercase tracking-tighter">{t('card.comments')}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-8 py-6 text-right">
-                                            <div className="text-[11px] font-bold text-palette-tan flex flex-col">
-                                                <span>{new Date(post.created_at).toLocaleDateString(t('admin.date_format'))}</span>
-                                                <span className="text-[9px] text-palette-tan/40 opacity-70 mt-0.5 uppercase tracking-tighter">{new Date(post.created_at).toLocaleTimeString(t('admin.date_format'), { hour: '2-digit', minute: '2-digit' })}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-8 py-6 text-right">
-                                            <div className="relative inline-block text-left" ref={openDropdownId === post.id ? dropdownRef : null}>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setOpenDropdownId(openDropdownId === post.id ? null : post.id);
-                                                    }}
-                                                    className="w-10 h-10 rounded-full flex items-center justify-center text-palette-tan/40 hover:bg-palette-beige hover:text-palette-maroon transition-all active:scale-90"
-                                                >
-                                                    <span className="material-symbols-rounded">more_vert</span>
-                                                </button>
-
-                                                {openDropdownId === post.id && (
-                                                    <div className={`absolute right-0 ${index >= filteredPosts.length - 2 && index > 0 ? 'bottom-full mb-2' : 'top-full mt-2'} w-48 bg-white border border-palette-tan/20 rounded-[3px] shadow-2xl z-[100] py-2 animate-in fade-in zoom-in-95 duration-200`}>
-                                                        <button
-                                                            onClick={() => {
-                                                                if (onEditPost) onEditPost(post.id);
-                                                                setOpenDropdownId(null);
-                                                            }}
-                                                            className="w-full px-5 py-3 text-left text-[13px] font-bold text-palette-maroon hover:bg-palette-beige/30 transition-all flex items-center gap-3 group/item"
-                                                        >
-                                                            <span className="material-symbols-rounded text-palette-tan group-hover/item:text-palette-maroon transition-colors" style={{ fontSize: '18px' }}>edit</span>
-                                                            {t('common.edit')}
-                                                        </button>
-                                                        <button
-                                                            onClick={() => {
-                                                                handleToggleStatus(post);
-                                                                setOpenDropdownId(null);
-                                                            }}
-                                                            className="w-full px-5 py-3 text-left text-[13px] font-bold text-palette-maroon hover:bg-palette-beige/30 transition-all flex items-center gap-3 group/item"
-                                                        >
-                                                            <span className="material-symbols-rounded text-palette-tan group-hover/item:text-palette-maroon transition-colors" style={{ fontSize: '18px' }}>
-                                                                {post.status === 'published' ? 'unpublished' : 'check_circle'}
-                                                            </span>
-                                                            {post.status === 'published' ? t('admin.post.unpublish') || 'Yayından Kaldır' : t('admin.post.publish_btn')}
-                                                        </button>
-                                                        <button
-                                                            onClick={() => {
-                                                                handleTogglePinned(post);
-                                                                setOpenDropdownId(null);
-                                                            }}
-                                                            className="w-full px-5 py-3 text-left text-[13px] font-bold text-palette-maroon hover:bg-palette-beige/30 transition-all flex items-center gap-3 group/item"
-                                                        >
-                                                            <span className="material-symbols-rounded text-palette-tan group-hover/item:text-palette-maroon transition-colors" style={{ fontSize: '18px' }}>
-                                                                {post.is_pinned ? 'keep_off' : 'push_pin'}
-                                                            </span>
-                                                            {post.is_pinned ? t('admin.post.unpin') : t('admin.post.pin_to_top')}
-                                                        </button>
-                                                        <button
-                                                            onClick={() => {
-                                                                setPostToDelete(post);
-                                                                setShowDeleteModal(true);
-                                                                setOpenDropdownId(null);
-                                                            }}
-                                                            className="w-full px-5 py-3 text-left text-[13px] font-bold text-red-600 hover:bg-red-50 transition-all flex items-center gap-3 group/item"
-                                                        >
-                                                            <span className="material-symbols-rounded text-red-400 group-hover/item:text-red-600 transition-colors" style={{ fontSize: '18px' }}>delete</span>
-                                                            {t('common.delete')}
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
+                                posts.map((post, index) => (
+                                    <PostRow
+                                        key={post.id}
+                                        post={post}
+                                        index={index}
+                                        t={t}
+                                        onEditPost={onEditPost}
+                                        onToggleStatus={handleToggleStatus}
+                                        onTogglePinned={handleTogglePinned}
+                                        onDelete={(p) => { setPostToDelete(p); setShowDeleteModal(true); }}
+                                        openDropdownId={openDropdownId}
+                                        setOpenDropdownId={setOpenDropdownId}
+                                        dropdownRef={dropdownRef}
+                                        getCategoryDisplay={getCategoryDisplay}
+                                        isLast={index >= posts.length - 2}
+                                        isSelected={selectedIds.includes(post.id)}
+                                        onSelectRow={handleSelectRow}
+                                    />
                                 ))
                             )}
                         </tbody>
                     </table>
                 </div>
 
-                {/* PAGINATION FOOTER */}
-                <div className="p-8 border-t border-palette-tan/10 bg-palette-beige/5 flex items-center justify-between">
-                    <p className="text-[12px] font-bold text-palette-tan/40 uppercase tracking-widest">
-                        {(currentPage - 1) * pageSize + 1} - {Math.min(currentPage * pageSize, totalCount)} / {totalCount} {t('common.results_found') || 'Sonuç gösteriliyor'}
-                    </p>
-                    <div className="flex items-center gap-2">
+                <div className="p-8 border-t border-palette-tan/10 bg-palette-beige/5 flex items-center justify-between font-black text-[11px] tracking-widest text-palette-tan/40 uppercase relative z-0">
+                    <span>
+                        {t('common.results_found')
+                            .replace('{from}', String((currentPage - 1) * pageSize + 1))
+                            .replace('{to}', String(Math.min(currentPage * pageSize, totalCount)))
+                            .replace('{total}', String(totalCount))}
+                    </span>
+                    <div className="flex items-center gap-1">
                         <button
                             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                             disabled={currentPage === 1 || loading}
-                            className="w-10 h-10 flex items-center justify-center rounded-[3px] border border-palette-tan/15 text-palette-tan hover:bg-white hover:text-palette-maroon transition-all disabled:opacity-30"
+                            className="w-8 h-8 flex items-center justify-center rounded-[3px] border border-palette-tan/15 text-palette-tan hover:bg-white hover:text-palette-maroon transition-all disabled:opacity-30"
                         >
-                            <span className="material-symbols-rounded">chevron_left</span>
+                            <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>chevron_left</span>
                         </button>
 
                         {Array.from({ length: Math.min(5, Math.ceil(totalCount / pageSize)) }).map((_, i) => {
-                            const pageNum = i + 1; // Simplistic pagination logic for now
+                            const pageNum = i + 1;
                             return (
                                 <button
                                     key={pageNum}
                                     onClick={() => setCurrentPage(pageNum)}
-                                    className={`w-10 h-10 flex items-center justify-center rounded-[3px] font-bold text-sm transition-all ${currentPage === pageNum ? 'bg-palette-maroon text-white shadow-lg shadow-palette-maroon/20' : 'border border-palette-tan/15 text-palette-tan hover:bg-white hover:text-palette-maroon'}`}
+                                    className={`w-8 h-8 flex items-center justify-center rounded-[3px] transition-all ${currentPage === pageNum ? 'bg-palette-red text-white shadow-lg shadow-palette-red/20' : 'border border-palette-tan/15 text-palette-tan hover:bg-white hover:text-palette-maroon'}`}
                                 >
                                     {pageNum}
                                 </button>
@@ -567,9 +728,9 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
                         <button
                             onClick={() => setCurrentPage(p => p + 1)}
                             disabled={currentPage >= Math.ceil(totalCount / pageSize) || loading}
-                            className="w-10 h-10 flex items-center justify-center rounded-[3px] border border-palette-tan/15 text-palette-tan hover:bg-white hover:text-palette-maroon transition-all disabled:opacity-30"
+                            className="w-8 h-8 flex items-center justify-center rounded-[3px] border border-palette-tan/15 text-palette-tan hover:bg-white hover:text-palette-maroon transition-all disabled:opacity-30"
                         >
-                            <span className="material-symbols-rounded">chevron_right</span>
+                            <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>chevron_right</span>
                         </button>
                     </div>
                 </div>
@@ -597,6 +758,37 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
                             </button>
                             <button
                                 onClick={() => setShowDeleteModal(false)}
+                                className="w-full h-10 bg-palette-beige/30 text-palette-tan rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-beige/50 transition-all uppercase"
+                            >
+                                {t('common.cancel')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* BULK DELETE MODAL */}
+            {showBulkDeleteModal && (
+                <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-palette-maroon/40 backdrop-blur-md animate-in fade-in" onClick={() => setShowBulkDeleteModal(false)} />
+                    <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 p-8 text-center">
+                        <div className="w-20 h-20 bg-red-50 text-palette-red rounded-[3px] flex items-center justify-center mx-auto mb-6 shadow-inner">
+                            <span className="material-symbols-rounded" style={{ fontSize: '32px' }}>delete_sweep</span>
+                        </div>
+                        <h3 className="text-xl font-black text-palette-maroon tracking-tight mb-3 uppercase">{t('common.confirm_title')}</h3>
+                        <p className="text-[13px] font-bold text-palette-tan/60 leading-relaxed mb-8">
+                            Seçili <span className="text-palette-maroon font-black">{selectedIds.length}</span> haberi toplu olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz.
+                        </p>
+                        <div className="flex flex-col gap-3">
+                            <button
+                                onClick={handleBulkDelete}
+                                className="w-full h-10 bg-palette-red text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-palette-red/20 flex items-center justify-center gap-2 uppercase"
+                            >
+                                <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>delete</span>
+                                {t('common.delete_selected_confirm') || 'SEÇİLİLERİ KALICI OLARAK SİL'}
+                            </button>
+                            <button
+                                onClick={() => setShowBulkDeleteModal(false)}
                                 className="w-full h-10 bg-palette-beige/30 text-palette-tan rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-beige/50 transition-all uppercase"
                             >
                                 {t('common.cancel')}
