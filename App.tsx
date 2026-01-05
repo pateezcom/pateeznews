@@ -39,49 +39,104 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isAppReady, setIsAppReady] = useState(false);
 
-  const fetchNews = useCallback(async () => {
+  const fetchNews = useCallback(async (category?: string | null) => {
     try {
-      const { data: postsData, error: postsError } = await supabase
+      let query = supabase
         .from('posts')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select(`
+          *,
+          profiles:publisher_id (
+            id,
+            username,
+            full_name,
+            avatar_url,
+            role
+          )
+        `)
+        .eq('status', 'published')
+        .order('is_pinned', { ascending: false })
+        .order('published_at', { ascending: false });
+
+      if (category) {
+        query = query.eq('category', category);
+      }
+
+      const { data: postsData, error: postsError } = await query;
 
       if (postsError) throw postsError;
 
-      const publisherIds = Array.from(
-        new Set((postsData || []).map((p: any) => p.publisher_id).filter(Boolean))
-      );
-      const profilesById = new Map<string, any>();
-
-      if (publisherIds.length > 0) {
-        const { data: profilesData, error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, username, full_name, avatar_url')
-          .in('id', publisherIds);
-
-        if (profilesError) throw profilesError;
-        (profilesData || []).forEach((profile: any) => profilesById.set(profile.id, profile));
-      }
-
-      if (postsData && postsData.length > 0) {
+      if (postsData) {
         const mappedNews: NewsItem[] = postsData.map((item: any) => {
-          const profile = item.publisher_id ? profilesById.get(item.publisher_id) : null;
+          const profile = item.profiles;
+
+          // Find item marked for homepage/cover
+          const items = item.items || [];
+          const homepageItem = items.find((i: any) => i.showOnHomepage === true);
+
+          let cardType = item.type;
+          let extraData: any = {};
+
+          if (homepageItem) {
+            // Map the homepage item type to our NewsType enum (usually they align)
+            cardType = homepageItem.type?.toUpperCase();
+
+            // Map specific data based on type
+            if (homepageItem.type === 'beforeafter') {
+              cardType = 'BEFORE_AFTER';
+              extraData.beforeAfterData = homepageItem.beforeAfterData;
+            } else if (homepageItem.type === 'flipcard') {
+              cardType = 'FLIP_CARD';
+              extraData.flipData = homepageItem.flipData;
+            } else if (homepageItem.type === 'review') {
+              cardType = 'REVIEW';
+              extraData.reviewData = homepageItem.reviewData;
+            } else if (homepageItem.type === 'poll') {
+              cardType = 'POLL';
+              extraData.options = homepageItem.options;
+              extraData.isImagePoll = homepageItem.isImagePoll;
+              extraData.pollColumns = homepageItem.pollColumns;
+            } else if (homepageItem.type === 'vs') {
+              cardType = 'VS';
+              extraData.options = homepageItem.options;
+            } else if (homepageItem.type === 'slider') {
+              cardType = 'GALLERY';
+              extraData.mediaList = homepageItem.mediaUrls;
+            } else if (homepageItem.type === 'video') {
+              cardType = 'VIDEO';
+              extraData.mediaUrl = homepageItem.mediaUrl;
+            } else if (homepageItem.type === 'audio') {
+              cardType = 'AUDIO';
+              extraData.mediaUrl = homepageItem.mediaUrl;
+            } else if (homepageItem.type === 'social' || homepageItem.type === 'iframe') {
+              cardType = 'EMBED';
+              extraData.mediaUrl = homepageItem.mediaUrl;
+            }
+          } else {
+            // Default to STANDARD if no homepage item is specified
+            cardType = 'STANDARD';
+          }
+
           return {
             id: item.id,
-            type: item.type,
+            type: cardType as any,
             title: item.title,
             summary: item.summary,
             content: item.content,
             category: item.category,
-            source: profile?.username || 'Buzz Haber',
+            source: profile?.full_name || profile?.username || 'Buzz Haber',
             author: profile?.full_name || 'Editör',
-            timestamp: new Date(item.created_at).toLocaleDateString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
+            timestamp: item.published_at
+              ? new Date(item.published_at).toLocaleDateString('tr-TR', { hour: '2-digit', minute: '2-digit' })
+              : new Date(item.created_at).toLocaleDateString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
             mediaUrl: item.media_url || '',
             thumbnail: item.thumbnail_url || 'https://picsum.photos/800/600',
             likes: item.likes_count || 0,
             comments: item.comments_count || 0,
             shares: item.shares_count || 0,
-            ...item.card_data
+            items: item.items || [],
+            sourceAvatar: profile?.avatar_url || '',
+            isPinned: item.is_pinned || false,
+            ...extraData
           };
         });
         setNewsItems(mappedNews);
@@ -165,9 +220,17 @@ const App: React.FC = () => {
     let mounted = true;
     const init = async () => {
       const start = Date.now();
+
+      // Determine category from URL if present
+      const segments = window.location.pathname.split('/').filter(Boolean);
+      let initialCategory = null;
+      if (segments[0] === 'kategori' && segments[1]) {
+        initialCategory = decodeURIComponent(segments[1]);
+      }
+
       const [sessionRes] = await Promise.all([
         supabase.auth.getSession(),
-        fetchNews(),
+        fetchNews(initialCategory),
         fetchNavigation(),
         syncStateFromUrl()
       ]);
@@ -199,6 +262,13 @@ const App: React.FC = () => {
       window.onpopstate = null;
     };
   }, [fetchNews, fetchNavigation, syncStateFromUrl, updateUrl, currentLang.code]);
+
+  // Handle category changes
+  useEffect(() => {
+    if (isAppReady) {
+      fetchNews(selectedCategory);
+    }
+  }, [selectedCategory, fetchNews]);
 
   const handleBack = () => {
     setView('feed');

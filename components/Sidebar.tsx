@@ -16,18 +16,30 @@ const Sidebar: React.FC<SidebarProps> = ({ items: propItems, onPublisherItemClic
   const [items, setItems] = useState<NavigationItem[]>([]);
   const [activeParentTop, setActiveParentTop] = useState<string | null>(localStorage.getItem('buzz_active_parent_top'));
   const [activeParentCat, setActiveParentCat] = useState<string | null>(localStorage.getItem('buzz_active_parent_cat'));
+  const [publishers, setPublishers] = useState<{ name: string, img: string }[]>([]);
   const [selections, setSelections] = useState<Record<string, string>>(() => {
     const saved = localStorage.getItem('buzz_sidebar_context');
     return saved ? JSON.parse(saved) : {};
   });
 
-  const publishers = [
-    { name: 'Buzz Tech', img: 'https://picsum.photos/seed/tech/100' },
-    { name: 'Buzz Culture', img: 'https://picsum.photos/seed/culture/100' },
-    { name: 'Buzz Business', img: 'https://picsum.photos/seed/business/100' },
-    { name: 'Buzz Sport', img: 'https://picsum.photos/seed/sport/100' },
-    { name: 'Buzz Science', img: 'https://picsum.photos/seed/science/100' },
-  ];
+  useEffect(() => {
+    const fetchPublishers = async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('full_name, username, avatar_url')
+        .eq('role', 'publisher')
+        .eq('status', 'Aktif')
+        .limit(5);
+
+      if (!error && data) {
+        setPublishers(data.map(p => ({
+          name: p.full_name || p.username || 'Yayıncı',
+          img: p.avatar_url || `https://picsum.photos/seed/${p.username}/100`
+        })));
+      }
+    };
+    fetchPublishers();
+  }, []);
 
   useEffect(() => {
     if (propItems) {

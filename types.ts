@@ -69,6 +69,9 @@ export interface NewsItem {
     breakdown: { label: string; score: number }[];
     verdict: string;
   };
+  items?: any[];
+  sourceAvatar?: string;
+  isPinned?: boolean;
 }
 
 export interface StoryItem {

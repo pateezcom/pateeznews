@@ -78,8 +78,8 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment, isReply = false, max
     setLikeCount(liked ? likeCount - 1 : likeCount + 1);
   };
 
-  const repliesToShow = maxReplies !== undefined && comment.replies 
-    ? comment.replies.slice(0, maxReplies) 
+  const repliesToShow = maxReplies !== undefined && comment.replies
+    ? comment.replies.slice(0, maxReplies)
     : comment.replies;
 
   return (
@@ -112,14 +112,14 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment, isReply = false, max
           </div>
 
           <div className="flex items-center gap-4 mt-1 ml-1">
-            <button 
+            <button
               onClick={toggleLike}
               className={`flex items-center gap-1.5 text-[10px] font-bold transition-colors group ${liked ? 'text-palette-red' : 'text-palette-tan/40 hover:text-palette-red'}`}
             >
               <Heart size={12} className={`transition-transform group-active:scale-125 ${liked ? 'fill-palette-red' : ''}`} />
               <span>{likeCount > 0 ? likeCount : 'Beğen'}</span>
             </button>
-            
+
             <button className="flex items-center gap-1.5 text-[10px] font-bold text-palette-tan/40 hover:text-palette-red transition-colors">
               <Reply size={12} className="scale-x-[-1]" />
               <span>Yanıtla</span>
@@ -146,34 +146,18 @@ const CommentSection: React.FC = () => {
   const hiddenCount = 24 - 2;
 
   return (
-    <div className="bg-white/50 border-t border-palette-beige/20 px-5 py-4">
-      <div className="flex gap-2.5 mb-4 items-center">
-        <div className="w-8 h-8 rounded-full bg-palette-beige overflow-hidden flex-shrink-0 border border-palette-beige">
-           <img src="https://picsum.photos/seed/user1/100" className="w-full h-full object-cover" />
-        </div>
-        <div className="flex-1 relative group">
-          <input 
-            type="text" 
-            placeholder="Bir yorum yaz..." 
-            className="w-full h-9 pl-4 pr-9 rounded-lg bg-palette-beige/30 border border-transparent focus:border-palette-red/20 text-xs font-medium text-palette-maroon placeholder:text-palette-tan/30 focus:outline-none focus:ring-2 focus:ring-palette-red/5 focus:bg-white transition-all"
-          />
-          <button className="absolute right-1 top-1 p-1.5 bg-palette-beige text-palette-tan/40 rounded-lg hover:bg-palette-red hover:text-white transition-all shadow-sm group-focus-within:bg-palette-red group-focus-within:text-white">
-            <Send size={12} className="ml-0.5" />
-          </button>
-        </div>
-      </div>
-
+    <div className="bg-white/50 px-5 pt-0 pb-4">
       <div className="space-y-1">
         {visibleTopLevelComments.map((comment) => (
-          <CommentItem 
-            key={comment.id} 
-            comment={comment} 
+          <CommentItem
+            key={comment.id}
+            comment={comment}
             maxReplies={replyLimit}
           />
         ))}
       </div>
-      
-      <div className="relative flex items-center justify-center mt-5 mb-1">
+
+      <div className="relative flex items-center justify-center mt-5 mb-5">
         <div className="absolute inset-0 flex items-center" aria-hidden="true">
           <div className="w-full border-t border-palette-beige/50"></div>
         </div>
@@ -193,6 +177,22 @@ const CommentSection: React.FC = () => {
             </>
           )}
         </button>
+      </div>
+
+      <div className="flex gap-3 mt-4 items-center">
+        <div className="w-9 h-9 rounded-xl bg-palette-beige overflow-hidden flex-shrink-0 border border-palette-beige shadow-sm">
+          <img src="https://picsum.photos/seed/user1/100" className="w-full h-full object-cover" />
+        </div>
+        <div className="flex-1 relative group">
+          <input
+            type="text"
+            placeholder="Bir yorum yaz..."
+            className="w-full h-10 pl-4 pr-11 rounded-xl bg-white border border-palette-beige/60 focus:border-palette-red/40 text-[13px] font-medium text-palette-maroon placeholder:text-palette-tan/30 focus:outline-none focus:ring-4 focus:ring-palette-red/5 transition-all shadow-sm"
+          />
+          <button className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center bg-palette-beige text-palette-tan/40 rounded-lg hover:bg-palette-red hover:text-white transition-all shadow-sm group-focus-within:bg-palette-red group-focus-within:text-white">
+            <Send size={14} />
+          </button>
+        </div>
       </div>
     </div>
   );
