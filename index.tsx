@@ -17,6 +17,8 @@ globalThis.ReactDOM = ReactDOMNamespace;
 // @ts-ignore
 window.global = window;
 
+import { ToastProvider } from './context/ToastContext';
+
 const rootElement = document.getElementById('root');
 if (!rootElement) {
   throw new Error("Could not find root element to mount to");
@@ -27,7 +29,9 @@ root.render(
   <ReactNamespace.StrictMode>
     <ErrorBoundary>
       <LanguageProvider>
-        <App />
+        <ToastProvider>
+          <App />
+        </ToastProvider>
       </LanguageProvider>
     </ErrorBoundary>
   </ReactNamespace.StrictMode>

@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useLanguage } from '../../context/LanguageContext';
+import { useToast } from '../../context/ToastContext';
 
 interface PostRecord {
     id: string;
@@ -16,6 +17,7 @@ interface PostRecord {
     shares_count: number;
     comments_count: number;
     language_code: string;
+    is_pinned?: boolean;
     profiles: {
         full_name: string;
     } | null;
@@ -27,6 +29,7 @@ interface PostListProps {
 
 const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
     const { t } = useLanguage();
+    const { showToast } = useToast();
     const [posts, setPosts] = useState<PostRecord[]>([]);
     const [loading, setLoading] = useState(true);
     const [totalCount, setTotalCount] = useState(0);
@@ -43,7 +46,22 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [postToDelete, setPostToDelete] = useState<PostRecord | null>(null);
     const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+    const [navItems, setNavItems] = useState<any[]>([]);
+    const [languages, setLanguages] = useState<any[]>([]);
     const dropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const fetchNavItems = async () => {
+            const { data } = await supabase.from('navigation_items').select('*');
+            if (data) setNavItems(data);
+        };
+        const fetchLanguages = async () => {
+            const { data } = await supabase.from('languages').select('*');
+            if (data) setLanguages(data);
+        };
+        fetchNavItems();
+        fetchLanguages();
+    }, []);
 
     // REAL-TIME SYNC (2025 Standard)
     useEffect(() => {
@@ -81,7 +99,7 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
 
             let query = supabase
                 .from('posts')
-                .select('id,title,category,type,status,slug,created_at,thumbnail_url,likes_count,shares_count,comments_count,language_code,profiles:publisher_id(full_name)', { count: 'exact' });
+                .select('id,title,category,type,status,slug,created_at,thumbnail_url,likes_count,shares_count,comments_count,language_code,is_pinned,profiles:publisher_id(full_name)', { count: 'exact' });
 
             // Server-side filtering (High performance)
             if (searchTerm) {
@@ -98,6 +116,7 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
             }
 
             const { data, error, count } = await query
+                .order('is_pinned', { ascending: false })
                 .order('created_at', { ascending: false })
                 .range(from, to);
 
@@ -113,6 +132,70 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
         }
     };
 
+    const getCategoryDisplay = (label: string) => {
+        if (!label || label === 'Tümü') return label;
+        const item = navItems.find(i => i.label === label);
+        if (!item || !item.parent_id) return <span className="text-[12px] font-bold text-palette-tan/70 uppercase tracking-widest">{label}</span>;
+
+        const parent = navItems.find(i => i.id === item.parent_id);
+        if (!parent) return <span className="text-[12px] font-bold text-palette-tan/70 uppercase tracking-widest">{label}</span>;
+
+        return (
+            <div className="flex flex-col items-center">
+                <span className="text-[9px] font-black text-palette-tan/30 uppercase tracking-tighter leading-none mb-0.5">{parent.label}</span>
+                <div className="flex items-center gap-1">
+                    <span className="material-symbols-rounded text-palette-tan/20" style={{ fontSize: '12px' }}>subdirectory_arrow_right</span>
+                    <span className="text-[12px] font-bold text-palette-tan/70 uppercase tracking-widest">{label}</span>
+                </div>
+            </div>
+        );
+    };
+
+    const handleToggleStatus = async (post: PostRecord) => {
+        const newStatus = post.status === 'published' ? 'draft' : 'published';
+        const previousPosts = [...posts];
+
+        // Optimistic UI Update
+        setPosts(posts.map(p => p.id === post.id ? { ...p, status: newStatus } : p));
+
+        try {
+            const { error } = await supabase
+                .from('posts')
+                .update({
+                    status: newStatus,
+                    published_at: newStatus === 'published' ? new Date().toISOString() : null
+                })
+                .eq('id', post.id);
+
+            if (error) throw error;
+            showToast(t('admin.post.publish_now'), 'success');
+        } catch (err: any) {
+            setPosts(previousPosts);
+            showToast(t('admin.error.fetch_failed') + ": " + err.message, 'error');
+        }
+    };
+
+    const handleTogglePinned = async (post: PostRecord) => {
+        const newPinned = !post.is_pinned;
+        const previousPosts = [...posts];
+
+        // Optimistic UI Update
+        setPosts(posts.map(p => p.id === post.id ? { ...p, is_pinned: newPinned } : p));
+
+        try {
+            const { error } = await supabase
+                .from('posts')
+                .update({ is_pinned: newPinned })
+                .eq('id', post.id);
+
+            if (error) throw error;
+            showToast(newPinned ? t('admin.post.pinned_success') : t('admin.post.unpinned_success'), 'success');
+        } catch (err: any) {
+            setPosts(previousPosts);
+            showToast(t('admin.error.fetch_failed') + ": " + err.message, 'error');
+        }
+    };
+
     const handleDelete = async () => {
         if (!postToDelete) return;
 
@@ -125,10 +208,11 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
             const { error } = await supabase.from('posts').delete().eq('id', postToDelete.id);
             if (error) throw error;
             setPostToDelete(null);
+            showToast(t('admin.post.delete_success'), 'success');
         } catch (err: any) {
             // Rollback on error
             setPosts(previousPosts);
-            alert(err.message);
+            showToast(err.message, 'error');
         }
     };
 
@@ -169,7 +253,7 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
             </div>
 
             {/* MAIN CONTENT BOX */}
-            <div className="bg-white rounded-[3px] border border-palette-tan/20 shadow-sm overflow-hidden min-h-[600px] flex flex-col">
+            <div className="bg-white rounded-[3px] border border-palette-tan/20 shadow-sm min-h-[600px] flex flex-col">
                 {/* HEADER / FILTERS */}
                 <div className="p-8 border-b border-palette-tan/10 space-y-8">
                     <h2 className="text-xl font-black text-palette-maroon uppercase tracking-tight">{t('posts.page_title')}</h2>
@@ -193,7 +277,27 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
                                         value={(filters as any)[filter.key]}
                                         onChange={(e) => setFilters({ ...filters, [filter.key]: e.target.value })}
                                     >
-                                        <option value="Tümü">{filter.key === 'language' ? 'Turkish' : 'Tümü'}</option>
+                                        <option value="Tümü">Tümü</option>
+                                        {filter.key === 'language' && languages.map(lang => (
+                                            <option key={lang.code} value={lang.name}>{lang.name}</option>
+                                        ))}
+                                        {filter.key === 'category' && navItems.map(item => {
+                                            const parent = item.parent_id ? navItems.find(p => p.id === item.parent_id) : null;
+                                            return (
+                                                <option key={item.id} value={item.label}>
+                                                    {parent ? `${parent.label} > ` : ''}{item.label}
+                                                </option>
+                                            );
+                                        })}
+                                        {filter.key === 'type' && ['article', 'quiz', 'poll', 'video', 'contents', 'recipe'].map(t => (
+                                            <option key={t} value={t}>{t.toUpperCase()}</option>
+                                        ))}
+                                        {filter.key === 'status' && (
+                                            <>
+                                                <option value="Yayında">Yayında</option>
+                                                <option value="Taslak">Taslak</option>
+                                            </>
+                                        )}
                                     </select>
                                     <span className="material-symbols-rounded absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/30 pointer-events-none group-hover/select:text-palette-maroon transition-colors" style={{ fontSize: '18px' }}>expand_more</span>
                                 </div>
@@ -245,7 +349,7 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
                 </div>
 
                 {/* TABLE SECTION */}
-                <div className="flex-1 overflow-x-auto">
+                <div className="flex-1 relative z-10 overflow-x-auto md:overflow-visible scrollbar-thin scrollbar-thumb-palette-tan/10">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-palette-beige/10 border-b border-palette-tan/10">
@@ -296,8 +400,8 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
                                     </td>
                                 </tr>
                             ) : (
-                                filteredPosts.map((post) => (
-                                    <tr key={post.id} className="hover:bg-palette-beige/5 transition-all group">
+                                filteredPosts.map((post, index) => (
+                                    <tr key={post.id} className={`hover:bg-palette-beige/5 transition-all group ${openDropdownId === post.id ? 'relative z-[100]' : 'relative z-1'}`}>
                                         <td className="px-8 py-6">
                                             <input type="checkbox" className="w-4 h-4 rounded-[2px] border-palette-tan/30 text-palette-maroon focus:ring-palette-maroon cursor-pointer" />
                                         </td>
@@ -314,7 +418,14 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
                                                     )}
                                                 </div>
                                                 <div className="space-y-0.5">
-                                                    <p className="font-bold text-palette-maroon text-[14px] leading-snug group-hover:text-palette-red transition-colors line-clamp-1">{post.title}</p>
+                                                    <div className="flex items-center gap-2">
+                                                        {post.is_pinned && (
+                                                            <span className="material-symbols-rounded text-amber-500 fill-current" style={{ fontSize: '18px' }}>push_pin</span>
+                                                        )}
+                                                        <p className="font-bold text-palette-maroon text-[14px] leading-tight group-hover:text-palette-red transition-colors whitespace-normal break-words">
+                                                            {post.title}
+                                                        </p>
+                                                    </div>
                                                     <div className="flex items-center gap-2">
                                                         <span className="text-[10px] font-black text-white bg-palette-maroon/80 px-1.5 py-0.5 rounded-[2px] uppercase tracking-tighter">{post.type}</span>
                                                     </div>
@@ -322,7 +433,7 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-6 text-center">
-                                            <span className="text-[12px] font-bold text-palette-tan/70 uppercase tracking-widest">{post.category}</span>
+                                            {getCategoryDisplay(post.category)}
                                         </td>
                                         <td className="px-6 py-6 text-center">
                                             <span className={`text-[10px] font-black px-2 py-1 rounded-[2px] uppercase tracking-widest ${post.status === 'published'
@@ -369,7 +480,7 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
                                                 </button>
 
                                                 {openDropdownId === post.id && (
-                                                    <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-palette-tan/20 rounded-[3px] shadow-2xl z-[100] py-2 animate-in fade-in zoom-in-95 duration-200">
+                                                    <div className={`absolute right-0 ${index >= filteredPosts.length - 2 && index > 0 ? 'bottom-full mb-2' : 'top-full mt-2'} w-48 bg-white border border-palette-tan/20 rounded-[3px] shadow-2xl z-[100] py-2 animate-in fade-in zoom-in-95 duration-200`}>
                                                         <button
                                                             onClick={() => {
                                                                 if (onEditPost) onEditPost(post.id);
@@ -379,6 +490,30 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
                                                         >
                                                             <span className="material-symbols-rounded text-palette-tan group-hover/item:text-palette-maroon transition-colors" style={{ fontSize: '18px' }}>edit</span>
                                                             {t('common.edit')}
+                                                        </button>
+                                                        <button
+                                                            onClick={() => {
+                                                                handleToggleStatus(post);
+                                                                setOpenDropdownId(null);
+                                                            }}
+                                                            className="w-full px-5 py-3 text-left text-[13px] font-bold text-palette-maroon hover:bg-palette-beige/30 transition-all flex items-center gap-3 group/item"
+                                                        >
+                                                            <span className="material-symbols-rounded text-palette-tan group-hover/item:text-palette-maroon transition-colors" style={{ fontSize: '18px' }}>
+                                                                {post.status === 'published' ? 'unpublished' : 'check_circle'}
+                                                            </span>
+                                                            {post.status === 'published' ? t('admin.post.unpublish') || 'Yayından Kaldır' : t('admin.post.publish_btn')}
+                                                        </button>
+                                                        <button
+                                                            onClick={() => {
+                                                                handleTogglePinned(post);
+                                                                setOpenDropdownId(null);
+                                                            }}
+                                                            className="w-full px-5 py-3 text-left text-[13px] font-bold text-palette-maroon hover:bg-palette-beige/30 transition-all flex items-center gap-3 group/item"
+                                                        >
+                                                            <span className="material-symbols-rounded text-palette-tan group-hover/item:text-palette-maroon transition-colors" style={{ fontSize: '18px' }}>
+                                                                {post.is_pinned ? 'keep_off' : 'push_pin'}
+                                                            </span>
+                                                            {post.is_pinned ? t('admin.post.unpin') : t('admin.post.pin_to_top')}
                                                         </button>
                                                         <button
                                                             onClick={() => {
@@ -440,28 +575,29 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
                 </div>
             </div>
 
-            {/* DELETE MODAL */}
+            {/* DELETE MODAL OUTSIDE ANIMATED DIV */}
             {showDeleteModal && (
-                <div className="fixed inset-0 z-[600] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-palette-maroon/40 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setShowDeleteModal(false)} />
-                    <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-300 border border-palette-tan/20">
-                        <div className="bg-red-50 px-8 py-10 text-center border-b border-red-100">
-                            <div className="w-20 h-20 bg-white rounded-[3px] flex items-center justify-center mx-auto mb-6 text-red-600 shadow-xl shadow-red-600/10">
-                                <span className="material-symbols-rounded" style={{ fontSize: '40px' }}>delete_forever</span>
-                            </div>
-                            <h3 className="text-2xl font-black text-palette-maroon mb-2 uppercase tracking-tighter">{t('common.confirm_title')}</h3>
-                            <p className="text-palette-tan font-bold opacity-70 px-4 leading-relaxed">{postToDelete?.title}</p>
+                <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-palette-maroon/40 backdrop-blur-md animate-in fade-in" onClick={() => setShowDeleteModal(false)} />
+                    <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 p-8 text-center">
+                        <div className="w-20 h-20 bg-red-50 text-palette-red rounded-[3px] flex items-center justify-center mx-auto mb-6 shadow-inner">
+                            <span className="material-symbols-rounded" style={{ fontSize: '32px' }}>delete</span>
                         </div>
-                        <div className="p-8 space-y-4">
+                        <h3 className="text-xl font-black text-palette-maroon tracking-tight mb-3 uppercase">{t('common.confirm_title')}</h3>
+                        <p className="text-[13px] font-bold text-palette-tan/60 leading-relaxed mb-8">
+                            <span className="text-palette-maroon">"{postToDelete?.title}"</span> isimli haberi silmek istediğinize emin misiniz?
+                        </p>
+                        <div className="flex flex-col gap-3">
                             <button
                                 onClick={handleDelete}
-                                className="w-full py-5 bg-red-600 text-white rounded-[3px] font-black text-xs tracking-[0.2em] hover:bg-red-700 transition-all shadow-xl shadow-red-600/20 active:scale-[0.98] uppercase"
+                                className="w-full h-10 bg-palette-red text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-palette-red/20 flex items-center justify-center gap-2 uppercase"
                             >
-                                {t('common.delete_kalici')}
+                                <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>delete</span>
+                                {t('common.delete_kalici').toUpperCase()}
                             </button>
                             <button
                                 onClick={() => setShowDeleteModal(false)}
-                                className="w-full py-5 bg-palette-beige text-palette-maroon rounded-[3px] font-black text-xs tracking-[0.2em] hover:bg-palette-tan hover:text-white transition-all active:scale-[0.98] uppercase"
+                                className="w-full h-10 bg-palette-beige/30 text-palette-tan rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-beige/50 transition-all uppercase"
                             >
                                 {t('common.cancel')}
                             </button>

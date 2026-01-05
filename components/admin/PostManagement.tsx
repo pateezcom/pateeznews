@@ -21,6 +21,7 @@ import { NavigationItem } from '../../types';
 import { supabase } from '../../lib/supabase';
 import { storageService, MediaItem } from '../../services/storageService';
 import { useLanguage } from '../../context/LanguageContext';
+import { useToast } from '../../context/ToastContext';
 import FilerobotImageEditor, { TABS, TOOLS } from 'react-filerobot-image-editor';
 import { StyleSheetManager } from 'styled-components';
 import isPropValid from '@emotion/is-prop-valid';
@@ -473,6 +474,7 @@ interface PostManagementProps {
 
 const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack }) => {
     const { t } = useLanguage();
+    const { showToast } = useToast();
     const [formData, setFormData] = useState({
         id: '',
         title: '',
@@ -487,6 +489,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack }) => {
         schemaType: 'NewsArticle',
         publishAt: '',
         publisher_id: '',
+        isPinned: false,
         items: [] as PostItem[]
     });
 
@@ -506,7 +509,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack }) => {
     const [activeMediaSubTarget, setActiveMediaSubTarget] = useState<string | null>(null);
     const [activeMediaOptionTarget, setActiveMediaOptionTarget] = useState<string | null>(null);
     const [tagInput, setTagInput] = useState('');
-    const [activeDetailTab, setActiveDetailTab] = useState<'article' | 'quiz' | 'poll' | 'video' | 'contents' | 'recipe'>('article');
+    const [activeDetailTab, setActiveDetailTab] = useState<'article' | 'quiz' | 'poll' | 'video' | 'contents' | 'recipe' | 'TABLE OF CONTENTS'>('article');
     const [activeMediaType, setActiveMediaType] = useState<'image' | 'video' | 'audio' | 'file'>('image');
     const [categories, setCategories] = useState<NavigationItem[]>([]);
     const [languages, setLanguages] = useState<Language[]>([]);
@@ -568,10 +571,12 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack }) => {
                             schemaType: data.schema_type || 'NewsArticle',
                             publishAt: data.published_at || '',
                             publisher_id: data.publisher_id || '',
+                            isPinned: data.is_pinned || false,
                             items: data.items || []
                         });
                         setSelectedLanguage(data.language_code || 'tr');
-                        setActiveDetailTab(data.type as any || 'article');
+                        const postType = data.type === 'contents' ? 'TABLE OF CONTENTS' : (data.type as any || 'article');
+                        setActiveDetailTab(postType);
 
                         // Set parent and sub category if possible
                         if (data.category && categories.length > 0) {
@@ -1635,18 +1640,18 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack }) => {
 
     const handleSave = async (status: 'published' | 'draft') => {
         if (!formData.title) {
-            alert(t('admin.post.title_required') || 'Başlık zorunludur');
+            showToast(t('admin.post.title_required') || 'Başlık zorunludur', 'error');
             return;
         }
         if (!formData.publisher_id) {
-            alert(t('admin.post.publisher_required') || 'Yayıncı seçimi zorunludur');
+            showToast(t('admin.post.publisher_required') || 'Yayıncı seçimi zorunludur', 'error');
             return;
         }
 
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
-                alert('Oturum açmanız gerekiyor');
+                showToast('Oturum açmanız gerekiyor', 'error');
                 return;
             }
 
@@ -1670,6 +1675,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack }) => {
                 status: status,
                 publisher_id: formData.publisher_id,
                 language_code: selectedLanguage,
+                is_pinned: formData.isPinned,
                 published_at: status === 'published' ? (formData.publishAt || new Date().toISOString()) : null,
                 updated_at: new Date().toISOString(),
                 // Default counts for new posts
@@ -1683,7 +1689,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack }) => {
                     .update(postData)
                     .eq('id', formData.id);
                 if (error) throw error;
-                alert(t('admin.post.save_success') || 'Haber başarıyla güncellendi');
+                showToast(t('admin.post.save_success') || 'Haber başarıyla güncellendi', 'success');
             } else {
                 // Insert
                 const { data, error } = await supabase
@@ -1693,13 +1699,46 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack }) => {
                     .single();
                 if (error) throw error;
                 if (data) {
-                    setFormData(prev => ({ ...prev, id: data.id }));
-                    alert(t('admin.post.save_success') || 'Haber başarıyla kaydedildi');
+                    showToast(t('admin.post.save_success') || 'Haber başarıyla kaydedildi', 'success');
+                    // Reset page if it was a new post
+                    if (!postId) {
+                        setFormData({
+                            id: '',
+                            title: '',
+                            summary: '',
+                            category: '',
+                            thumbnail: '',
+                            seoTitle: '',
+                            seoDescription: '',
+                            keywords: '',
+                            slug: '',
+                            factChecked: false,
+                            schemaType: 'NewsArticle',
+                            publishAt: '',
+                            publisher_id: '',
+                            isPinned: false,
+                            items: [{
+                                id: Math.random().toString(36).substr(2, 9),
+                                type: 'text',
+                                title: '',
+                                description: '',
+                                mediaUrl: '',
+                                createdAt: Date.now(),
+                                orderNumber: 1
+                            }]
+                        });
+                        setSelectedParentId('');
+                        setSelectedSubId('');
+                        setActiveDetailTab('article');
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    } else {
+                        setFormData(prev => ({ ...prev, id: data.id }));
+                    }
                 }
             }
         } catch (error: any) {
             console.error('Save error:', error);
-            alert('Hata: ' + error.message);
+            showToast('Hata: ' + error.message, 'error');
         }
     };
 
@@ -1739,7 +1778,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack }) => {
                                     { id: 'quiz', label: t('admin.post.tab.quiz'), icon: 'quiz' },
                                     { id: 'poll', label: t('admin.post.tab.poll'), icon: 'poll' },
                                     { id: 'video', label: t('admin.post.tab.video'), icon: 'smart_display' },
-                                    { id: 'contents', label: t('admin.post.tab.contents'), icon: 'format_list_numbered' },
+                                    { id: 'TABLE OF CONTENTS', label: t('admin.post.tab.contents'), icon: 'format_list_numbered' },
                                     { id: 'recipe', label: t('admin.post.tab.recipe'), icon: 'restaurant' }
                                 ].map((tab, idx, arr) => (
                                     <button
@@ -1781,9 +1820,20 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack }) => {
 
                         {/* BASIC & SEO INTEGRATED INFO */}
                         <div className="p-8 space-y-6">
-                            <div className="flex items-center gap-3 border-b border-palette-tan/15 pb-4">
-                                <span className="material-symbols-rounded text-palette-red" style={{ fontSize: '20px' }}>description</span>
-                                <h3 className="text-base font-bold text-palette-maroon uppercase tracking-widest">{t('admin.post.content_info')}</h3>
+                            <div className="flex items-center justify-between border-b border-palette-tan/15 pb-4">
+                                <div className="flex items-center gap-3">
+                                    <span className="material-symbols-rounded text-palette-red" style={{ fontSize: '20px' }}>description</span>
+                                    <h3 className="text-base font-bold text-palette-maroon uppercase tracking-widest">{t('admin.post.content_info')}</h3>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <span className="text-[13px] font-bold text-palette-tan">{t('admin.post.pin_to_top')}</span>
+                                    <button
+                                        onClick={() => setFormData(prev => ({ ...prev, isPinned: !prev.isPinned }))}
+                                        className={`w-10 h-5 rounded-full relative transition-all shadow-inner ${formData.isPinned ? 'bg-amber-500' : 'bg-palette-tan/20'}`}
+                                    >
+                                        <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all shadow-sm ${formData.isPinned ? 'right-1' : 'left-1'}`} />
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="grid grid-cols-1 gap-5">
