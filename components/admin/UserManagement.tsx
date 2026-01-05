@@ -24,10 +24,11 @@ interface Role {
 }
 
 interface UserManagementProps {
-  onEditUser: (userId: string) => void;
+  onEditUser: (searchTerm: string) => void;
+  initialSearchTerm?: string;
 }
 
-const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
+const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSearchTerm }) => {
   const { t } = useLanguage();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [roles, setRoles] = useState<Role[]>([
@@ -155,7 +156,10 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+    if (initialSearchTerm) {
+      setSearchTerm(initialSearchTerm);
+    }
+  }, [initialSearchTerm]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -683,9 +687,9 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
                             </button>
                             {openDropdownId === user.id && (
                               <div className={`absolute right-0 ${idx >= filteredUsers.length - 2 && idx > 0 ? 'bottom-full mb-2' : 'top-full mt-1'} w-64 bg-white border border-palette-tan/20 rounded-[3px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-[200] py-2 animate-in fade-in zoom-in-95 duration-200`}>
-                                <button onClick={() => { onEditUser(user.id); setOpenDropdownId(null); }} className="w-full px-5 py-3 text-left text-[13px] font-bold text-palette-maroon hover:bg-palette-beige/30 transition-all flex items-center gap-3">
-                                  <span className="material-symbols-rounded text-cyan-500" style={{ fontSize: '18px' }}>person_outline</span>
-                                  Profili Güncelle (Yeni Sayfa)
+                                <button onClick={() => { onEditUser(user.username); setOpenDropdownId(null); }} className="w-full px-5 py-3 text-left text-[13px] font-bold text-palette-maroon hover:bg-palette-beige/30 transition-all flex items-center gap-3">
+                                  <span className="material-symbols-rounded text-cyan-500" style={{ fontSize: '18px' }}>search</span>
+                                  Bu Kullanıcıyı Filtrele
                                 </button>
                                 <button
                                   onClick={async () => {
@@ -766,20 +770,17 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
             </table>
           </div>
 
-          <div className="p-8 border-t border-palette-tan/10 bg-palette-beige/5 flex items-center justify-between relative z-0">
-            <div className="flex items-center gap-4">
-              <p className="text-[12px] font-bold text-palette-tan/40 uppercase tracking-widest">
-                {Math.min(filteredUsers.length, pageSize)} / {filteredUsers.length} Sonuç gösteriliyor
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <button className="w-10 h-10 flex items-center justify-center rounded-[3px] border border-palette-tan/15 text-palette-tan hover:bg-white hover:text-palette-maroon transition-all disabled:opacity-30">
-                <span className="material-symbols-rounded">chevron_left</span>
-              </button>
-              <button className="w-10 h-10 flex items-center justify-center rounded-[3px] bg-palette-maroon text-white font-bold text-sm shadow-lg shadow-palette-maroon/20">1</button>
-              <button className="w-10 h-10 flex items-center justify-center rounded-[3px] border border-palette-tan/15 text-palette-tan hover:bg-white hover:text-palette-maroon transition-all">
-                <span className="material-symbols-rounded">chevron_right</span>
-              </button>
+          <div className="p-8 border-t border-palette-tan/10 bg-palette-beige/5 flex items-center justify-between font-black text-[11px] tracking-widest text-palette-tan/40 uppercase relative z-0">
+            <span>
+              {t('common.results_found')
+                .replace('{from}', '1')
+                .replace('{to}', String(Math.min(filteredUsers.length, pageSize)))
+                .replace('{total}', String(filteredUsers.length))}
+            </span>
+            <div className="flex items-center gap-1">
+              <button className="w-8 h-8 flex items-center justify-center rounded-[3px] border border-palette-tan/10 opacity-30 cursor-not-allowed"><span className="material-symbols-rounded" style={{ fontSize: '16px' }}>chevron_left</span></button>
+              <button className="w-8 h-8 flex items-center justify-center rounded-[3px] bg-palette-red text-white">1</button>
+              <button className="w-8 h-8 flex items-center justify-center rounded-[3px] border border-palette-tan/10"><span className="material-symbols-rounded" style={{ fontSize: '16px' }}>chevron_right</span></button>
             </div>
           </div>
         </div>
@@ -970,27 +971,27 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
         <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-palette-maroon/40 backdrop-blur-md animate-in fade-in" onClick={() => !saving && setShowDeleteModal(false)} />
           <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 p-8 text-center">
-            <div className="w-20 h-20 bg-red-50 text-palette-red rounded-[3px] flex items-center justify-center mx-auto mb-6 shadow-inner">
-              <span className="material-symbols-rounded" style={{ fontSize: '32px' }}>delete</span>
+            <div className="w-14 h-14 bg-red-50 text-palette-red rounded-[3px] flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>delete</span>
             </div>
             <h3 className="text-xl font-black text-palette-maroon tracking-tight mb-3 uppercase">{t('users.actions.delete')}?</h3>
             <p className="text-[13px] font-bold text-palette-tan/60 leading-relaxed mb-8">
               <span className="text-palette-maroon">"{userToDelete?.full_name}"</span> isimli kullanıcıyı silmek istediğinize emin misiniz?
             </p>
-            <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="flex-1 h-10 bg-palette-beige/30 text-palette-tan rounded-[3px] font-black text-[11px] tracking-widest hover:bg-palette-beige/50 transition-all uppercase"
+              >
+                {t('common.cancel')}
+              </button>
               <button
                 onClick={confirmDelete}
                 disabled={saving}
-                className="w-full h-10 bg-palette-red text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-palette-red/20 flex items-center justify-center gap-2 uppercase"
+                className="flex-1 h-10 bg-palette-red text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-palette-red/20 flex items-center justify-center gap-2"
               >
-                {saving ? <span className="material-symbols-rounded animate-spin" style={{ fontSize: '16px' }}>progress_activity</span> : <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>delete</span>}
-                SİLİNSİN
-              </button>
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="w-full h-10 bg-palette-beige/30 text-palette-tan rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-beige/50 transition-all uppercase"
-              >
-                {t('common.cancel')}
+                {saving ? <span className="material-symbols-rounded animate-spin" style={{ fontSize: '16px' }}>progress_activity</span> : <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>delete</span>}
+                <span className="mt-0.5">{t('common.delete_kalici')}</span>
               </button>
             </div>
           </div>
@@ -1360,8 +1361,8 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser }) => {
         <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-palette-maroon/20 backdrop-blur-[2px] animate-in fade-in" onClick={handleCloseStatusModal} />
           <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-xs overflow-hidden animate-in slide-in-from-bottom-4 border border-palette-tan/15 p-8 text-center">
-            <div className={`w-16 h-16 rounded-[3px] flex items-center justify-center mx-auto mb-6 ${statusModal.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
-              {statusModal.type === 'error' ? <span className="material-symbols-rounded" style={{ fontSize: '28px' }}>close</span> : <span className="material-symbols-rounded" style={{ fontSize: '28px' }}>check_circle</span>}
+            <div className={`w-14 h-14 rounded-[3px] flex items-center justify-center mx-auto mb-6 ${statusModal.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
+              {statusModal.type === 'error' ? <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>close</span> : <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>check_circle</span>}
             </div>
             <p className="text-base font-black text-palette-maroon mb-8 leading-relaxed">{statusModal.message}</p>
             <button

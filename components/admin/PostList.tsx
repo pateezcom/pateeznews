@@ -477,290 +477,293 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
     }, [posts, t]);
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-700 pb-20">
-            {/* STATS CARDS */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {stats.map((stat, i) => (
-                    <div key={i} className="bg-white p-6 rounded-[3px] border border-palette-tan/15 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
-                        <div className="flex justify-between items-start mb-4">
-                            <div>
-                                <p className="text-[13px] font-bold text-palette-tan/60">{stat.label}</p>
-                                <div className="flex items-baseline gap-2 mt-1">
-                                    <h3 className="text-[28px] font-black text-palette-maroon tracking-tight">{stat.value}</h3>
-                                    <span className={`text-[11px] font-black ${stat.change.startsWith('+') ? 'text-emerald-500' : 'text-palette-red'}`}>({stat.change})</span>
+        <>
+            <div className="space-y-6 animate-in fade-in duration-700 pb-20">
+                {/* STATS CARDS */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {stats.map((stat, i) => (
+                        <div key={i} className="bg-white p-6 rounded-[3px] border border-palette-tan/15 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+                            <div className="flex justify-between items-start mb-4">
+                                <div>
+                                    <p className="text-[13px] font-bold text-palette-tan/60">{stat.label}</p>
+                                    <div className="flex items-baseline gap-2 mt-1">
+                                        <h3 className="text-[28px] font-black text-palette-maroon tracking-tight">{stat.value}</h3>
+                                        <span className={`text-[11px] font-black ${stat.change.startsWith('+') ? 'text-emerald-500' : 'text-palette-red'}`}>({stat.change})</span>
+                                    </div>
+                                </div>
+                                <div className={`w-10 h-10 ${stat.iconBg} rounded-[3px] flex items-center justify-center ${stat.color.split(' ')[1]}`}>
+                                    <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>{stat.icon}</span>
                                 </div>
                             </div>
-                            <div className={`w-10 h-10 ${stat.iconBg} rounded-[3px] flex items-center justify-center ${stat.color.split(' ')[1]}`}>
-                                <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>{stat.icon}</span>
+                            <p className="text-[11px] font-bold text-palette-tan/40 uppercase tracking-widest">{stat.desc}</p>
+                            <div className="absolute bottom-0 left-0 w-full h-0.5 bg-palette-maroon/5 group-hover:bg-palette-maroon/20 transition-all"></div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* MAIN CONTENT BOX */}
+                <div className="bg-white rounded-[3px] border border-palette-tan/20 shadow-sm min-h-[600px] flex flex-col">
+                    {/* HEADER / FILTERS */}
+                    <div className="p-8 border-b border-palette-tan/10 space-y-8">
+                        <h2 className="text-xl font-black text-palette-maroon uppercase tracking-tight">{t('posts.page_title')}</h2>
+
+                        {/* FILTER GRID */}
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                            {[
+                                { label: t('posts.filters.language'), key: 'language' },
+                                { label: t('posts.filters.category'), key: 'category' },
+                                { label: t('posts.filters.type'), key: 'type' },
+                                { label: t('posts.filters.status'), key: 'status' },
+                                { label: t('posts.filters.publisher'), key: 'publisher' },
+                            ].map((filter) => (
+                                <div key={filter.key} className="space-y-1.5">
+                                    <label className="text-[11px] font-black text-palette-tan/40 uppercase tracking-widest block">{filter.label}</label>
+                                    <div className="relative group/select">
+                                        <select
+                                            className="w-full h-11 px-4 bg-palette-beige/20 border border-palette-tan/15 rounded-[3px] text-[13px] font-bold text-palette-maroon appearance-none outline-none focus:bg-white focus:border-palette-maroon transition-all cursor-pointer"
+                                            value={(filters as any)[filter.key]}
+                                            onChange={(e) => setFilters({ ...filters, [filter.key]: e.target.value })}
+                                        >
+                                            <option value="Tümü">Tümü</option>
+                                            {filter.key === 'language' && languages.map(lang => (
+                                                <option key={lang.code} value={lang.name}>{lang.name}</option>
+                                            ))}
+                                            {filter.key === 'category' && navItems
+                                                .filter(item => usedFilters.categories.includes(item.label))
+                                                .map(item => {
+                                                    const parent = item.parent_id ? navItems.find(p => p.id === item.parent_id) : null;
+                                                    return (
+                                                        <option key={item.id} value={item.label}>
+                                                            {parent ? `${parent.label} > ` : ''}{item.label}
+                                                        </option>
+                                                    );
+                                                })
+                                            }
+                                            {filter.key === 'type' && usedFilters.types.map(tType => {
+                                                const translation = t(`admin.post.tab.${tType}`);
+                                                // Fallback: capitalized first letter if translation is missing or is the key itself
+                                                const displayLabel = translation && translation !== `admin.post.tab.${tType}`
+                                                    ? translation
+                                                    : tType.charAt(0).toUpperCase() + tType.slice(1).toLowerCase();
+
+                                                return <option key={tType} value={tType}>{displayLabel}</option>
+                                            })}
+                                            {filter.key === 'status' && (
+                                                <>
+                                                    <option value="Yayında">Yayında</option>
+                                                    <option value="Taslak">Taslak</option>
+                                                </>
+                                            )}
+                                            {filter.key === 'publisher' && publishers
+                                                .filter(pub => usedFilters.publisherIds.includes(pub.id))
+                                                .map(pub => (
+                                                    <option key={pub.id} value={pub.id}>{pub.full_name}</option>
+                                                ))
+                                            }
+                                        </select>
+                                        <span className="material-symbols-rounded absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/30 pointer-events-none group-hover/select:text-palette-maroon transition-colors" style={{ fontSize: '18px' }}>expand_more</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* TOP ACTIONS */}
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-4 border-t border-palette-tan/5">
+                            <div className="flex items-center gap-4 w-full md:w-auto">
+                                <div className="flex flex-col items-start gap-2">
+                                    <div className="relative group/size">
+                                        <select
+                                            className="h-11 px-6 pr-10 bg-palette-beige/20 border border-palette-tan/15 rounded-[3px] text-[13px] font-black text-palette-maroon appearance-none outline-none focus:bg-white focus:border-palette-maroon transition-all cursor-pointer min-w-[80px]"
+                                            value={pageSize}
+                                            onChange={(e) => setPageSize(Number(e.target.value))}
+                                        >
+                                            <option value={25}>25</option>
+                                            <option value={50}>50</option>
+                                            <option value={100}>100</option>
+                                        </select>
+                                        <span className="material-symbols-rounded absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/30 pointer-events-none" style={{ fontSize: '18px' }}>expand_more</span>
+                                    </div>
+                                    {selectedIds.length > 0 && (
+                                        <button
+                                            onClick={() => setShowBulkDeleteModal(true)}
+                                            className="flex items-center justify-center gap-1 px-3 py-1 bg-red-50 text-palette-red border border-palette-red/10 rounded-[2px] text-[10px] font-black tracking-tight hover:bg-palette-red hover:text-white transition-all animate-in fade-in slide-in-from-top-1 whitespace-nowrap shadow-sm"
+                                        >
+                                            <span className="material-symbols-rounded" style={{ fontSize: '13px' }}>delete_sweep</span>
+                                            {t('common.delete_selected')} ({selectedIds.length})
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-4 w-full md:w-auto">
+                                <div className="relative flex-1 md:flex-none">
+                                    <input
+                                        type="text"
+                                        placeholder={t('posts.search_placeholder')}
+                                        className="w-full md:w-[320px] h-11 pl-4 pr-10 bg-white border border-palette-tan/15 rounded-[3px] text-[13px] font-bold text-palette-maroon outline-none focus:border-palette-maroon focus:ring-4 focus:ring-palette-maroon/5 transition-all shadow-sm"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                    <span className="material-symbols-rounded absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/40" style={{ fontSize: '18px' }}>search</span>
+                                </div>
+
+
+                                <button className="flex items-center gap-2 h-11 px-6 bg-palette-red text-white rounded-[3px] text-[13px] font-black tracking-widest hover:bg-palette-maroon transition-all shadow-lg shadow-palette-red/20 active:scale-95">
+                                    <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>add</span>
+                                    {t('posts.actions.add_post')}
+                                </button>
                             </div>
                         </div>
-                        <p className="text-[11px] font-bold text-palette-tan/40 uppercase tracking-widest">{stat.desc}</p>
-                        <div className="absolute bottom-0 left-0 w-full h-0.5 bg-palette-maroon/5 group-hover:bg-palette-maroon/20 transition-all"></div>
-                    </div>
-                ))}
-            </div>
-
-            {/* MAIN CONTENT BOX */}
-            <div className="bg-white rounded-[3px] border border-palette-tan/20 shadow-sm min-h-[600px] flex flex-col">
-                {/* HEADER / FILTERS */}
-                <div className="p-8 border-b border-palette-tan/10 space-y-8">
-                    <h2 className="text-xl font-black text-palette-maroon uppercase tracking-tight">{t('posts.page_title')}</h2>
-
-                    {/* FILTER GRID */}
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                        {[
-                            { label: t('posts.filters.language'), key: 'language' },
-                            { label: t('posts.filters.category'), key: 'category' },
-                            { label: t('posts.filters.type'), key: 'type' },
-                            { label: t('posts.filters.status'), key: 'status' },
-                            { label: t('posts.filters.publisher'), key: 'publisher' },
-                        ].map((filter) => (
-                            <div key={filter.key} className="space-y-1.5">
-                                <label className="text-[11px] font-black text-palette-tan/40 uppercase tracking-widest block">{filter.label}</label>
-                                <div className="relative group/select">
-                                    <select
-                                        className="w-full h-11 px-4 bg-palette-beige/20 border border-palette-tan/15 rounded-[3px] text-[13px] font-bold text-palette-maroon appearance-none outline-none focus:bg-white focus:border-palette-maroon transition-all cursor-pointer"
-                                        value={(filters as any)[filter.key]}
-                                        onChange={(e) => setFilters({ ...filters, [filter.key]: e.target.value })}
-                                    >
-                                        <option value="Tümü">Tümü</option>
-                                        {filter.key === 'language' && languages.map(lang => (
-                                            <option key={lang.code} value={lang.name}>{lang.name}</option>
-                                        ))}
-                                        {filter.key === 'category' && navItems
-                                            .filter(item => usedFilters.categories.includes(item.label))
-                                            .map(item => {
-                                                const parent = item.parent_id ? navItems.find(p => p.id === item.parent_id) : null;
-                                                return (
-                                                    <option key={item.id} value={item.label}>
-                                                        {parent ? `${parent.label} > ` : ''}{item.label}
-                                                    </option>
-                                                );
-                                            })
-                                        }
-                                        {filter.key === 'type' && usedFilters.types.map(tType => {
-                                            const translation = t(`admin.post.tab.${tType}`);
-                                            // Fallback: capitalized first letter if translation is missing or is the key itself
-                                            const displayLabel = translation && translation !== `admin.post.tab.${tType}`
-                                                ? translation
-                                                : tType.charAt(0).toUpperCase() + tType.slice(1).toLowerCase();
-
-                                            return <option key={tType} value={tType}>{displayLabel}</option>
-                                        })}
-                                        {filter.key === 'status' && (
-                                            <>
-                                                <option value="Yayında">Yayında</option>
-                                                <option value="Taslak">Taslak</option>
-                                            </>
-                                        )}
-                                        {filter.key === 'publisher' && publishers
-                                            .filter(pub => usedFilters.publisherIds.includes(pub.id))
-                                            .map(pub => (
-                                                <option key={pub.id} value={pub.id}>{pub.full_name}</option>
-                                            ))
-                                        }
-                                    </select>
-                                    <span className="material-symbols-rounded absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/30 pointer-events-none group-hover/select:text-palette-maroon transition-colors" style={{ fontSize: '18px' }}>expand_more</span>
-                                </div>
-                            </div>
-                        ))}
                     </div>
 
-                    {/* TOP ACTIONS */}
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-4 border-t border-palette-tan/5">
-                        <div className="flex items-center gap-4 w-full md:w-auto">
-                            <div className="flex flex-col items-start gap-2">
-                                <div className="relative group/size">
-                                    <select
-                                        className="h-11 px-6 pr-10 bg-palette-beige/20 border border-palette-tan/15 rounded-[3px] text-[13px] font-black text-palette-maroon appearance-none outline-none focus:bg-white focus:border-palette-maroon transition-all cursor-pointer min-w-[80px]"
-                                        value={pageSize}
-                                        onChange={(e) => setPageSize(Number(e.target.value))}
-                                    >
-                                        <option value={25}>25</option>
-                                        <option value={50}>50</option>
-                                        <option value={100}>100</option>
-                                    </select>
-                                    <span className="material-symbols-rounded absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/30 pointer-events-none" style={{ fontSize: '18px' }}>expand_more</span>
-                                </div>
-                                {selectedIds.length > 0 && (
-                                    <button
-                                        onClick={() => setShowBulkDeleteModal(true)}
-                                        className="flex items-center justify-center gap-1 px-3 py-1 bg-red-50 text-palette-red border border-palette-red/10 rounded-[2px] text-[10px] font-black tracking-tight hover:bg-palette-red hover:text-white transition-all animate-in fade-in slide-in-from-top-1 whitespace-nowrap shadow-sm"
-                                    >
-                                        <span className="material-symbols-rounded" style={{ fontSize: '13px' }}>delete_sweep</span>
-                                        {t('common.delete_selected')} ({selectedIds.length})
-                                    </button>
+                    {/* TABLE SECTION (STABILIZED) */}
+                    <div className="flex-1 relative z-10">
+                        <table className="w-full text-left border-collapse table-fixed">
+                            <thead>
+                                <tr className="bg-palette-beige/10 border-b border-palette-tan/10 h-[60px]">
+                                    <th className="w-[50px] px-4 py-0 align-middle">
+                                        <input
+                                            type="checkbox"
+                                            checked={posts.length > 0 && selectedIds.length === posts.length}
+                                            onChange={handleSelectAll}
+                                            className="w-4 h-4 rounded-[2px] border-palette-tan/30 text-palette-maroon focus:ring-palette-maroon cursor-pointer"
+                                        />
+                                    </th>
+                                    <th className="w-[60px] px-2 py-0 align-middle text-[12px] font-black text-palette-tan uppercase tracking-widest">{t('posts.table.id')}</th>
+                                    <th className="px-2 py-0 align-middle text-[12px] font-black text-palette-tan uppercase tracking-widest">{t('posts.table.post')}</th>
+                                    <th className="w-[130px] px-3 py-0 align-middle text-[12px] font-black text-palette-tan uppercase tracking-widest text-center">{t('posts.table.category')}</th>
+                                    <th className="w-[100px] px-3 py-0 align-middle text-[12px] font-black text-palette-tan uppercase tracking-widest text-center">{t('posts.filters.status')}</th>
+                                    <th className="w-[50px] px-3 py-0 align-middle text-[12px] font-black text-palette-tan uppercase tracking-widest text-center">{t('posts.table.language')}</th>
+                                    <th className="w-[110px] px-3 py-0 align-middle text-[12px] font-black text-palette-tan uppercase tracking-widest text-center">{t('posts.table.author')}</th>
+                                    <th className="w-[70px] px-3 py-0 align-middle text-[12px] font-black text-palette-tan uppercase tracking-widest text-center">{t('posts.table.views')}</th>
+                                    <th className="w-[70px] px-3 py-0 align-middle text-[12px] font-black text-palette-tan uppercase tracking-widest text-center">{t('posts.table.comments')}</th>
+                                    <th className="w-[110px] px-4 py-0 align-middle text-[12px] font-black text-palette-tan uppercase tracking-widest text-right">{t('posts.table.date')}</th>
+                                    <th className="w-[80px] px-4 py-0 align-middle text-[12px] font-black text-palette-tan uppercase tracking-widest text-right">{t('posts.table.actions')}</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-palette-tan/5 transition-opacity duration-200" style={{ opacity: loading ? 0.7 : 1 }}>
+                                {loading && posts.length === 0 ? (
+                                    Array(pageSize).fill(0).map((_, i) => (
+                                        <tr key={i} className="animate-pulse h-[92px]">
+                                            <td className="px-4 py-0 align-middle"><div className="w-4 h-4 bg-palette-beige rounded-[2px]" /></td>
+                                            <td className="px-2 py-0 align-middle"><div className="h-4 bg-palette-beige rounded-[3px] w-8" /></td>
+                                            <td className="px-2 py-0 align-middle">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-[60px] h-[60px] bg-palette-beige rounded-[3px] flex-shrink-0" />
+                                                    <div className="space-y-2 flex-1">
+                                                        <div className="h-4 bg-palette-beige rounded-[3px] w-3/4" />
+                                                        <div className="h-3 bg-palette-beige rounded-[3px] w-1/4 opacity-50" />
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-3 py-0 align-middle"><div className="h-4 bg-palette-beige rounded-[3px] w-16 mx-auto" /></td>
+                                            <td className="px-3 py-0 align-middle"><div className="h-6 bg-palette-beige rounded-[3px] w-20 mx-auto" /></td>
+                                            <td className="px-3 py-0 align-middle"><div className="h-6 bg-palette-beige rounded-[3px] w-8 mx-auto opacity-50" /></td>
+                                            <td className="px-3 py-0 align-middle"><div className="h-4 bg-palette-beige rounded-[3px] w-20 mx-auto" /></td>
+                                            <td className="px-3 py-0 align-middle"><div className="h-8 bg-palette-beige rounded-[3px] w-12 mx-auto" /></td>
+                                            <td className="px-3 py-0 align-middle"><div className="h-8 bg-palette-beige rounded-[3px] w-12 mx-auto" /></td>
+                                            <td className="px-4 py-0 align-middle"><div className="h-8 bg-palette-beige rounded-[3px] w-24 ml-auto" /></td>
+                                            <td className="px-4 py-0 align-middle"><div className="w-10 h-10 bg-palette-beige rounded-full ml-auto" /></td>
+                                        </tr>
+                                    ))
+                                ) : posts.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={11} className="px-8 py-32 text-center text-palette-tan/40 font-bold uppercase tracking-widest text-sm h-[400px]">
+                                            {t('feed.empty')}
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    posts.map((post, index) => (
+                                        <PostRow
+                                            key={post.id}
+                                            post={post}
+                                            index={index}
+                                            t={t}
+                                            onEditPost={onEditPost}
+                                            onToggleStatus={handleToggleStatus}
+                                            onTogglePinned={handleTogglePinned}
+                                            onDelete={(p) => { setPostToDelete(p); setShowDeleteModal(true); }}
+                                            openDropdownId={openDropdownId}
+                                            setOpenDropdownId={setOpenDropdownId}
+                                            dropdownRef={dropdownRef}
+                                            getCategoryDisplay={getCategoryDisplay}
+                                            isLast={index >= posts.length - 2}
+                                            isSelected={selectedIds.includes(post.id)}
+                                            onSelectRow={handleSelectRow}
+                                        />
+                                    ))
                                 )}
-                            </div>
-                        </div>
+                            </tbody>
+                        </table>
+                    </div>
 
-                        <div className="flex items-center gap-4 w-full md:w-auto">
-                            <div className="relative flex-1 md:flex-none">
-                                <input
-                                    type="text"
-                                    placeholder={t('posts.search_placeholder')}
-                                    className="w-full md:w-[320px] h-11 pl-4 pr-10 bg-white border border-palette-tan/15 rounded-[3px] text-[13px] font-bold text-palette-maroon outline-none focus:border-palette-maroon focus:ring-4 focus:ring-palette-maroon/5 transition-all shadow-sm"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
-                                <span className="material-symbols-rounded absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/40" style={{ fontSize: '18px' }}>search</span>
-                            </div>
+                    <div className="p-8 border-t border-palette-tan/10 bg-palette-beige/5 flex items-center justify-between font-black text-[11px] tracking-widest text-palette-tan/40 uppercase relative z-0">
+                        <span>
+                            {t('common.results_found')
+                                .replace('{from}', String((currentPage - 1) * pageSize + 1))
+                                .replace('{to}', String(Math.min(currentPage * pageSize, totalCount)))
+                                .replace('{total}', String(totalCount))}
+                        </span>
+                        <div className="flex items-center gap-1">
+                            <button
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                disabled={currentPage === 1 || loading}
+                                className="w-8 h-8 flex items-center justify-center rounded-[3px] border border-palette-tan/15 text-palette-tan hover:bg-white hover:text-palette-maroon transition-all disabled:opacity-30"
+                            >
+                                <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>chevron_left</span>
+                            </button>
 
+                            {Array.from({ length: Math.min(5, Math.ceil(totalCount / pageSize)) }).map((_, i) => {
+                                const pageNum = i + 1;
+                                return (
+                                    <button
+                                        key={pageNum}
+                                        onClick={() => setCurrentPage(pageNum)}
+                                        className={`w-8 h-8 flex items-center justify-center rounded-[3px] transition-all ${currentPage === pageNum ? 'bg-palette-red text-white shadow-lg shadow-palette-red/20' : 'border border-palette-tan/15 text-palette-tan hover:bg-white hover:text-palette-maroon'}`}
+                                    >
+                                        {pageNum}
+                                    </button>
+                                )
+                            })}
 
-                            <button className="flex items-center gap-2 h-11 px-6 bg-palette-red text-white rounded-[3px] text-[13px] font-black tracking-widest hover:bg-palette-maroon transition-all shadow-lg shadow-palette-red/20 active:scale-95">
-                                <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>add</span>
-                                {t('posts.actions.add_post')}
+                            <button
+                                onClick={() => setCurrentPage(p => p + 1)}
+                                disabled={currentPage >= Math.ceil(totalCount / pageSize) || loading}
+                                className="w-8 h-8 flex items-center justify-center rounded-[3px] border border-palette-tan/15 text-palette-tan hover:bg-white hover:text-palette-maroon transition-all disabled:opacity-30"
+                            >
+                                <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>chevron_right</span>
                             </button>
                         </div>
                     </div>
                 </div>
 
-                {/* TABLE SECTION (STABILIZED) */}
-                <div className="flex-1 relative z-10">
-                    <table className="w-full text-left border-collapse table-fixed">
-                        <thead>
-                            <tr className="bg-palette-beige/10 border-b border-palette-tan/10 h-[60px]">
-                                <th className="w-[50px] px-4 py-0 align-middle">
-                                    <input
-                                        type="checkbox"
-                                        checked={posts.length > 0 && selectedIds.length === posts.length}
-                                        onChange={handleSelectAll}
-                                        className="w-4 h-4 rounded-[2px] border-palette-tan/30 text-palette-maroon focus:ring-palette-maroon cursor-pointer"
-                                    />
-                                </th>
-                                <th className="w-[60px] px-2 py-0 align-middle text-[12px] font-black text-palette-tan uppercase tracking-widest">{t('posts.table.id')}</th>
-                                <th className="px-2 py-0 align-middle text-[12px] font-black text-palette-tan uppercase tracking-widest">{t('posts.table.post')}</th>
-                                <th className="w-[130px] px-3 py-0 align-middle text-[12px] font-black text-palette-tan uppercase tracking-widest text-center">{t('posts.table.category')}</th>
-                                <th className="w-[100px] px-3 py-0 align-middle text-[12px] font-black text-palette-tan uppercase tracking-widest text-center">{t('posts.filters.status')}</th>
-                                <th className="w-[50px] px-3 py-0 align-middle text-[12px] font-black text-palette-tan uppercase tracking-widest text-center">{t('posts.table.language')}</th>
-                                <th className="w-[110px] px-3 py-0 align-middle text-[12px] font-black text-palette-tan uppercase tracking-widest text-center">{t('posts.table.author')}</th>
-                                <th className="w-[70px] px-3 py-0 align-middle text-[12px] font-black text-palette-tan uppercase tracking-widest text-center">{t('posts.table.views')}</th>
-                                <th className="w-[70px] px-3 py-0 align-middle text-[12px] font-black text-palette-tan uppercase tracking-widest text-center">{t('posts.table.comments')}</th>
-                                <th className="w-[110px] px-4 py-0 align-middle text-[12px] font-black text-palette-tan uppercase tracking-widest text-right">{t('posts.table.date')}</th>
-                                <th className="w-[80px] px-4 py-0 align-middle text-[12px] font-black text-palette-tan uppercase tracking-widest text-right">{t('posts.table.actions')}</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-palette-tan/5 transition-opacity duration-200" style={{ opacity: loading ? 0.7 : 1 }}>
-                            {loading && posts.length === 0 ? (
-                                Array(pageSize).fill(0).map((_, i) => (
-                                    <tr key={i} className="animate-pulse h-[92px]">
-                                        <td className="px-4 py-0 align-middle"><div className="w-4 h-4 bg-palette-beige rounded-[2px]" /></td>
-                                        <td className="px-2 py-0 align-middle"><div className="h-4 bg-palette-beige rounded-[3px] w-8" /></td>
-                                        <td className="px-2 py-0 align-middle">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-[60px] h-[60px] bg-palette-beige rounded-[3px] flex-shrink-0" />
-                                                <div className="space-y-2 flex-1">
-                                                    <div className="h-4 bg-palette-beige rounded-[3px] w-3/4" />
-                                                    <div className="h-3 bg-palette-beige rounded-[3px] w-1/4 opacity-50" />
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-3 py-0 align-middle"><div className="h-4 bg-palette-beige rounded-[3px] w-16 mx-auto" /></td>
-                                        <td className="px-3 py-0 align-middle"><div className="h-6 bg-palette-beige rounded-[3px] w-20 mx-auto" /></td>
-                                        <td className="px-3 py-0 align-middle"><div className="h-6 bg-palette-beige rounded-[3px] w-8 mx-auto opacity-50" /></td>
-                                        <td className="px-3 py-0 align-middle"><div className="h-4 bg-palette-beige rounded-[3px] w-20 mx-auto" /></td>
-                                        <td className="px-3 py-0 align-middle"><div className="h-8 bg-palette-beige rounded-[3px] w-12 mx-auto" /></td>
-                                        <td className="px-3 py-0 align-middle"><div className="h-8 bg-palette-beige rounded-[3px] w-12 mx-auto" /></td>
-                                        <td className="px-4 py-0 align-middle"><div className="h-8 bg-palette-beige rounded-[3px] w-24 ml-auto" /></td>
-                                        <td className="px-4 py-0 align-middle"><div className="w-10 h-10 bg-palette-beige rounded-full ml-auto" /></td>
-                                    </tr>
-                                ))
-                            ) : posts.length === 0 ? (
-                                <tr>
-                                    <td colSpan={11} className="px-8 py-32 text-center text-palette-tan/40 font-bold uppercase tracking-widest text-sm h-[400px]">
-                                        {t('feed.empty')}
-                                    </td>
-                                </tr>
-                            ) : (
-                                posts.map((post, index) => (
-                                    <PostRow
-                                        key={post.id}
-                                        post={post}
-                                        index={index}
-                                        t={t}
-                                        onEditPost={onEditPost}
-                                        onToggleStatus={handleToggleStatus}
-                                        onTogglePinned={handleTogglePinned}
-                                        onDelete={(p) => { setPostToDelete(p); setShowDeleteModal(true); }}
-                                        openDropdownId={openDropdownId}
-                                        setOpenDropdownId={setOpenDropdownId}
-                                        dropdownRef={dropdownRef}
-                                        getCategoryDisplay={getCategoryDisplay}
-                                        isLast={index >= posts.length - 2}
-                                        isSelected={selectedIds.includes(post.id)}
-                                        onSelectRow={handleSelectRow}
-                                    />
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-
-                <div className="p-8 border-t border-palette-tan/10 bg-palette-beige/5 flex items-center justify-between font-black text-[11px] tracking-widest text-palette-tan/40 uppercase relative z-0">
-                    <span>
-                        {t('common.results_found')
-                            .replace('{from}', String((currentPage - 1) * pageSize + 1))
-                            .replace('{to}', String(Math.min(currentPage * pageSize, totalCount)))
-                            .replace('{total}', String(totalCount))}
-                    </span>
-                    <div className="flex items-center gap-1">
-                        <button
-                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                            disabled={currentPage === 1 || loading}
-                            className="w-8 h-8 flex items-center justify-center rounded-[3px] border border-palette-tan/15 text-palette-tan hover:bg-white hover:text-palette-maroon transition-all disabled:opacity-30"
-                        >
-                            <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>chevron_left</span>
-                        </button>
-
-                        {Array.from({ length: Math.min(5, Math.ceil(totalCount / pageSize)) }).map((_, i) => {
-                            const pageNum = i + 1;
-                            return (
-                                <button
-                                    key={pageNum}
-                                    onClick={() => setCurrentPage(pageNum)}
-                                    className={`w-8 h-8 flex items-center justify-center rounded-[3px] transition-all ${currentPage === pageNum ? 'bg-palette-red text-white shadow-lg shadow-palette-red/20' : 'border border-palette-tan/15 text-palette-tan hover:bg-white hover:text-palette-maroon'}`}
-                                >
-                                    {pageNum}
-                                </button>
-                            )
-                        })}
-
-                        <button
-                            onClick={() => setCurrentPage(p => p + 1)}
-                            disabled={currentPage >= Math.ceil(totalCount / pageSize) || loading}
-                            className="w-8 h-8 flex items-center justify-center rounded-[3px] border border-palette-tan/15 text-palette-tan hover:bg-white hover:text-palette-maroon transition-all disabled:opacity-30"
-                        >
-                            <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>chevron_right</span>
-                        </button>
-                    </div>
-                </div>
             </div>
 
-            {/* DELETE MODAL OUTSIDE ANIMATED DIV */}
+            {/* DELETE MODAL OUTSIDE ANIMATED DIV FOR PERFECT SCREEN COVERAGE */}
             {showDeleteModal && (
                 <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-palette-maroon/40 backdrop-blur-md animate-in fade-in" onClick={() => setShowDeleteModal(false)} />
                     <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 p-8 text-center">
-                        <div className="w-20 h-20 bg-red-50 text-palette-red rounded-[3px] flex items-center justify-center mx-auto mb-6 shadow-inner">
-                            <span className="material-symbols-rounded" style={{ fontSize: '32px' }}>delete</span>
+                        <div className="w-14 h-14 bg-red-50 text-palette-red rounded-[3px] flex items-center justify-center mx-auto mb-6 shadow-inner">
+                            <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>delete</span>
                         </div>
                         <h3 className="text-xl font-black text-palette-maroon tracking-tight mb-3 uppercase">{t('common.confirm_title')}</h3>
                         <p className="text-[13px] font-bold text-palette-tan/60 leading-relaxed mb-8">
                             <span className="text-palette-maroon">"{postToDelete?.title}"</span> isimli haberi silmek istediğinize emin misiniz?
                         </p>
-                        <div className="flex flex-col gap-3">
-                            <button
-                                onClick={handleDelete}
-                                className="w-full h-10 bg-palette-red text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-palette-red/20 flex items-center justify-center gap-2 uppercase"
-                            >
-                                <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>delete</span>
-                                {t('common.delete_kalici').toUpperCase()}
-                            </button>
+                        <div className="flex items-center gap-3">
                             <button
                                 onClick={() => setShowDeleteModal(false)}
-                                className="w-full h-10 bg-palette-beige/30 text-palette-tan rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-beige/50 transition-all uppercase"
+                                className="flex-1 h-10 bg-palette-beige/30 text-palette-tan rounded-[3px] font-black text-[11px] tracking-widest hover:bg-palette-beige/50 transition-all uppercase"
                             >
                                 {t('common.cancel')}
+                            </button>
+                            <button
+                                onClick={handleDelete}
+                                className="flex-1 h-10 bg-palette-red text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-palette-red/20 flex items-center justify-center gap-2"
+                            >
+                                <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>delete</span>
+                                <span className="mt-0.5">{t('common.delete_kalici')}</span>
                             </button>
                         </div>
                     </div>
@@ -779,25 +782,25 @@ const PostList: React.FC<PostListProps> = ({ onEditPost }) => {
                         <p className="text-[13px] font-bold text-palette-tan/60 leading-relaxed mb-8">
                             Seçili <span className="text-palette-maroon font-black">{selectedIds.length}</span> haberi toplu olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz.
                         </p>
-                        <div className="flex flex-col gap-3">
-                            <button
-                                onClick={handleBulkDelete}
-                                className="w-full h-10 bg-palette-red text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-palette-red/20 flex items-center justify-center gap-2 uppercase"
-                            >
-                                <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>delete</span>
-                                {t('common.delete_selected_confirm') || 'SEÇİLİLERİ KALICI OLARAK SİL'}
-                            </button>
+                        <div className="flex items-center gap-3">
                             <button
                                 onClick={() => setShowBulkDeleteModal(false)}
-                                className="w-full h-10 bg-palette-beige/30 text-palette-tan rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-beige/50 transition-all uppercase"
+                                className="flex-1 h-10 bg-palette-beige/30 text-palette-tan rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-beige/50 transition-all uppercase"
                             >
                                 {t('common.cancel')}
+                            </button>
+                            <button
+                                onClick={handleBulkDelete}
+                                className="flex-1 h-10 bg-palette-red text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-palette-red/20 flex items-center justify-center gap-2"
+                            >
+                                <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>delete</span>
+                                <span className="mt-0.5">{t('common.delete_kalici')}</span>
                             </button>
                         </div>
                     </div>
                 </div>
             )}
-        </div>
+        </>
     );
 };
 

@@ -524,21 +524,21 @@ const LanguageSettings: React.FC = () => {
               <span className="text-palette-maroon">"{langToDelete?.name}"</span> {t('lang.delete_confirm').replace('{name}', '')} <br />
               <span className="text-palette-red/70">{t('lang.delete_warning')}</span>
             </p>
-            <div className="flex flex-col gap-3">
-              <button
-                onClick={confirmDelete}
-                disabled={!!processing}
-                className="w-full h-12 bg-palette-red text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-palette-red/20 flex items-center justify-center gap-2"
-              >
-                {processing ? <span className="material-symbols-rounded animate-spin" style={{ fontSize: '16px' }}>progress_activity</span> : <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>delete</span>}
-                {t('common.delete_kalici')}
-              </button>
+            <div className="flex items-center gap-3">
               <button
                 onClick={() => setShowDeleteModal(false)}
                 disabled={!!processing}
-                className="w-full h-12 bg-palette-beige/30 text-palette-tan rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-beige/50 transition-all"
+                className="flex-1 h-12 bg-palette-beige/30 text-palette-tan rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-beige/50 transition-all uppercase"
               >
                 {t('common.cancel')}
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={!!processing}
+                className="flex-1 h-12 bg-palette-red text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-palette-red/20 flex items-center justify-center gap-2"
+              >
+                {processing ? <span className="material-symbols-rounded animate-spin" style={{ fontSize: '16px' }}>progress_activity</span> : <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>delete</span>}
+                <span className="mt-0.5">{t('common.delete_kalici')}</span>
               </button>
             </div>
           </div>

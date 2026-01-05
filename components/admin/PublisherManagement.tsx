@@ -31,9 +31,10 @@ interface Publisher {
 
 interface PublisherManagementProps {
     onEditPublisher: (publisherId: string) => void;
+    onEditUser?: (userId: string) => void;
 }
 
-const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublisher }) => {
+const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublisher, onEditUser }) => {
     const { t } = useLanguage();
     const [publishers, setPublishers] = useState<Publisher[]>([]);
     const [loading, setLoading] = useState(true);
@@ -123,23 +124,20 @@ const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublish
                 .eq('role', 'publisher')
                 .order('created_at', { ascending: false });
 
-            // 2. Fetch all publisher_users relations
+            // 2. Fetch all publisher_users relations - Explicitly joining correct profiles
             const usersPromise = supabase
                 .from('publisher_users')
-                .select('publisher_id, profiles(id, full_name)');
+                .select('publisher_id, profiles!publisher_users_user_id_fkey(id, full_name, username)');
 
             // 3. Fetch all publisher_categories relations
             const categoriesPromise = supabase
                 .from('publisher_categories')
                 .select('publisher_id, navigation_items(id, label)');
 
-            // 4. Fetch post counts via RPC or raw query if possible. 
-            // Since we can't easily do GROUP BY in simple client query without a view, 
-            // we will fetch just ID and AUTHOR_ID of all posts to count in memory.
-            // This is faster than N requests for moderate datasets.
+            // 4. Fetch post counts via publisher_id instead of author_id
             const postsPromise = supabase
                 .from('posts')
-                .select('id, author_id');
+                .select('publisher_id');
 
             const [profilesRes, usersRes, categoriesRes, postsRes] = await Promise.all([
                 profilesPromise,
@@ -149,6 +147,9 @@ const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublish
             ]);
 
             if (profilesRes.error) throw profilesRes.error;
+            if (usersRes.error) console.error("Users join error:", usersRes.error);
+            if (categoriesRes.error) console.error("Categories join error:", categoriesRes.error);
+            if (postsRes.error) console.error("Posts fetch error:", postsRes.error);
 
             const publishersList = profilesRes.data || [];
             const allUsers = usersRes.data || [];
@@ -159,6 +160,7 @@ const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublish
             const userMap: Record<string, any[]> = {};
             allUsers.forEach((u: any) => {
                 if (!userMap[u.publisher_id]) userMap[u.publisher_id] = [];
+                // profiles!publisher_users_user_id_fkey returns profiles object
                 if (u.profiles) userMap[u.publisher_id].push(u.profiles);
             });
 
@@ -170,8 +172,8 @@ const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublish
 
             const postCountMap: Record<string, number> = {};
             allPosts.forEach((p: any) => {
-                if (p.author_id) {
-                    postCountMap[p.author_id] = (postCountMap[p.author_id] || 0) + 1;
+                if (p.publisher_id) {
+                    postCountMap[p.publisher_id] = (postCountMap[p.publisher_id] || 0) + 1;
                 }
             });
 
@@ -190,6 +192,23 @@ const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublish
             setLoading(false);
         }
     };
+
+    // REAL-TIME SYNC: Listen to changes in posts and publisher_users for instant updates
+    useEffect(() => {
+        const postsChannel = supabase
+            .channel('publisher-management-sync')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, () => {
+                fetchData();
+            })
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'publisher_users' }, () => {
+                fetchData();
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(postsChannel);
+        };
+    }, []);
 
     const stats = useMemo(() => {
         const totalPubs = publishers.length;
@@ -383,11 +402,23 @@ const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublish
                                                 </div>
                                             </td>
                                             <td className="px-6 py-6 text-center">
-                                                <div className="flex flex-wrap items-center justify-center gap-1.5">
+                                                <div className="flex flex-wrap items-center justify-center gap-2">
                                                     {pub.assigned_users?.map(u => (
-                                                        <div key={u.id} className="flex items-center gap-1.5 bg-cyan-50 text-cyan-600 px-2.5 py-1 rounded-[3px] text-[10px] font-black uppercase tracking-widest border border-cyan-100">
-                                                            <span>{u.full_name}</span>
-                                                            <button className="text-palette-red hover:scale-110 transition-transform"><span className="material-symbols-rounded" style={{ fontSize: '14px' }}>edit</span></button>
+                                                        <div key={u.id} className="group/user flex items-center gap-2 bg-white border border-palette-tan/15 pl-1.5 pr-2 py-1 rounded-[4px] shadow-sm hover:border-palette-red/30 hover:shadow-md transition-all animate-in fade-in slide-in-from-bottom-1">
+                                                            <div className="w-6 h-6 rounded-full bg-palette-beige/50 border border-palette-tan/20 overflow-hidden flex items-center justify-center">
+                                                                <span className="material-symbols-rounded text-[16px] text-palette-tan">person</span>
+                                                            </div>
+                                                            <div className="flex flex-col items-start leading-none gap-0.5">
+                                                                <span className="text-[11px] font-black text-palette-maroon tracking-tight">{u.full_name}</span>
+                                                                <span className="text-[10px] font-bold text-palette-tan/50 tracking-tighter">@{u.username}</span>
+                                                            </div>
+                                                            <button
+                                                                onClick={() => onEditUser && onEditUser(u.username)}
+                                                                className="ml-1 w-6 h-6 rounded-full flex items-center justify-center text-palette-tan/30 hover:text-palette-red hover:bg-red-50 transition-all active:scale-90"
+                                                                title="Kullanıcıyı Düzenle"
+                                                            >
+                                                                <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>edit</span>
+                                                            </button>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -500,7 +531,12 @@ const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublish
                     </div>
 
                     <div className="p-8 border-t border-palette-tan/10 bg-palette-beige/5 flex items-center justify-between font-black text-[11px] tracking-widest text-palette-tan/40 uppercase relative z-0">
-                        <span>Showing 1 to {Math.min(filteredPublishers.length, pageSize)} of {filteredPublishers.length} entries</span>
+                        <span>
+                            {t('common.results_found')
+                                .replace('{from}', '1')
+                                .replace('{to}', String(Math.min(filteredPublishers.length, pageSize)))
+                                .replace('{total}', String(filteredPublishers.length))}
+                        </span>
                         <div className="flex items-center gap-1">
                             <button className="w-8 h-8 flex items-center justify-center rounded-[3px] border border-palette-tan/10 opacity-30 cursor-not-allowed"><span className="material-symbols-rounded" style={{ fontSize: '16px' }}>chevron_left</span></button>
                             <button className="w-8 h-8 flex items-center justify-center rounded-[3px] bg-palette-red text-white">1</button>
@@ -822,27 +858,27 @@ const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublish
                     <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
                         <div className="absolute inset-0 bg-palette-maroon/40 backdrop-blur-md animate-in fade-in" onClick={() => !saving && handleCloseDeleteModal()} />
                         <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 p-8 text-center">
-                            <div className="w-20 h-20 bg-red-50 text-palette-red rounded-[3px] flex items-center justify-center mx-auto mb-6 shadow-inner">
-                                <span className="material-symbols-rounded" style={{ fontSize: '32px' }}>delete</span>
+                            <div className="w-14 h-14 bg-red-50 text-palette-red rounded-[3px] flex items-center justify-center mx-auto mb-6 shadow-inner">
+                                <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>delete</span>
                             </div>
                             <h3 className="text-xl font-black text-palette-maroon tracking-tight mb-3 uppercase">{t('publishers.delete_title')}</h3>
                             <p className="text-[13px] font-bold text-palette-tan/60 leading-relaxed mb-8">
                                 <span className="text-palette-maroon">"{publisherToDelete?.full_name}"</span> {t('publishers.delete_confirm')}
                             </p>
-                            <div className="flex flex-col gap-3">
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={handleCloseDeleteModal}
+                                    className="flex-1 h-10 bg-palette-beige/30 text-palette-tan rounded-[3px] font-black text-[11px] tracking-widest hover:bg-palette-beige/50 transition-all uppercase"
+                                >
+                                    {t('common.cancel')}
+                                </button>
                                 <button
                                     onClick={confirmDelete}
                                     disabled={saving}
-                                    className="w-full h-10 bg-palette-red text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-palette-red/20 flex items-center justify-center gap-2 uppercase"
+                                    className="flex-1 h-10 bg-palette-red text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-palette-red/20 flex items-center justify-center gap-2"
                                 >
-                                    {saving ? <span className="material-symbols-rounded animate-spin" style={{ fontSize: '16px' }}>progress_activity</span> : <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>delete</span>}
-                                    SİLİNSİN
-                                </button>
-                                <button
-                                    onClick={handleCloseDeleteModal}
-                                    className="w-full h-10 bg-palette-beige/30 text-palette-tan rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-beige/50 transition-all uppercase"
-                                >
-                                    {t('common.cancel')}
+                                    {saving ? <span className="material-symbols-rounded animate-spin" style={{ fontSize: '16px' }}>progress_activity</span> : <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>delete</span>}
+                                    <span className="mt-0.5">{t('common.delete_kalici')}</span>
                                 </button>
                             </div>
                         </div>
@@ -856,8 +892,8 @@ const PublisherManagement: React.FC<PublisherManagementProps> = ({ onEditPublish
                     <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
                         <div className="absolute inset-0 bg-palette-maroon/20 backdrop-blur-[2px] animate-in fade-in" onClick={handleCloseStatusModal} />
                         <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-xs overflow-hidden animate-in slide-in-from-bottom-4 border border-palette-tan/15 p-8 text-center">
-                            <div className={`w-16 h-16 rounded-[3px] flex items-center justify-center mx-auto mb-6 ${statusModal.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
-                                {statusModal.type === 'error' ? <span className="material-symbols-rounded" style={{ fontSize: '28px' }}>close</span> : <span className="material-symbols-rounded" style={{ fontSize: '28px' }}>check_circle</span>}
+                            <div className={`w-14 h-14 rounded-[3px] flex items-center justify-center mx-auto mb-6 ${statusModal.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
+                                {statusModal.type === 'error' ? <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>close</span> : <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>check_circle</span>}
                             </div>
                             <p className="text-[14px] font-black text-palette-maroon mb-8 leading-relaxed uppercase">{statusModal.message}</p>
                             <button

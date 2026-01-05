@@ -46,8 +46,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
     { id: 'posts', label: t('admin.sidebar.posts'), icon: 'add_circle', perm: 'manage_content', group: t('admin.management') },
     { id: 'news_list', label: t('admin.sidebar.news_list'), icon: 'description', perm: 'manage_content', group: t('admin.management') },
     { id: 'stories', label: t('admin.sidebar.stories'), icon: 'bolt', perm: 'manage_content', group: t('admin.management') },
+    { id: 'users', label: t('admin.sidebar.users'), icon: 'group', perm: 'manage_users', group: t('admin.management') },
     { id: 'publishers', label: t('admin.sidebar.publishers'), icon: 'business_center', perm: 'manage_users', group: t('admin.management') },
-    { id: 'users', label: t('admin.sidebar.users'), icon: 'group', perm: 'manage_users', group: t('admin.system') },
     { id: 'navigation', label: t('admin.sidebar.navigation'), icon: 'account_tree', perm: 'manage_navigation', group: t('admin.system') },
     { id: 'roles', label: t('admin.sidebar.roles'), icon: 'verified_user', perm: 'view_roles', group: t('admin.system') },
     { id: 'settings', label: t('admin.sidebar.settings'), icon: 'settings', perm: 'view_settings', group: t('admin.system') },
@@ -162,7 +162,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
   };
 
   const handleEditUser = (userId: string) => {
-    handleTabChange('edit_user', userId);
+    handleTabChange('users', userId);
   };
 
   const handleEditPublisher = (publisherId: string) => {
@@ -191,7 +191,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
       }>
         {(() => {
           switch (activeTab) {
-            case 'users': return <UserManagement onEditUser={handleEditUser} />;
+            case 'users': return <UserManagement onEditUser={handleEditUser} initialSearchTerm={editingUserId || undefined} />;
             case 'posts': return <PostManagement onBack={() => handleTabChange('news_list')} />;
             case 'news_list': return <PostList onEditPost={handleEditPost} />;
             case 'edit_post': return <PostManagement postId={editingUserId || undefined} onBack={() => handleTabChange('news_list')} />;
@@ -216,7 +216,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
                 onSuccess={() => handleTabChange('overview')}
               />
             );
-            case 'publishers': return <PublisherManagement onEditPublisher={handleEditPublisher} />;
+            case 'publishers': return <PublisherManagement onEditPublisher={handleEditPublisher} onEditUser={handleEditUser} />;
             case 'edit_publisher': return (
               <PublisherProfileSettings
                 publisherId={editingUserId || undefined}
@@ -478,8 +478,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
         <div className="fixed inset-0 z-[500] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-palette-maroon/20 backdrop-blur-[2px] animate-in fade-in" onClick={() => setStatusModal({ ...statusModal, show: false })} />
           <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-xs overflow-hidden animate-in slide-in-from-bottom-4 border border-palette-tan/20 p-8 text-center">
-            <div className={`w-16 h-16 rounded-[3px] flex items-center justify-center mx-auto mb-6 ${statusModal.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
-              {statusModal.type === 'error' ? <span className="material-symbols-rounded" style={{ fontSize: '28px' }}>close</span> : <span className="material-symbols-rounded" style={{ fontSize: '28px' }}>check_circle</span>}
+            <div className={`w-14 h-14 rounded-[3px] flex items-center justify-center mx-auto mb-6 ${statusModal.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
+              {statusModal.type === 'error' ? <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>close</span> : <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>check_circle</span>}
             </div>
             <p className="text-base font-black text-palette-maroon mb-8 leading-relaxed">{statusModal.message}</p>
             <button

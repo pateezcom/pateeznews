@@ -18,6 +18,7 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({ userId, onSuc
   const [activeTab, setActiveTab] = useState<'details' | 'security'>('details');
   const [showPassword, setShowPassword] = useState({ old: false, new: false, confirm: false });
   const [statusModal, setStatusModal] = useState<{ show: boolean, type: 'error' | 'success', message: string }>({ show: false, type: 'success', message: '' });
+  const [deleteConfirmModal, setDeleteConfirmModal] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
@@ -148,8 +149,8 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({ userId, onSuc
   };
 
   const handleDeleteAccount = async () => {
-    if (!deleteConfirm) return;
     setSaving(true);
+    setDeleteConfirmModal(false);
     try {
       // For a real delete, we'd need an Edge Function to delete the auth user.
       // Here we set status to 'Engelli' as a safe alternative for the client side.
@@ -359,8 +360,8 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({ userId, onSuc
             </div>
 
             <button
-              onClick={handleDeleteAccount}
-              disabled={!deleteConfirm || saving}
+              onClick={() => setDeleteConfirmModal(true)}
+              disabled={saving}
               className="px-4 py-2 bg-palette-red text-white rounded-[4px] font-black text-[13px] tracking-tight hover:bg-palette-maroon shadow-md active:scale-95 disabled:opacity-30 transition-all uppercase flex items-center gap-2"
             >
               {saving && <span className="material-symbols-rounded animate-spin" style={{ fontSize: '16px' }}>progress_activity</span>}
@@ -465,13 +466,45 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({ userId, onSuc
         </div>
       )}
 
+      {/* DELETE MODAL */}
+      {deleteConfirmModal && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-palette-maroon/40 backdrop-blur-md animate-in fade-in" onClick={() => !saving && setDeleteConfirmModal(false)} />
+          <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 p-8 text-center">
+            <div className="w-14 h-14 bg-red-50 text-palette-red rounded-[3px] flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>delete</span>
+            </div>
+            <h3 className="text-xl font-black text-palette-maroon tracking-tight mb-3 uppercase">Emin misiniz?</h3>
+            <p className="text-[13px] font-bold text-palette-tan/60 leading-relaxed mb-8">
+              <span className="text-palette-maroon">"{profile?.full_name}"</span> isimli hesabı devre dışı bırakmak istediğinize emin misiniz?
+            </p>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setDeleteConfirmModal(false)}
+                className="flex-1 h-10 bg-palette-beige/30 text-palette-tan rounded-[3px] font-black text-[11px] tracking-widest hover:bg-palette-beige/50 transition-all uppercase"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={saving}
+                className="flex-1 h-10 bg-palette-red text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-palette-red/20 flex items-center justify-center gap-2"
+              >
+                {saving ? <span className="material-symbols-rounded animate-spin" style={{ fontSize: '16px' }}>progress_activity</span> : <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>delete</span>}
+                <span className="mt-0.5">{t('common.delete_kalici')}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* STATUS MODAL */}
       {statusModal.show && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-palette-maroon/20 backdrop-blur-[2px] animate-in fade-in" onClick={handleCloseStatusModal} />
           <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-xs overflow-hidden animate-in slide-in-from-bottom-4 border border-palette-tan/15 p-8 text-center">
-            <div className={`w-16 h-16 rounded-[3px] flex items-center justify-center mx-auto mb-6 ${statusModal.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
-              {statusModal.type === 'error' ? <span className="material-symbols-rounded" style={{ fontSize: '28px' }}>close</span> : <span className="material-symbols-rounded" style={{ fontSize: '28px' }}>check_circle</span>}
+            <div className={`w-14 h-14 rounded-[3px] flex items-center justify-center mx-auto mb-6 ${statusModal.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
+              {statusModal.type === 'error' ? <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>close</span> : <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>check_circle</span>}
             </div>
             <p className="text-base font-black text-palette-maroon mb-8 leading-relaxed">{statusModal.message}</p>
             <button
