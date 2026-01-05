@@ -115,19 +115,19 @@ const PublisherProfile: React.FC<PublisherProfileProps> = ({ name, onBack, onNew
 
   if (loading) return (
     <div className="flex justify-center items-center min-h-[400px]">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-palette-red"></div>
+      <div className="animate-spin rounded-[5px] h-12 w-12 border-b-2 border-palette-red"></div>
     </div>
   );
 
   if (!publisherData) return (
-    <div className="text-center py-20 bg-white rounded-xl border border-gray-200">
+    <div className="text-center py-20 bg-white rounded-[5px] border border-gray-200">
       <p className="text-gray-500 font-bold">Yayıncı bulunamadı.</p>
       <button onClick={onBack} className="mt-4 text-blue-600 font-bold hover:underline">Geri Dön</button>
     </div>
   );
 
   return (
-    <div className="animate-in bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-10">
+    <div className="animate-in bg-white rounded-[5px] border border-gray-200 shadow-sm overflow-hidden mb-10">
 
       {/* HEADER: Cover */}
       <div className="relative h-48 md:h-60 overflow-hidden">
@@ -137,7 +137,7 @@ const PublisherProfile: React.FC<PublisherProfileProps> = ({ name, onBack, onNew
         <div className="absolute top-4 left-4 right-4 flex justify-between items-start z-20">
           <button
             onClick={onBack}
-            className="p-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-lg text-white hover:bg-white/30 transition-all shadow-lg active:scale-95"
+            className="p-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-[5px] text-white hover:bg-white/30 transition-all shadow-lg active:scale-95"
           >
             <ArrowLeft size={18} />
           </button>
@@ -146,13 +146,13 @@ const PublisherProfile: React.FC<PublisherProfileProps> = ({ name, onBack, onNew
             {isOwnProfile && (
               <button
                 onClick={onEditClick}
-                className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-lg text-white hover:bg-white/30 transition-all shadow-lg active:scale-95 text-[10px] font-black uppercase tracking-widest"
+                className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-[5px] text-white hover:bg-white/30 transition-all shadow-lg active:scale-95 text-[10px] font-black uppercase tracking-widest"
               >
                 <Settings2 size={16} />
                 <span>Ayarlar</span>
               </button>
             )}
-            <button className="p-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-lg text-white hover:bg-white/30 transition-all shadow-lg active:scale-95">
+            <button className="p-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-[5px] text-white hover:bg-white/30 transition-all shadow-lg active:scale-95">
               <Share2 size={18} />
             </button>
           </div>
@@ -163,7 +163,7 @@ const PublisherProfile: React.FC<PublisherProfileProps> = ({ name, onBack, onNew
       <div className="px-6 md:px-10 relative">
 
         {/* Avatar */}
-        <div className="absolute -top-12 left-6 md:left-10 w-28 h-28 rounded-2xl border-4 border-white overflow-hidden shadow-xl bg-gray-100 z-10">
+        <div className="absolute -top-12 left-6 md:left-10 w-28 h-28 rounded-[5px] border-4 border-white overflow-hidden shadow-xl bg-gray-100 z-10">
           <img src={publisherData.avatar} className="w-full h-full object-cover" alt="Avatar" />
         </div>
 
@@ -177,7 +177,7 @@ const PublisherProfile: React.FC<PublisherProfileProps> = ({ name, onBack, onNew
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-blue-600 tracking-tight">{publisherData.handle}</span>
-                <span className="w-1 h-1 bg-gray-200 rounded-full" />
+                <span className="w-1 h-1 bg-gray-200 rounded-[5px]" />
                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{publisherData.category}</span>
               </div>
             </div>
@@ -186,14 +186,14 @@ const PublisherProfile: React.FC<PublisherProfileProps> = ({ name, onBack, onNew
               {isOwnProfile ? (
                 <button
                   onClick={onEditClick}
-                  className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2 bg-gray-900 text-white border border-gray-900 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all hover:bg-blue-600 hover:border-blue-600 active:scale-95 shadow-sm"
+                  className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2 bg-gray-900 text-white border border-gray-900 rounded-[5px] font-black text-[10px] uppercase tracking-widest transition-all hover:bg-blue-600 hover:border-blue-600 active:scale-95 shadow-sm"
                 >
                   Profili Düzenle
                 </button>
               ) : (
                 <button
                   onClick={() => setIsFollowing(!isFollowing)}
-                  className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 shadow-sm border ${isFollowing
+                  className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2 rounded-[5px] font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 shadow-sm border ${isFollowing
                     ? 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
                     : 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700'
                     }`}
@@ -201,7 +201,7 @@ const PublisherProfile: React.FC<PublisherProfileProps> = ({ name, onBack, onNew
                   {isFollowing ? 'Takip Ediliyor' : <><UserPlus size={14} /> Takip Et</>}
                 </button>
               )}
-              <button className="p-2.5 bg-gray-50 text-gray-400 border border-gray-100 rounded-lg hover:bg-gray-100 hover:text-gray-900 transition-all shadow-sm active:scale-90">
+              <button className="p-2.5 bg-gray-50 text-gray-400 border border-gray-100 rounded-[5px] hover:bg-gray-100 hover:text-gray-900 transition-all shadow-sm active:scale-90">
                 <MessageSquare size={18} />
               </button>
             </div>
@@ -213,7 +213,7 @@ const PublisherProfile: React.FC<PublisherProfileProps> = ({ name, onBack, onNew
 
           <div className="mt-8 flex flex-wrap gap-6 items-center pt-6 border-t border-gray-50">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-gray-50 text-gray-400 rounded-lg">
+              <div className="p-1.5 bg-gray-50 text-gray-400 rounded-[5px]">
                 <Users size={14} />
               </div>
               <div className="flex flex-col">
@@ -222,7 +222,7 @@ const PublisherProfile: React.FC<PublisherProfileProps> = ({ name, onBack, onNew
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-gray-50 text-gray-400 rounded-lg">
+              <div className="p-1.5 bg-gray-50 text-gray-400 rounded-[5px]">
                 <TrendingUp size={14} />
               </div>
               <div className="flex flex-col">
@@ -231,7 +231,7 @@ const PublisherProfile: React.FC<PublisherProfileProps> = ({ name, onBack, onNew
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-gray-50 text-gray-400 rounded-lg">
+              <div className="p-1.5 bg-gray-50 text-gray-400 rounded-[5px]">
                 <Calendar size={14} />
               </div>
               <div className="flex flex-col">

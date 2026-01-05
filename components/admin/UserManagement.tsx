@@ -457,7 +457,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
     }
   };
 
-  const inputClasses = "w-full h-10 px-4 bg-palette-beige/30 border border-palette-tan/10 rounded-[3px] text-sm font-bold text-palette-maroon outline-none focus:bg-white focus:border-palette-tan focus:ring-4 focus:ring-palette-tan/5 transition-all placeholder:text-palette-tan/30";
+  const inputClasses = "w-full h-10 px-4 bg-palette-beige/30 border border-palette-tan/10 rounded-[5px] text-sm font-bold text-palette-maroon outline-none focus:bg-white focus:border-palette-tan focus:ring-4 focus:ring-palette-tan/5 transition-all placeholder:text-palette-tan/30";
 
   return (
     <>
@@ -467,7 +467,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
         {/* STATS CARDS */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat, i) => (
-            <div key={i} className="bg-white p-6 rounded-[3px] border border-palette-tan/15 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+            <div key={i} className="bg-white p-6 rounded-[5px] border border-palette-tan/15 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <p className="text-[13px] font-bold text-palette-tan/60">{stat.label}</p>
@@ -476,7 +476,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
                     <span className={`text-[11px] font-black ${stat.change.startsWith('+') ? 'text-emerald-500' : 'text-palette-red'}`}>({stat.change})</span>
                   </div>
                 </div>
-                <div className={`w-10 h-10 ${stat.iconBg} rounded-[3px] flex items-center justify-center ${stat.color.split(' ')[1]}`}>
+                <div className={`w-10 h-10 ${stat.iconBg} rounded-[5px] flex items-center justify-center ${stat.color.split(' ')[1]}`}>
                   <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>{stat.icon}</span>
                 </div>
               </div>
@@ -487,7 +487,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
         </div>
 
         {/* MAIN CONTENT BOX */}
-        <div className="bg-white rounded-[3px] border border-palette-tan/20 shadow-sm min-h-[600px] flex flex-col">
+        <div className="bg-white rounded-[5px] border border-palette-tan/20 shadow-sm min-h-[600px] flex flex-col">
 
           <div className="p-8 border-b border-palette-tan/10 space-y-8">
             <h2 className="text-xl font-black text-palette-maroon uppercase tracking-tight">{t('users.page_title')}</h2>
@@ -503,7 +503,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
                   <label className="text-[11px] font-black text-palette-tan/40 uppercase tracking-widest block">{filter.label}</label>
                   <div className="relative group/select">
                     <select
-                      className="w-full h-10 px-3 bg-palette-beige/20 border border-palette-tan/15 rounded-[3px] text-[13px] font-bold text-palette-maroon appearance-none outline-none focus:bg-white focus:border-palette-maroon transition-all cursor-pointer"
+                      className="w-full h-10 px-3 bg-palette-beige/20 border border-palette-tan/15 rounded-[5px] text-[13px] font-bold text-palette-maroon appearance-none outline-none focus:bg-white focus:border-palette-maroon transition-all cursor-pointer"
                       value={(filters as any)[filter.key]}
                       onChange={(e) => setFilters({ ...filters, [filter.key]: e.target.value })}
                     >
@@ -535,7 +535,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
               <div className="flex items-center gap-6 w-full md:w-auto">
                 <div className="relative group/size">
                   <select
-                    className="h-10 px-4 pr-10 bg-palette-beige/20 border border-palette-tan/15 rounded-[3px] text-[13px] font-black text-palette-maroon appearance-none outline-none focus:bg-white focus:border-palette-maroon transition-all cursor-pointer min-w-[70px]"
+                    className="h-10 px-4 pr-10 bg-palette-beige/20 border border-palette-tan/15 rounded-[5px] text-[13px] font-black text-palette-maroon appearance-none outline-none focus:bg-white focus:border-palette-maroon transition-all cursor-pointer min-w-[70px]"
                     value={pageSize}
                     onChange={(e) => setPageSize(Number(e.target.value))}
                   >
@@ -550,7 +550,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
                   <button
                     type="button"
                     onClick={() => setShowPublisherModal(true)}
-                    className="flex items-center gap-2 px-3 h-10 text-[13px] font-black text-cyan-600 hover:bg-cyan-50/50 rounded-[3px] transition-all active:scale-95 group/pub"
+                    className="flex items-center gap-2 px-3 h-10 text-[13px] font-black text-cyan-600 hover:bg-cyan-50/50 rounded-[5px] transition-all active:scale-95 group/pub"
                   >
                     <span className="material-symbols-rounded text-cyan-500 group-hover/pub:scale-110 transition-transform" style={{ fontSize: '20px' }}>person_add</span>
                     <span>Yayıncıları Ekle</span>
@@ -563,7 +563,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
                   <input
                     type="text"
                     placeholder="Kullanıcı Ara ..."
-                    className="w-full md:w-[220px] h-10 pl-4 pr-10 bg-white border border-palette-tan/15 rounded-[3px] text-[13px] font-bold text-palette-maroon outline-none focus:border-palette-maroon focus:ring-4 focus:ring-palette-maroon/5 transition-all shadow-sm"
+                    className="w-full md:w-[220px] h-10 pl-4 pr-10 bg-white border border-palette-tan/15 rounded-[5px] text-[13px] font-bold text-palette-maroon outline-none focus:border-palette-maroon focus:ring-4 focus:ring-palette-maroon/5 transition-all shadow-sm"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
@@ -572,7 +572,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
 
                 <button
                   onClick={() => setShowAddModal(true)}
-                  className="flex items-center gap-2 h-10 px-4 bg-palette-red text-white rounded-[3px] text-[13px] font-black tracking-widest hover:bg-palette-maroon transition-all shadow-lg shadow-palette-red/20 active:scale-95"
+                  className="flex items-center gap-2 h-10 px-4 bg-palette-red text-white rounded-[5px] text-[13px] font-black tracking-widest hover:bg-palette-maroon transition-all shadow-lg shadow-palette-red/20 active:scale-95"
                 >
                   <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>add</span>
                   Kullanıcı Ekle
@@ -586,7 +586,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
               <thead>
                 <tr className="bg-palette-beige/10 border-b border-palette-tan/10">
                   <th className="w-12 px-8 py-5">
-                    <input type="checkbox" className="w-4 h-4 rounded-[2px] border-palette-tan/30 text-palette-maroon focus:ring-palette-maroon cursor-pointer" />
+                    <input type="checkbox" className="w-4 h-4 rounded-[5px] border-palette-tan/30 text-palette-maroon focus:ring-palette-maroon cursor-pointer" />
                   </th>
                   <th className="w-20 px-4 py-5 text-[12px] font-black text-palette-tan uppercase tracking-widest">Id</th>
                   <th className="px-4 py-5 text-[12px] font-black text-palette-tan uppercase tracking-widest">Kullanıcı</th>
@@ -602,7 +602,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
                 {loading ? (
                   Array(5).fill(0).map((_, i) => (
                     <tr key={i} className="animate-pulse">
-                      <td colSpan={9} className="px-8 py-10 opacity-50"><div className="h-4 bg-palette-beige rounded-[3px] w-full"></div></td>
+                      <td colSpan={9} className="px-8 py-10 opacity-50"><div className="h-4 bg-palette-beige rounded-[5px] w-full"></div></td>
                     </tr>
                   ))
                 ) : filteredUsers.length === 0 ? (
@@ -615,12 +615,12 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
                   filteredUsers.map((user, idx) => (
                     <tr key={user.id} className={`hover:bg-palette-beige/5 transition-all group ${openDropdownId === user.id ? 'relative z-[100]' : 'relative z-1'}`}>
                       <td className="px-8 py-6">
-                        <input type="checkbox" className="w-4 h-4 rounded-[2px] border-palette-tan/30 text-palette-maroon focus:ring-palette-maroon cursor-pointer" />
+                        <input type="checkbox" className="w-4 h-4 rounded-[5px] border-palette-tan/30 text-palette-maroon focus:ring-palette-maroon cursor-pointer" />
                       </td>
                       <td className="px-4 py-6 text-[13px] font-bold text-palette-tan/60">{idx + 25}</td>
                       <td className="px-4 py-6">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 flex-shrink-0 bg-palette-beige rounded-full overflow-hidden border border-palette-tan/10 shadow-sm relative transition-all">
+                          <div className="w-10 h-10 flex-shrink-0 bg-palette-beige rounded-[5px] overflow-hidden border border-palette-tan/10 shadow-sm relative transition-all">
                             <img src={user.avatar_url || `https://picsum.photos/seed/${user.id}/100`} className="w-full h-full object-cover" alt="" />
                           </div>
                           <div className="flex flex-col">
@@ -645,7 +645,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
                           {user.assigned_publishers && user.assigned_publishers.length > 0 ? (
                             <>
                               {user.assigned_publishers.map(pub => (
-                                <span key={pub.id} className="bg-cyan-50 text-cyan-600 px-2 py-0.5 rounded-[3px] text-[11px] font-bold">
+                                <span key={pub.id} className="bg-cyan-50 text-cyan-600 px-2 py-0.5 rounded-[5px] text-[11px] font-bold">
                                   {pub.full_name}
                                 </span>
                               ))}
@@ -673,7 +673,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
                         </div>
                       </td>
                       <td className="px-6 py-6 text-center">
-                        <span className={`px-2.5 py-1 rounded-[3px] text-[10px] font-black uppercase tracking-widest ${user.status === 'Aktif' ? 'bg-emerald-100 text-emerald-700' :
+                        <span className={`px-2.5 py-1 rounded-[5px] text-[10px] font-black uppercase tracking-widest ${user.status === 'Aktif' ? 'bg-emerald-100 text-emerald-700' :
                           user.status === 'Engelli' ? 'bg-red-100 text-red-700' :
                             'bg-orange-100 text-orange-700'
                           }`}>
@@ -690,17 +690,17 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
                       </td>
                       <td className="px-8 py-6 text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <button onClick={() => handleEditClick(user)} className="w-8 h-8 rounded-full flex items-center justify-center text-palette-red hover:bg-red-50 transition-all"><span className="material-symbols-rounded" style={{ fontSize: '18px' }}>edit</span></button>
-                          <button onClick={() => { setUserToDelete(user); setShowDeleteModal(true); }} className="w-8 h-8 rounded-full flex items-center justify-center text-palette-red hover:bg-red-50 transition-all"><span className="material-symbols-rounded" style={{ fontSize: '18px' }}>delete</span></button>
+                          <button onClick={() => handleEditClick(user)} className="w-8 h-8 rounded-[5px] flex items-center justify-center text-palette-red hover:bg-red-50 transition-all"><span className="material-symbols-rounded" style={{ fontSize: '18px' }}>edit</span></button>
+                          <button onClick={() => { setUserToDelete(user); setShowDeleteModal(true); }} className="w-8 h-8 rounded-[5px] flex items-center justify-center text-palette-red hover:bg-red-50 transition-all"><span className="material-symbols-rounded" style={{ fontSize: '18px' }}>delete</span></button>
                           <div className="relative inline-block text-left" ref={openDropdownId === user.id ? dropdownRef : null}>
                             <button
                               onClick={(e) => { e.stopPropagation(); setOpenDropdownId(openDropdownId === user.id ? null : user.id); }}
-                              className="w-8 h-8 rounded-full flex items-center justify-center text-palette-tan/40 hover:bg-palette-beige hover:text-palette-maroon transition-all active:scale-90"
+                              className="w-8 h-8 rounded-[5px] flex items-center justify-center text-palette-tan/40 hover:bg-palette-beige hover:text-palette-maroon transition-all active:scale-90"
                             >
                               <span className="material-symbols-rounded">more_vert</span>
                             </button>
                             {openDropdownId === user.id && (
-                              <div className={`absolute right-0 ${idx >= filteredUsers.length - 2 && idx > 0 ? 'bottom-full mb-2' : 'top-full mt-1'} w-64 bg-white border border-palette-tan/20 rounded-[3px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-[200] py-2 animate-in fade-in zoom-in-95 duration-200`}>
+                              <div className={`absolute right-0 ${idx >= filteredUsers.length - 2 && idx > 0 ? 'bottom-full mb-2' : 'top-full mt-1'} w-64 bg-white border border-palette-tan/20 rounded-[5px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-[200] py-2 animate-in fade-in zoom-in-95 duration-200`}>
                                 <button onClick={() => { onEditUser(user.username); setOpenDropdownId(null); }} className="w-full px-5 py-3 text-left text-[13px] font-bold text-palette-maroon hover:bg-palette-beige/30 transition-all flex items-center gap-3">
                                   <span className="material-symbols-rounded text-cyan-500" style={{ fontSize: '18px' }}>search</span>
                                   Bu Kullanıcıyı Filtrele
@@ -795,7 +795,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
               <button
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                 disabled={currentPage === 1 || loading}
-                className="w-8 h-8 flex items-center justify-center rounded-[3px] border border-palette-tan/10 hover:bg-white hover:text-palette-maroon transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                className="w-8 h-8 flex items-center justify-center rounded-[5px] border border-palette-tan/10 hover:bg-white hover:text-palette-maroon transition-all disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>chevron_left</span>
               </button>
@@ -806,7 +806,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
                   <button
                     key={pageNum}
                     onClick={() => setCurrentPage(pageNum)}
-                    className={`w-8 h-8 flex items-center justify-center rounded-[3px] transition-all ${currentPage === pageNum ? 'bg-palette-red text-white shadow-lg' : 'border border-palette-tan/10 text-palette-tan hover:bg-white hover:text-palette-maroon'}`}
+                    className={`w-8 h-8 flex items-center justify-center rounded-[5px] transition-all ${currentPage === pageNum ? 'bg-palette-red text-white shadow-lg' : 'border border-palette-tan/10 text-palette-tan hover:bg-white hover:text-palette-maroon'}`}
                   >
                     {pageNum}
                   </button>
@@ -816,7 +816,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
               <button
                 onClick={() => setCurrentPage(p => p + 1)}
                 disabled={currentPage >= Math.ceil(totalCount / pageSize) || loading}
-                className="w-8 h-8 flex items-center justify-center rounded-[3px] border border-palette-tan/10 hover:bg-white hover:text-palette-maroon transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                className="w-8 h-8 flex items-center justify-center rounded-[5px] border border-palette-tan/10 hover:bg-white hover:text-palette-maroon transition-all disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>chevron_right</span>
               </button>
@@ -834,11 +834,11 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
             onClick={() => !saving && (showAddModal ? handleCloseAddModal() : handleCloseEditModal())}
           />
 
-          <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-xl overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 flex flex-col">
+          <div className="relative bg-white rounded-[5px] shadow-2xl w-full max-w-xl overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 flex flex-col">
 
             <div className="px-8 py-6 border-b border-palette-tan/15 flex items-center justify-between bg-palette-beige/10">
               <h3 className="text-lg font-black text-palette-maroon tracking-tight flex items-center gap-2">
-                <div className="p-1.5 bg-palette-red rounded-[3px] text-white shadow-md flex items-center justify-center">
+                <div className="p-1.5 bg-palette-red rounded-[5px] text-white shadow-md flex items-center justify-center">
                   {showEditModal ? <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>edit_square</span> : <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>add</span>}
                 </div>
                 {showEditModal ? 'Kullanıcıyı Düzenle' : 'Kullanıcı Ekle'}
@@ -978,7 +978,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
                     onChange={e => showAddModal ? setNewUser({ ...newUser, reward_system: e.target.checked }) : setEditUserData({ ...editUserData, reward_system: e.target.checked })}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-palette-beige/50 border border-palette-tan/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-palette-tan/30 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-palette-red peer-checked:border-palette-red"></div>
+                  <div className="w-11 h-6 bg-palette-beige/50 border border-palette-tan/20 peer-focus:outline-none rounded-[5px] peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-palette-tan/30 after:border after:rounded-[5px] after:h-5 after:w-5 after:transition-all peer-checked:bg-palette-red peer-checked:border-palette-red"></div>
                   <span className="ml-3 text-[11px] font-black text-palette-maroon uppercase tracking-widest opacity-60 group-hover:opacity-100 transition-opacity">Ödül Sistemini Etkinleştir</span>
                 </label>
               </div>
@@ -994,7 +994,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
               <button
                 onClick={() => showAddModal ? handleAddUser() : handleUpdateUser()}
                 disabled={saving}
-                className="flex items-center justify-center gap-2 px-6 py-2 bg-palette-tan text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-maroon shadow-xl active:scale-95 disabled:opacity-40 transition-all uppercase"
+                className="flex items-center justify-center gap-2 px-6 py-2 bg-palette-tan text-white rounded-[5px] font-black text-[13px] tracking-widest hover:bg-palette-maroon shadow-xl active:scale-95 disabled:opacity-40 transition-all uppercase"
               >
                 {saving ? <span className="material-symbols-rounded animate-spin" style={{ fontSize: '16px' }}>progress_activity</span> : <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>save</span>}
                 <span>{showEditModal ? 'Kaydet' : 'Ekle'}</span>
@@ -1009,8 +1009,8 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
       {showDeleteModal && (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-palette-maroon/40 backdrop-blur-md animate-in fade-in" onClick={() => !saving && setShowDeleteModal(false)} />
-          <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 p-8 text-center">
-            <div className="w-14 h-14 bg-red-50 text-palette-red rounded-[3px] flex items-center justify-center mx-auto mb-6 shadow-inner">
+          <div className="relative bg-white rounded-[5px] shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 p-8 text-center">
+            <div className="w-14 h-14 bg-red-50 text-palette-red rounded-[5px] flex items-center justify-center mx-auto mb-6 shadow-inner">
               <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>delete</span>
             </div>
             <h3 className="text-xl font-black text-palette-maroon tracking-tight mb-3 uppercase">{t('users.actions.delete')}?</h3>
@@ -1020,14 +1020,14 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="flex-1 h-10 bg-palette-beige/30 text-palette-tan rounded-[3px] font-black text-[11px] tracking-widest hover:bg-palette-beige/50 transition-all uppercase"
+                className="flex-1 h-10 bg-palette-beige/30 text-palette-tan rounded-[5px] font-black text-[11px] tracking-widest hover:bg-palette-beige/50 transition-all uppercase"
               >
                 {t('common.cancel')}
               </button>
               <button
                 onClick={confirmDelete}
                 disabled={saving}
-                className="flex-1 h-10 bg-palette-red text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-palette-red/20 flex items-center justify-center gap-2"
+                className="flex-1 h-10 bg-palette-red text-white rounded-[5px] font-black text-[13px] tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-palette-red/20 flex items-center justify-center gap-2"
               >
                 {saving ? <span className="material-symbols-rounded animate-spin" style={{ fontSize: '16px' }}>progress_activity</span> : <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>delete</span>}
                 <span className="mt-0.5">{t('common.delete_kalici')}</span>
@@ -1042,12 +1042,12 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
         <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-palette-maroon/90 backdrop-blur-md animate-in fade-in" onClick={handleClosePublisherModal} />
           <div
-            className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-xl overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 flex flex-col"
+            className="relative bg-white rounded-[5px] shadow-2xl w-full max-w-xl overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 flex flex-col"
             onClick={() => setActiveMultiSelect(null)}
           >
             <div className="px-8 py-6 border-b border-palette-tan/15 flex items-center justify-between bg-palette-beige/10">
               <h3 className="text-lg font-black text-palette-maroon tracking-tight flex items-center gap-2">
-                <div className="p-1.5 bg-palette-red rounded-[3px] text-white shadow-md flex items-center justify-center">
+                <div className="p-1.5 bg-palette-red rounded-[5px] text-white shadow-md flex items-center justify-center">
                   <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>edit_square</span>
                 </div>
                 Yayıncı Ekle
@@ -1067,13 +1067,13 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
                   Kullanıcıları Seçin <span className="text-palette-red">*</span>
                 </label>
                 <div
-                  className={`min-h-[44px] p-2 bg-palette-beige/30 border ${activeMultiSelect === 'users' ? 'border-palette-red ring-4 ring-palette-red/5' : 'border-palette-tan/10'} rounded-[3px] transition-all flex flex-wrap gap-2 items-center cursor-text relative group`}
+                  className={`min-h-[44px] p-2 bg-palette-beige/30 border ${activeMultiSelect === 'users' ? 'border-palette-red ring-4 ring-palette-red/5' : 'border-palette-tan/10'} rounded-[5px] transition-all flex flex-wrap gap-2 items-center cursor-text relative group`}
                   onClick={(e) => { e.stopPropagation(); setActiveMultiSelect('users'); }}
                 >
                   {selectedUsersForPublisher.map(id => {
                     const u = profiles.find(p => p.id === id);
                     return (
-                      <div key={id} className="flex items-center gap-2 bg-white/80 border border-palette-tan/10 px-2.5 py-1 rounded-[3px] text-[12px] font-bold text-palette-maroon shadow-sm group/tag animate-in zoom-in-95">
+                      <div key={id} className="flex items-center gap-2 bg-white/80 border border-palette-tan/10 px-2.5 py-1 rounded-[5px] text-[12px] font-bold text-palette-maroon shadow-sm group/tag animate-in zoom-in-95">
                         <span>{u?.full_name} ({u?.email})</span>
                         <button
                           onClick={(e) => { e.stopPropagation(); setSelectedUsersForPublisher(prev => prev.filter(i => i !== id)); }}
@@ -1100,7 +1100,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
                     </button>
                   )}
                   {activeMultiSelect === 'users' && (
-                    <div className="absolute top-[calc(100%+2px)] left-0 right-0 bg-white border border-palette-tan/20 rounded-[3px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-[200] max-h-60 overflow-y-auto py-2 animate-in fade-in slide-in-from-top-1">
+                    <div className="absolute top-[calc(100%+2px)] left-0 right-0 bg-white border border-palette-tan/20 rounded-[5px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-[200] max-h-60 overflow-y-auto py-2 animate-in fade-in slide-in-from-top-1">
                       {profiles.filter(u => !selectedUsersForPublisher.includes(u.id) && (u.full_name?.toLowerCase().includes(userSearchTerm.toLowerCase()) || u.email?.toLowerCase().includes(userSearchTerm.toLowerCase()))).length === 0 ? (
                         <div className="px-5 py-4 text-center text-palette-tan/40 text-[12px] font-bold uppercase tracking-widest italic">Sonuç bulunamadı</div>
                       ) : (
@@ -1131,20 +1131,20 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
                   </label>
                   <button
                     onClick={() => { /* Navigate to publishers */ window.location.href = '/admin/publishers'; }}
-                    className="flex items-center gap-1.5 h-8 px-3 border border-palette-red/30 text-palette-red rounded-[3px] text-[10px] font-black uppercase tracking-widest hover:bg-palette-red hover:text-white transition-all active:scale-95"
+                    className="flex items-center gap-1.5 h-8 px-3 border border-palette-red/30 text-palette-red rounded-[5px] text-[10px] font-black uppercase tracking-widest hover:bg-palette-red hover:text-white transition-all active:scale-95"
                   >
                     <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>add</span>
                     Yeni Yayıncı Ekle
                   </button>
                 </div>
                 <div
-                  className={`min-h-[44px] p-2 bg-palette-beige/30 border ${activeMultiSelect === 'publishers' ? 'border-palette-red ring-4 ring-palette-red/5' : 'border-palette-tan/10'} rounded-[3px] transition-all flex flex-wrap gap-2 items-center cursor-text relative group`}
+                  className={`min-h-[44px] p-2 bg-palette-beige/30 border ${activeMultiSelect === 'publishers' ? 'border-palette-red ring-4 ring-palette-red/5' : 'border-palette-tan/10'} rounded-[5px] transition-all flex flex-wrap gap-2 items-center cursor-text relative group`}
                   onClick={(e) => { e.stopPropagation(); setActiveMultiSelect('publishers'); }}
                 >
                   {selectedPublishersForUser.map(id => {
                     const p = publishersList.find(i => i.id === id);
                     return (
-                      <div key={id} className="flex items-center gap-2 bg-white/80 border border-palette-tan/10 px-2.5 py-1 rounded-[3px] text-[12px] font-bold text-palette-maroon shadow-sm group/tag animate-in zoom-in-95">
+                      <div key={id} className="flex items-center gap-2 bg-white/80 border border-palette-tan/10 px-2.5 py-1 rounded-[5px] text-[12px] font-bold text-palette-maroon shadow-sm group/tag animate-in zoom-in-95">
                         <span>{p?.full_name} ({p?.email})</span>
                         <button
                           onClick={(e) => { e.stopPropagation(); setSelectedPublishersForUser(prev => prev.filter(i => i !== id)); }}
@@ -1171,7 +1171,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
                     </button>
                   )}
                   {activeMultiSelect === 'publishers' && (
-                    <div className="absolute top-[calc(100%+2px)] left-0 right-0 bg-white border border-palette-tan/20 rounded-[3px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-[200] max-h-60 overflow-y-auto py-2 animate-in fade-in slide-in-from-top-2">
+                    <div className="absolute top-[calc(100%+2px)] left-0 right-0 bg-white border border-palette-tan/20 rounded-[5px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-[200] max-h-60 overflow-y-auto py-2 animate-in fade-in slide-in-from-top-2">
                       {publishersList.filter(p => !selectedPublishersForUser.includes(p.id) && (p.full_name?.toLowerCase().includes(pubSearchTerm.toLowerCase()) || p.email?.toLowerCase().includes(pubSearchTerm.toLowerCase()))).length === 0 ? (
                         <div className="px-5 py-4 text-center text-palette-tan/40 text-[12px] font-bold uppercase tracking-widest italic">Sonuç bulunamadı</div>
                       ) : (
@@ -1193,7 +1193,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
                 </div>
               </div>
 
-              <div className="bg-palette-beige/20 p-4 rounded-[3px] border border-palette-tan/5 mt-4">
+              <div className="bg-palette-beige/20 p-4 rounded-[5px] border border-palette-tan/5 mt-4">
                 <p className="text-[10px] font-bold text-palette-tan/40 leading-relaxed uppercase">
                   Not: Bir kullanıcıya birden fazla yayıncı atayarak içerik üretim yetkisini genişletebilirsiniz.
                 </p>
@@ -1233,7 +1233,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
                   }
                 }}
                 disabled={saving || selectedUsersForPublisher.length === 0 || selectedPublishersForUser.length === 0}
-                className="flex items-center justify-center gap-2 px-6 py-2 bg-palette-tan text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-maroon shadow-xl active:scale-95 disabled:opacity-40 transition-all uppercase"
+                className="flex items-center justify-center gap-2 px-6 py-2 bg-palette-tan text-white rounded-[5px] font-black text-[13px] tracking-widest hover:bg-palette-maroon shadow-xl active:scale-95 disabled:opacity-40 transition-all uppercase"
               >
                 {saving ? <span className="material-symbols-rounded animate-spin" style={{ fontSize: '16px' }}>progress_activity</span> : <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>save</span>}
                 <span>Kaydet</span>
@@ -1248,12 +1248,12 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
         <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-palette-maroon/90 backdrop-blur-md animate-in fade-in" onClick={handleCloseUserPublisherModal} />
           <div
-            className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-xl overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 flex flex-col"
+            className="relative bg-white rounded-[5px] shadow-2xl w-full max-w-xl overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 flex flex-col"
             onClick={() => setActiveMultiSelect(null)}
           >
             <div className="px-8 py-6 border-b border-palette-tan/15 flex items-center justify-between bg-palette-beige/10">
               <h3 className="text-lg font-black text-palette-maroon tracking-tight flex items-center gap-2">
-                <div className="p-1.5 bg-palette-red rounded-[3px] text-white shadow-md flex items-center justify-center">
+                <div className="p-1.5 bg-palette-red rounded-[5px] text-white shadow-md flex items-center justify-center">
                   <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>edit_square</span>
                 </div>
                 Kullanıcı Yayıncılarını Düzenle
@@ -1268,8 +1268,8 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
 
             <div className="p-8 space-y-6">
 
-              <div className="bg-cyan-50/50 border border-cyan-100 p-4 rounded-[3px] flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
-                <div className="w-8 h-8 rounded-full bg-cyan-100 flex items-center justify-center text-cyan-600">
+              <div className="bg-cyan-50/50 border border-cyan-100 p-4 rounded-[5px] flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+                <div className="w-8 h-8 rounded-[5px] bg-cyan-100 flex items-center justify-center text-cyan-600">
                   <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>info</span>
                 </div>
                 <p className="text-[12px] font-bold text-cyan-700">
@@ -1284,20 +1284,20 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
                   </label>
                   <button
                     onClick={() => window.location.href = '/admin/publishers'}
-                    className="flex items-center gap-1.5 h-8 px-3 border border-palette-red/30 text-palette-red rounded-[3px] text-[10px] font-black uppercase tracking-widest hover:bg-palette-red hover:text-white transition-all active:scale-95"
+                    className="flex items-center gap-1.5 h-8 px-3 border border-palette-red/30 text-palette-red rounded-[5px] text-[10px] font-black uppercase tracking-widest hover:bg-palette-red hover:text-white transition-all active:scale-95"
                   >
                     <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>add</span>
                     Yeni Yayıncı Ekle
                   </button>
                 </div>
                 <div
-                  className={`min-h-[44px] p-2 bg-palette-beige/30 border ${activeMultiSelect === 'publishers' ? 'border-palette-red ring-4 ring-palette-red/5' : 'border-palette-tan/10'} rounded-[3px] transition-all flex flex-wrap gap-2 items-center cursor-text relative group`}
+                  className={`min-h-[44px] p-2 bg-palette-beige/30 border ${activeMultiSelect === 'publishers' ? 'border-palette-red ring-4 ring-palette-red/5' : 'border-palette-tan/10'} rounded-[5px] transition-all flex flex-wrap gap-2 items-center cursor-text relative group`}
                   onClick={(e) => { e.stopPropagation(); setActiveMultiSelect('publishers'); }}
                 >
                   {selectedPublishersForUser.map(id => {
                     const p = publishersList.find(i => i.id === id);
                     return (
-                      <div key={id} className="flex items-center gap-2 bg-white/80 border border-palette-tan/10 px-2.5 py-1 rounded-[3px] text-[12px] font-bold text-palette-maroon shadow-sm group/tag animate-in zoom-in-95">
+                      <div key={id} className="flex items-center gap-2 bg-white/80 border border-palette-tan/10 px-2.5 py-1 rounded-[5px] text-[12px] font-bold text-palette-maroon shadow-sm group/tag animate-in zoom-in-95">
                         <span>{p?.full_name} ({p?.email})</span>
                         <button
                           onClick={(e) => { e.stopPropagation(); setSelectedPublishersForUser(prev => prev.filter(i => i !== id)); }}
@@ -1324,7 +1324,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
                     </button>
                   )}
                   {activeMultiSelect === 'publishers' && (
-                    <div className="absolute top-[calc(100%+2px)] left-0 right-0 bg-white border border-palette-tan/20 rounded-[3px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-[200] max-h-60 overflow-y-auto py-2 animate-in fade-in slide-in-from-top-1">
+                    <div className="absolute top-[calc(100%+2px)] left-0 right-0 bg-white border border-palette-tan/20 rounded-[5px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-[200] max-h-60 overflow-y-auto py-2 animate-in fade-in slide-in-from-top-1">
                       {publishersList.filter(p => !selectedPublishersForUser.includes(p.id) && (p.full_name?.toLowerCase().includes(pubSearchTerm.toLowerCase()) || p.email?.toLowerCase().includes(pubSearchTerm.toLowerCase()))).length === 0 ? (
                         <div className="px-5 py-4 text-center text-palette-tan/40 text-[12px] font-bold uppercase tracking-widest italic">Sonuç bulunamadı</div>
                       ) : (
@@ -1347,7 +1347,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
                 <p className="text-[10px] font-bold text-palette-tan/40 ml-1">Kullanıcı için Yayıncıları Seçin</p>
               </div>
 
-              <div className="bg-palette-beige/20 p-4 rounded-[3px] border border-palette-tan/5 mt-4">
+              <div className="bg-palette-beige/20 p-4 rounded-[5px] border border-palette-tan/5 mt-4">
                 <p className="text-[10px] font-bold text-palette-tan/40 leading-relaxed uppercase italic">
                   Not: Bir kullanıcıya birden fazla yayıncı atayarak içerik üretim yetkisini genişletebilirsiniz.
                 </p>
@@ -1384,7 +1384,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
                   }
                 }}
                 disabled={saving}
-                className="flex items-center justify-center gap-2 px-6 py-2 bg-palette-tan text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-maroon shadow-xl active:scale-95 disabled:opacity-40 transition-all uppercase"
+                className="flex items-center justify-center gap-2 px-6 py-2 bg-palette-tan text-white rounded-[5px] font-black text-[13px] tracking-widest hover:bg-palette-maroon shadow-xl active:scale-95 disabled:opacity-40 transition-all uppercase"
               >
                 {saving ? <span className="material-symbols-rounded animate-spin" style={{ fontSize: '16px' }}>progress_activity</span> : <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>save</span>}
                 <span>Kaydet</span>
@@ -1399,14 +1399,14 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
       {statusModal.show && (
         <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-palette-maroon/20 backdrop-blur-[2px] animate-in fade-in" onClick={handleCloseStatusModal} />
-          <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-xs overflow-hidden animate-in slide-in-from-bottom-4 border border-palette-tan/15 p-8 text-center">
-            <div className={`w-14 h-14 rounded-[3px] flex items-center justify-center mx-auto mb-6 ${statusModal.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
+          <div className="relative bg-white rounded-[5px] shadow-2xl w-full max-w-xs overflow-hidden animate-in slide-in-from-bottom-4 border border-palette-tan/15 p-8 text-center">
+            <div className={`w-14 h-14 rounded-[5px] flex items-center justify-center mx-auto mb-6 ${statusModal.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
               {statusModal.type === 'error' ? <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>close</span> : <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>check_circle</span>}
             </div>
             <p className="text-base font-black text-palette-maroon mb-8 leading-relaxed">{statusModal.message}</p>
             <button
               onClick={handleCloseStatusModal}
-              className="w-full py-2.5 bg-palette-tan text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-maroon transition-all shadow-lg active:scale-95 uppercase"
+              className="w-full py-2.5 bg-palette-tan text-white rounded-[5px] font-black text-[13px] tracking-widest hover:bg-palette-maroon transition-all shadow-lg active:scale-95 uppercase"
             >
               {t('common.ok')}
             </button>

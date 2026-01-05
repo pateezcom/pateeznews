@@ -61,7 +61,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack }) => {
       case NewsType.POLL: return <PollCard data={data} />;
       case NewsType.VS: return <VSCard data={data} />;
       default: return (
-        <div className="rounded-lg overflow-hidden border border-gray-100 shadow-xl mt-4 mb-8">
+        <div className="rounded-[5px] overflow-hidden border border-gray-100 shadow-xl mt-4 mb-8">
           <img
             src={data.thumbnail}
             className="w-full h-auto object-cover max-h-[600px]"
@@ -72,7 +72,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack }) => {
   };
 
   return (
-    <div className="animate-in bg-white rounded-lg border border-gray-200 shadow-sm relative min-h-screen mb-10">
+    <div className="animate-in bg-white rounded-[5px] border border-gray-200 shadow-sm relative min-h-screen mb-10">
 
       {/* Reading Progress Bar */}
       <div className="fixed top-0 left-0 w-full h-1 z-[60] bg-gray-100/50 backdrop-blur-sm">
@@ -83,7 +83,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack }) => {
       </div>
 
       {/* TOP HEADER - FULL WIDTH AREA */}
-      <div className="px-6 md:px-10 pt-8 pb-6 border-b border-gray-50 bg-gray-50/30 rounded-t-lg">
+      <div className="px-6 md:px-10 pt-8 pb-6 border-b border-gray-50 bg-gray-50/30 rounded-t-[5px]">
         {/* Breadcrumbs */}
         <nav className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-6">
           <button onClick={onBack} className="flex items-center gap-1.5 hover:text-blue-600 transition-colors">
@@ -107,7 +107,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack }) => {
         {/* Meta Info Bar */}
         <div className="flex items-center justify-between mt-10 pt-6 border-t border-gray-100">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden shadow-sm">
+            <div className="w-12 h-12 rounded-[5px] bg-gray-100 overflow-hidden shadow-sm">
               <img src={data.sourceAvatar || `https://picsum.photos/seed/auth${data.id}/100`} className="w-full h-full object-cover" />
             </div>
             <div>
@@ -123,11 +123,11 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack }) => {
           </div>
 
           <div className="flex items-center gap-2">
-            <button className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-lg text-xs font-black transition-all hover:bg-gray-800 shadow-md">
+            <button className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-[5px] text-xs font-black transition-all hover:bg-gray-800 shadow-md">
               <Share2 size={14} />
               <span>Paylaş</span>
             </button>
-            <button onClick={onBack} className="p-2.5 bg-white border border-gray-200 text-gray-400 rounded-lg hover:text-blue-600 transition-all">
+            <button onClick={onBack} className="p-2.5 bg-white border border-gray-200 text-gray-400 rounded-[5px] hover:text-blue-600 transition-all">
               <ArrowLeft size={20} />
             </button>
           </div>
@@ -145,20 +145,20 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack }) => {
             <span className="text-xs font-black text-blue-600 mb-2">{data.shares.toLocaleString()}</span>
           </div>
 
-          <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#1DA1F2] text-white hover:scale-110 transition-all shadow-sm">
+          <button className="w-10 h-10 flex items-center justify-center rounded-[5px] bg-[#1DA1F2] text-white hover:scale-110 transition-all shadow-sm">
             <Twitter size={18} className="fill-current" />
           </button>
-          <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#4267B2] text-white hover:scale-110 transition-all shadow-sm">
+          <button className="w-10 h-10 flex items-center justify-center rounded-[5px] bg-[#4267B2] text-white hover:scale-110 transition-all shadow-sm">
             <Facebook size={18} className="fill-current" />
           </button>
-          <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#0077B5] text-white hover:scale-110 transition-all shadow-sm">
+          <button className="w-10 h-10 flex items-center justify-center rounded-[5px] bg-[#0077B5] text-white hover:scale-110 transition-all shadow-sm">
             <Linkedin size={18} className="fill-current" />
           </button>
-          <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-900 hover:text-white transition-all shadow-sm">
+          <button className="w-10 h-10 flex items-center justify-center rounded-[5px] bg-gray-100 text-gray-500 hover:bg-gray-900 hover:text-white transition-all shadow-sm">
             <LinkIcon size={18} />
           </button>
           <div className="w-px h-10 bg-gray-100 my-2"></div>
-          <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-sm">
+          <button className="w-10 h-10 flex items-center justify-center rounded-[5px] bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-sm">
             <Heart size={18} />
           </button>
         </aside>
@@ -188,7 +188,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack }) => {
                     return (
                       <div key={item.id} className="space-y-3">
                         {item.title && <h3 className="text-2xl font-black text-gray-900">{item.title}</h3>}
-                        <div className="rounded-xl overflow-hidden border border-gray-100 shadow-md">
+                        <div className="rounded-[5px] overflow-hidden border border-gray-100 shadow-md">
                           <img src={item.mediaUrl} className="w-full h-auto object-cover" alt={item.title} />
                         </div>
                         {item.description && <p className="text-sm text-gray-500 font-medium italic text-center px-4">{item.description}</p>}
@@ -196,7 +196,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack }) => {
                     );
                   case 'quote':
                     return (
-                      <div key={item.id} className="my-14 p-10 bg-gray-50 rounded-lg border-l-4 border-blue-600 italic">
+                      <div key={item.id} className="my-14 p-10 bg-gray-50 rounded-[5px] border-l-4 border-blue-600 italic">
                         <p className="text-2xl font-bold text-gray-800 leading-relaxed">
                           "{item.description}"
                         </p>
@@ -266,7 +266,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack }) => {
           <div className="mt-16 flex flex-wrap gap-2 pb-10 border-b border-gray-100">
             <span className="w-full text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Konu Başlıkları:</span>
             {['Teknoloji', 'Gündem', 'BuzzÖzel', 'Analiz', 'Trend'].map(tag => (
-              <button key={tag} className="px-4 py-2 bg-gray-100 hover:bg-blue-600 hover:text-white text-gray-600 rounded-lg text-xs font-bold transition-all">
+              <button key={tag} className="px-4 py-2 bg-gray-100 hover:bg-blue-600 hover:text-white text-gray-600 rounded-[5px] text-xs font-bold transition-all">
                 #{tag}
               </button>
             ))}
@@ -275,16 +275,16 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack }) => {
           {/* Interactive Footer Actions */}
           <div className="mt-12 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <button className="flex items-center gap-2 px-6 py-3 bg-rose-50 text-rose-600 rounded-lg font-black text-sm transition-all hover:bg-rose-100 group">
+              <button className="flex items-center gap-2 px-6 py-3 bg-rose-50 text-rose-600 rounded-[5px] font-black text-sm transition-all hover:bg-rose-100 group">
                 <Heart size={20} className="group-hover:scale-110 transition-transform" />
                 <span>{data.likes.toLocaleString()}</span>
               </button>
-              <button className="flex items-center gap-2 px-6 py-3 bg-blue-50 text-blue-600 rounded-lg font-black text-sm transition-all hover:bg-blue-100">
+              <button className="flex items-center gap-2 px-6 py-3 bg-blue-50 text-blue-600 rounded-[5px] font-black text-sm transition-all hover:bg-blue-100">
                 <MessageSquare size={20} />
                 <span>{data.comments} Yorum</span>
               </button>
             </div>
-            <button className="p-3 bg-gray-100 text-gray-500 rounded-lg hover:bg-gray-200 transition-all">
+            <button className="p-3 bg-gray-100 text-gray-500 rounded-[5px] hover:bg-gray-200 transition-all">
               <Bookmark size={20} />
             </button>
           </div>
@@ -301,7 +301,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack }) => {
       {/* Back to Top */}
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        className={`fixed bottom-8 right-8 p-4 bg-white border border-gray-200 rounded-lg shadow-xl text-gray-400 hover:text-blue-600 transition-all z-50 ${scrollProgress > 20 ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0 pointer-events-none'}`}
+        className={`fixed bottom-8 right-8 p-4 bg-white border border-gray-200 rounded-[5px] shadow-xl text-gray-400 hover:text-blue-600 transition-all z-50 ${scrollProgress > 20 ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0 pointer-events-none'}`}
       >
         <ChevronRight size={20} className="-rotate-90" />
       </button>

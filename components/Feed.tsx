@@ -40,10 +40,10 @@ const Feed: React.FC<FeedProps> = ({ newsData, onNewsSelect, onSourceClick }) =>
             </h2>
           </div>
 
-          <div className="flex p-1 bg-palette-beige/10 rounded-[14px] border border-palette-beige/20 backdrop-blur-sm self-start sm:self-auto shadow-inner">
+          <div className="flex p-1 bg-palette-beige/10 rounded-[5px] border border-palette-beige/20 backdrop-blur-sm self-start sm:self-auto shadow-inner">
             <button
               onClick={() => setActiveFilter('latest')}
-              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-[10px] text-[11px] font-bold tracking-tight transition-all duration-500 ${activeFilter === 'latest'
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-[5px] text-[11px] font-bold tracking-tight transition-all duration-500 ${activeFilter === 'latest'
                 ? 'bg-palette-red text-white shadow-lg shadow-palette-red/20'
                 : 'text-palette-tan hover:text-palette-red'
                 }`}
@@ -54,7 +54,7 @@ const Feed: React.FC<FeedProps> = ({ newsData, onNewsSelect, onSourceClick }) =>
 
             <button
               onClick={() => setActiveFilter('popular')}
-              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-[10px] text-[11px] font-bold tracking-tight transition-all duration-500 ${activeFilter === 'popular'
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-[5px] text-[11px] font-bold tracking-tight transition-all duration-500 ${activeFilter === 'popular'
                 ? 'bg-palette-red text-white shadow-lg shadow-palette-red/20'
                 : 'text-palette-tan hover:text-palette-red'
                 }`}
@@ -76,7 +76,7 @@ const Feed: React.FC<FeedProps> = ({ newsData, onNewsSelect, onSourceClick }) =>
           />
         ))}
         {displayData.length === 0 && (
-          <div className="text-center py-20 bg-palette-beige/5 rounded-[40px] border border-dashed border-palette-beige/40">
+          <div className="text-center py-20 bg-palette-beige/5 rounded-[5px] border border-dashed border-palette-beige/40">
             <span className="text-palette-tan font-bold tracking-widest text-xs uppercase">{t('feed.empty')}</span>
           </div>
         )}

@@ -60,24 +60,24 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
   return (
     <div
       onClick={handleCardClick}
-      className="bg-white rounded-2xl border border-palette-beige/30 shadow-[0_2px_20px_rgba(24,37,64,0.03)] overflow-hidden transition-all duration-300 hover:shadow-[0_8px_30px_rgba(24,37,64,0.06)] hover:border-palette-red/10 cursor-pointer group/card"
+      className="bg-white rounded-[5px] border border-palette-beige/30 shadow-[0_2px_20px_rgba(24,37,64,0.03)] overflow-hidden transition-all duration-300 hover:shadow-[0_8px_30px_rgba(24,37,64,0.06)] hover:border-palette-red/10 cursor-pointer group/card"
     >
       {/* HEADER */}
       <div className="px-6 pt-6 pb-2 flex items-start justify-between">
         <div className="flex items-center gap-3.5">
           <div
             onClick={handleSourceAction}
-            className="w-11 h-11 rounded-xl bg-palette-beige/20 p-[2px] border border-palette-beige shadow-sm cursor-pointer group/avatar relative"
+            className="w-11 h-11 rounded-[5px] bg-palette-beige/20 p-[2px] border border-palette-beige shadow-sm cursor-pointer group/avatar relative"
           >
-            <div className="w-full h-full rounded-[10px] overflow-hidden">
+            <div className="w-full h-full rounded-[5px] overflow-hidden">
               <img
                 src={data.sourceAvatar || `https://picsum.photos/seed/source${data.id}/100`}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover/avatar:scale-110"
                 alt={data.source}
               />
             </div>
-            <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-white rounded-full flex items-center justify-center">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-white rounded-[5px] flex items-center justify-center">
+              <div className="w-2 h-2 bg-green-500 rounded-[5px] animate-pulse"></div>
             </div>
           </div>
 
@@ -92,8 +92,8 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
               <span className="material-symbols-rounded text-palette-red" style={{ fontSize: '16px', fontVariationSettings: "'FILL' 1" }}>verified</span>
             </div>
             <div className="flex items-center gap-1.5 text-[11px] font-bold text-palette-tan/40 leading-none mt-1">
-              <span className="text-palette-red bg-palette-red/5 px-1.5 py-0.5 rounded-md uppercase tracking-wider text-[9px]">{data.category}</span>
-              <span className="w-0.5 h-0.5 bg-palette-beige rounded-full"></span>
+              <span className="text-palette-red bg-palette-red/5 px-1.5 py-0.5 rounded-[5px] uppercase tracking-wider text-[9px]">{data.category}</span>
+              <span className="w-0.5 h-0.5 bg-palette-beige rounded-[5px]"></span>
               <span>{data.timestamp}</span>
             </div>
           </div>
@@ -121,7 +121,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
                 e.stopPropagation();
                 setIsLiked(!isLiked);
               }}
-              className={`flex items-center gap-2 px-2.5 py-1.5 rounded-xl transition-all duration-500 group/like ${isLiked
+              className={`flex items-center gap-2 px-2.5 py-1.5 rounded-[5px] transition-all duration-500 group/like ${isLiked
                 ? 'bg-palette-red/5 text-palette-red'
                 : 'text-palette-tan/50 hover:text-palette-red hover:bg-palette-red/5'
                 }`}
@@ -145,7 +145,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
                 e.stopPropagation();
                 setShowComments(!showComments);
               }}
-              className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl transition-all duration-500 group/comment text-palette-tan/50 hover:text-palette-maroon hover:bg-palette-tan/5"
+              className="flex items-center gap-2 px-2.5 py-1.5 rounded-[5px] transition-all duration-500 group/comment text-palette-tan/50 hover:text-palette-maroon hover:bg-palette-tan/5"
             >
               <span
                 className="material-symbols-rounded transition-all duration-300"
@@ -166,7 +166,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
                 e.stopPropagation();
                 setIsBookmarked(!isBookmarked);
               }}
-              className={`w-9 h-9 flex items-center justify-center rounded-xl transition-all duration-500 group/bookmark ${isBookmarked
+              className={`w-9 h-9 flex items-center justify-center rounded-[5px] transition-all duration-500 group/bookmark ${isBookmarked
                 ? 'text-palette-red bg-palette-red/5'
                 : 'text-palette-tan/40 hover:text-palette-red hover:bg-palette-red/5'
                 }`}
@@ -184,7 +184,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
 
             <button
               onClick={(e) => e.stopPropagation()}
-              className="flex items-center gap-2 px-2 py-1.5 rounded-xl text-palette-tan/50 hover:text-palette-red transition-all duration-500 active:scale-95 group/share"
+              className="flex items-center gap-2 px-2 py-1.5 rounded-[5px] text-palette-tan/50 hover:text-palette-red transition-all duration-500 active:scale-95 group/share"
             >
               <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>
                 ios_share

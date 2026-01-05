@@ -41,7 +41,7 @@ const Navbar: React.FC<NavbarProps> = ({ onHomeClick, onProfileClick, isLoggedIn
             onClick={onHomeClick}
             className="flex items-center gap-3 cursor-pointer group select-none z-20 flex-shrink-0 lg:w-[260px]"
           >
-            <div className="w-9 h-9 bg-palette-red rounded-xl flex items-center justify-center shadow-lg shadow-palette-red/10 group-hover:scale-105 transition-all duration-500">
+            <div className="w-9 h-9 bg-palette-red rounded-[5px] flex items-center justify-center shadow-lg shadow-palette-red/10 group-hover:scale-105 transition-all duration-500">
               <span className="material-symbols-rounded text-white" style={{ fontSize: '22px', fontVariationSettings: "'FILL' 1, 'wght' 600" }}>bolt</span>
             </div>
             <div className="flex flex-col justify-center">
@@ -83,7 +83,7 @@ const Navbar: React.FC<NavbarProps> = ({ onHomeClick, onProfileClick, isLoggedIn
           <div className="flex items-center gap-1 ml-auto z-20">
             <button
               onClick={() => setIsSearchOpen(!isSearchOpen)}
-              className={`w-10 h-10 flex items-center justify-center rounded-xl transition-colors duration-100 ${isSearchOpen
+              className={`w-10 h-10 flex items-center justify-center rounded-[5px] transition-colors duration-100 ${isSearchOpen
                 ? 'bg-gray-900 text-white shadow-md'
                 : 'text-palette-tan hover:bg-palette-beige/10'
                 }`}
@@ -94,12 +94,12 @@ const Navbar: React.FC<NavbarProps> = ({ onHomeClick, onProfileClick, isLoggedIn
             </button>
 
             <div className="relative" ref={langMenuRef}>
-              <button onClick={() => setShowLangMenu(!showLangMenu)} className="h-10 flex items-center gap-0.5 px-2 rounded-xl text-palette-tan hover:bg-palette-beige/10 transition-colors font-bold text-[10px] uppercase">
+              <button onClick={() => setShowLangMenu(!showLangMenu)} className="h-10 flex items-center gap-0.5 px-2 rounded-[5px] text-palette-tan hover:bg-palette-beige/10 transition-colors font-bold text-[10px] uppercase">
                 <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>public</span>
                 <span className={`material-symbols-rounded transition-transform duration-200 ${showLangMenu ? 'rotate-180' : ''}`} style={{ fontSize: '16px' }}>expand_more</span>
               </button>
               {showLangMenu && (
-                <div className="absolute top-full right-0 mt-2 w-40 bg-white rounded-2xl shadow-2xl border border-palette-beige/10 py-1 overflow-hidden animate-in">
+                <div className="absolute top-full right-0 mt-2 w-40 bg-white rounded-[5px] shadow-2xl border border-palette-beige/10 py-1 overflow-hidden animate-in">
                   {availableLanguages.map((lang) => (
                     <button key={lang.code} onClick={() => { setLanguage(lang.code); setShowLangMenu(false); }}
                       className={`w-full flex items-center gap-3 px-4 py-2.5 text-[11px] font-bold transition-all ${currentLang.code === lang.code ? 'bg-palette-beige/10 text-palette-red' : 'text-palette-tan hover:bg-palette-beige/5'}`}>
@@ -113,13 +113,13 @@ const Navbar: React.FC<NavbarProps> = ({ onHomeClick, onProfileClick, isLoggedIn
 
             <button
               onClick={onProfileClick}
-              className={`flex items-center gap-1.5 py-1.5 px-2 rounded-xl transition-all duration-200 group/profile active:scale-95 ${isLoggedIn
+              className={`flex items-center gap-1.5 py-1.5 px-2 rounded-[5px] transition-all duration-200 group/profile active:scale-95 ${isLoggedIn
                 ? 'bg-palette-beige/5 border border-palette-beige/20 hover:border-palette-tan/30'
                 : 'hover:bg-palette-beige/10'
                 }`}
             >
               <div className={`flex items-center justify-center transition-all duration-300 ${isLoggedIn
-                ? 'w-7 h-7 rounded-full border border-palette-tan/20 overflow-hidden shadow-sm'
+                ? 'w-7 h-7 rounded-[5px] border border-palette-tan/20 overflow-hidden shadow-sm'
                 : 'w-6 h-6'
                 }`}>
                 {isLoggedIn ? (
@@ -135,7 +135,7 @@ const Navbar: React.FC<NavbarProps> = ({ onHomeClick, onProfileClick, isLoggedIn
               )}
             </button>
 
-            <button className="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-palette-beige/10 text-gray-900 ml-1">
+            <button className="lg:hidden w-10 h-10 flex items-center justify-center rounded-[5px] bg-palette-beige/10 text-gray-900 ml-1">
               <span className="material-symbols-rounded" style={{ fontSize: '22px' }}>menu</span>
             </button>
           </div>
@@ -158,7 +158,7 @@ const Navbar: React.FC<NavbarProps> = ({ onHomeClick, onProfileClick, isLoggedIn
               type="text"
               autoFocus={isSearchOpen}
               placeholder={t('nav.search')}
-              className="w-full h-11 bg-palette-beige/10 rounded-xl border border-palette-beige focus:border-palette-tan/30 text-sm font-bold text-gray-900 placeholder:text-palette-tan/20 outline-none pl-11 pr-11 transition-none"
+              className="w-full h-11 bg-palette-beige/10 rounded-[5px] border border-palette-beige focus:border-palette-tan/30 text-sm font-bold text-gray-900 placeholder:text-palette-tan/20 outline-none pl-11 pr-11 transition-none"
             />
             <div className="absolute right-3.5 flex items-center gap-2 z-10">
               <button

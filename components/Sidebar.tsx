@@ -94,7 +94,7 @@ const Sidebar: React.FC<SidebarProps> = ({ items: propItems, onPublisherItemClic
                 if (!isExpanded) localStorage.setItem('buzz_active_parent_top', cityRoot.id);
                 else localStorage.removeItem('buzz_active_parent_top');
               }}
-              className="w-full flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-palette-beige/10 transition-colors group"
+              className="w-full flex items-center justify-between py-2.5 px-3 rounded-[5px] hover:bg-palette-beige/10 transition-colors group"
             >
               <div className="flex items-center gap-3">
                 <div className={`transition-colors ${selectedCityId ? 'text-palette-red' : 'text-palette-tan/20'}`}>
@@ -131,7 +131,7 @@ const Sidebar: React.FC<SidebarProps> = ({ items: propItems, onPublisherItemClic
                         localStorage.removeItem('buzz_active_parent_top');
                         setActiveParentCat(null);
                       }}
-                      className={`text-[12px] font-bold px-3 py-1.5 transition-colors w-full text-left rounded-lg ${selectedCityId === child.id ? 'text-palette-red bg-palette-red/5' : 'text-palette-tan/40 hover:text-palette-tan hover:bg-palette-beige/5'}`}
+                      className={`text-[12px] font-bold px-3 py-1.5 transition-colors w-full text-left rounded-[5px] ${selectedCityId === child.id ? 'text-palette-red bg-palette-red/5' : 'text-palette-tan/40 hover:text-palette-tan hover:bg-palette-beige/5'}`}
                     >
                       {child.label}
                     </button>
@@ -151,9 +151,9 @@ const Sidebar: React.FC<SidebarProps> = ({ items: propItems, onPublisherItemClic
             <button
               key={pub.name}
               onClick={() => onPublisherItemClick?.(pub.name)}
-              className="flex items-center gap-3 p-2 rounded-xl hover:bg-palette-beige/10 transition-all group"
+              className="flex items-center gap-3 p-2 rounded-[5px] hover:bg-palette-beige/10 transition-all group"
             >
-              <div className="w-8 h-8 rounded-lg overflow-hidden border border-palette-beige/40">
+              <div className="w-8 h-8 rounded-[5px] overflow-hidden border border-palette-beige/40">
                 <img src={pub.img} className="w-full h-full object-cover" alt={pub.name} />
               </div>
               <span className="text-[13px] font-bold text-palette-tan/60 group-hover:text-gray-900 transition-colors">{pub.name}</span>
@@ -202,7 +202,7 @@ const Sidebar: React.FC<SidebarProps> = ({ items: propItems, onPublisherItemClic
                         handleItemClick(item);
                       }
                     }}
-                    className={`w-full flex items-center justify-between py-2.5 px-3 rounded-xl transition-all ${isSelected ? 'bg-palette-red/5' : 'hover:bg-palette-beige/10'}`}
+                    className={`w-full flex items-center justify-between py-2.5 px-3 rounded-[5px] transition-all ${isSelected ? 'bg-palette-red/5' : 'hover:bg-palette-beige/10'}`}
                   >
                     <div className="flex items-center gap-3">
                       <div className={`transition-colors ${isSelected ? 'text-palette-red' : 'text-palette-tan/20'}`}>
@@ -230,7 +230,7 @@ const Sidebar: React.FC<SidebarProps> = ({ items: propItems, onPublisherItemClic
                             setActiveParentCat(null);
                             localStorage.removeItem('buzz_active_parent_cat');
                           }}
-                          className={`text-[12px] font-bold px-3 py-1.5 transition-colors w-full text-left rounded-lg ${selectedChildId === child.id ? 'text-palette-red bg-palette-red/5' : 'text-palette-tan/40 hover:text-palette-tan hover:bg-palette-beige/5'}`}
+                          className={`text-[12px] font-bold px-3 py-1.5 transition-colors w-full text-left rounded-[5px] ${selectedChildId === child.id ? 'text-palette-red bg-palette-red/5' : 'text-palette-tan/40 hover:text-palette-tan hover:bg-palette-beige/5'}`}
                         >
                           {child.label}
                         </button>

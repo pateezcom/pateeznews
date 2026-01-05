@@ -49,8 +49,8 @@ const Toast: React.FC<ToastProps> = ({ message, type = 'success', onClose }) => 
 
     return (
         <div className={`fixed bottom-10 left-1/2 -translate-x-1/2 z-[999999] transition-all duration-500 ease-out ${isVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-4 scale-95'}`}>
-            <div className={`flex items-center gap-4 px-6 py-4 rounded-[3px] border shadow-2xl backdrop-blur-md ${getColors()} min-w-[320px]`}>
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center bg-white shadow-sm ${getIconColor()}`}>
+            <div className={`flex items-center gap-4 px-6 py-4 rounded-[5px] border shadow-2xl backdrop-blur-md ${getColors()} min-w-[320px]`}>
+                <div className={`w-10 h-10 rounded-[5px] flex items-center justify-center bg-white shadow-sm ${getIconColor()}`}>
                     <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>{getIcon()}</span>
                 </div>
                 <div className="flex-1">
@@ -59,13 +59,13 @@ const Toast: React.FC<ToastProps> = ({ message, type = 'success', onClose }) => 
                 </div>
                 <button
                     onClick={() => { setIsVisible(false); setTimeout(onClose, 300); }}
-                    className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/5 transition-colors opacity-40 hover:opacity-100"
+                    className="w-8 h-8 flex items-center justify-center rounded-[5px] hover:bg-black/5 transition-colors opacity-40 hover:opacity-100"
                 >
                     <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>close</span>
                 </button>
             </div>
             {/* Soft progress bar at the bottom */}
-            <div className={`absolute bottom-0 left-0 h-1 bg-current opacity-10 rounded-full transition-all duration-[3000ms] ease-linear ${isVisible ? 'w-full' : 'w-0'}`} />
+            <div className={`absolute bottom-0 left-0 h-1 bg-current opacity-10 rounded-[5px] transition-all duration-[3000ms] ease-linear ${isVisible ? 'w-full' : 'w-0'}`} />
         </div>
     );
 };

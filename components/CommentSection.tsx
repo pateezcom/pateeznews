@@ -86,17 +86,17 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment, isReply = false, max
     <div className={`flex flex-col ${isReply ? 'mt-3' : 'mt-4'}`}>
       <div className={`flex gap-3 ${isReply ? 'ml-11 relative' : ''}`}>
         {isReply && (
-          <div className="absolute -left-5 top-0 w-4 h-4 border-b-2 border-l-2 border-palette-beige rounded-bl-lg"></div>
+          <div className="absolute -left-5 top-0 w-4 h-4 border-b-2 border-l-2 border-palette-beige rounded-bl-[5px]"></div>
         )}
 
         <div className="flex-shrink-0">
-          <div className={`rounded-full overflow-hidden border border-palette-beige ${isReply ? 'w-7 h-7' : 'w-9 h-9'}`}>
+          <div className={`rounded-[5px] overflow-hidden border border-palette-beige ${isReply ? 'w-7 h-7' : 'w-9 h-9'}`}>
             <img src={comment.avatar} alt={comment.user} className="w-full h-full object-cover" />
           </div>
         </div>
 
         <div className="flex-1">
-          <div className="bg-palette-beige/30 rounded-lg rounded-tl-none p-3 px-3.5 border border-palette-beige/50">
+          <div className="bg-palette-beige/30 rounded-[5px] rounded-tl-none p-3 px-3.5 border border-palette-beige/50">
             <div className="flex items-center justify-between mb-0.5">
               <div className="flex items-center gap-2">
                 <h6 className="text-xs font-bold text-palette-maroon">{comment.user}</h6>
@@ -163,7 +163,7 @@ const CommentSection: React.FC = () => {
         </div>
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="relative flex items-center gap-1.5 bg-white border border-palette-beige text-[10px] font-bold text-palette-tan/50 px-4 py-2 rounded-full shadow-sm hover:bg-palette-beige/20 hover:text-palette-red hover:border-palette-red/20 transition-all group z-10"
+          className="relative flex items-center gap-1.5 bg-white border border-palette-beige text-[10px] font-bold text-palette-tan/50 px-4 py-2 rounded-[5px] shadow-sm hover:bg-palette-beige/20 hover:text-palette-red hover:border-palette-red/20 transition-all group z-10"
         >
           {isExpanded ? (
             <>
@@ -180,16 +180,16 @@ const CommentSection: React.FC = () => {
       </div>
 
       <div className="flex gap-3 mt-4 items-center">
-        <div className="w-9 h-9 rounded-xl bg-palette-beige overflow-hidden flex-shrink-0 border border-palette-beige shadow-sm">
+        <div className="w-9 h-9 rounded-[5px] bg-palette-beige overflow-hidden flex-shrink-0 border border-palette-beige shadow-sm">
           <img src="https://picsum.photos/seed/user1/100" className="w-full h-full object-cover" />
         </div>
         <div className="flex-1 relative group">
           <input
             type="text"
             placeholder="Bir yorum yaz..."
-            className="w-full h-10 pl-4 pr-11 rounded-xl bg-white border border-palette-beige/60 focus:border-palette-red/40 text-[13px] font-medium text-palette-maroon placeholder:text-palette-tan/30 focus:outline-none focus:ring-4 focus:ring-palette-red/5 transition-all shadow-sm"
+            className="w-full h-10 pl-4 pr-11 rounded-[5px] bg-white border border-palette-beige/60 focus:border-palette-red/40 text-[13px] font-medium text-palette-maroon placeholder:text-palette-tan/30 focus:outline-none focus:ring-4 focus:ring-palette-red/5 transition-all shadow-sm"
           />
-          <button className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center bg-palette-beige text-palette-tan/40 rounded-lg hover:bg-palette-red hover:text-white transition-all shadow-sm group-focus-within:bg-palette-red group-focus-within:text-white">
+          <button className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center bg-palette-beige text-palette-tan/40 rounded-[5px] hover:bg-palette-red hover:text-white transition-all shadow-sm group-focus-within:bg-palette-red group-focus-within:text-white">
             <Send size={14} />
           </button>
         </div>

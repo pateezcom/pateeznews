@@ -62,13 +62,13 @@ const PostRow = React.memo(({
                     type="checkbox"
                     checked={isSelected}
                     onChange={() => onSelectRow(post.id)}
-                    className="w-4 h-4 rounded-[2px] border-palette-tan/30 text-palette-maroon focus:ring-palette-maroon cursor-pointer"
+                    className="w-4 h-4 rounded-[5px] border-palette-tan/30 text-palette-maroon focus:ring-palette-maroon cursor-pointer"
                 />
             </td>
             <td className="px-2 py-0 align-middle text-[13px] font-bold text-palette-tan/60">{post.id.slice(0, 5).toUpperCase()}</td>
             <td className="px-2 py-0 align-middle">
                 <div className="flex items-center gap-4 min-w-0">
-                    <div className="w-[60px] h-[60px] flex-shrink-0 bg-palette-beige rounded-[3px] overflow-hidden border border-palette-tan/10 shadow-sm relative group-hover:shadow-md transition-all">
+                    <div className="w-[60px] h-[60px] flex-shrink-0 bg-palette-beige rounded-[5px] overflow-hidden border border-palette-tan/10 shadow-sm relative group-hover:shadow-md transition-all">
                         {post.thumbnail_url ? (
                             <img src={post.thumbnail_url} className="w-full h-full object-contain object-center group-hover:scale-105 transition-transform duration-700" alt="" />
                         ) : (
@@ -93,7 +93,7 @@ const PostRow = React.memo(({
                                     ? translation
                                     : (post.type.charAt(0).toUpperCase() + post.type.slice(1).toLowerCase());
                                 return (
-                                    <span className="text-[10px] font-black text-white bg-palette-maroon/80 px-1.5 py-0.5 rounded-[2px] tracking-tighter">
+                                    <span className="text-[10px] font-black text-white bg-palette-maroon/80 px-1.5 py-0.5 rounded-[5px] tracking-tighter">
                                         {displayType}
                                     </span>
                                 );
@@ -106,7 +106,7 @@ const PostRow = React.memo(({
                 {getCategoryDisplay(post.category)}
             </td>
             <td className="px-3 py-0 align-middle text-center">
-                <span className={`text-[10px] font-black px-2 py-1 rounded-[2px] uppercase tracking-widest inline-block ${post.status === 'published'
+                <span className={`text-[10px] font-black px-2 py-1 rounded-[5px] uppercase tracking-widest inline-block ${post.status === 'published'
                     ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
                     : 'bg-palette-tan/10 text-palette-tan border border-palette-tan/10'
                     }`}>
@@ -114,7 +114,7 @@ const PostRow = React.memo(({
                 </span>
             </td>
             <td className="px-3 py-0 align-middle text-center">
-                <span className="text-[11px] font-black text-white bg-palette-tan/40 px-2 py-1 rounded-[2px] uppercase tracking-widest">{post.language_code || 'tr'}</span>
+                <span className="text-[11px] font-black text-white bg-palette-tan/40 px-2 py-1 rounded-[5px] uppercase tracking-widest">{post.language_code || 'tr'}</span>
             </td>
             <td className="px-3 py-0 align-middle text-center">
                 <span className="text-[12px] font-bold text-palette-maroon/70">{post.profiles?.full_name || '-'}</span>
@@ -142,13 +142,13 @@ const PostRow = React.memo(({
                             e.stopPropagation();
                             setOpenDropdownId(openDropdownId === post.id ? null : post.id);
                         }}
-                        className="w-10 h-10 rounded-full flex items-center justify-center text-palette-tan/40 hover:bg-palette-beige hover:text-palette-maroon transition-all active:scale-90"
+                        className="w-10 h-10 rounded-[5px] flex items-center justify-center text-palette-tan/40 hover:bg-palette-beige hover:text-palette-maroon transition-all active:scale-90"
                     >
                         <span className="material-symbols-rounded">more_vert</span>
                     </button>
 
                     {openDropdownId === post.id && (
-                        <div className={`absolute right-0 ${isLast && index > 0 ? 'bottom-full mb-2' : 'top-full mt-2'} w-48 bg-white border border-palette-tan/20 rounded-[3px] shadow-2xl z-[100] py-2 animate-in fade-in zoom-in-95 duration-200`}>
+                        <div className={`absolute right-0 ${isLast && index > 0 ? 'bottom-full mb-2' : 'top-full mt-2'} w-48 bg-white border border-palette-tan/20 rounded-[5px] shadow-2xl z-[100] py-2 animate-in fade-in zoom-in-95 duration-200`}>
                             <button
                                 onClick={() => {
                                     if (onEditPost) onEditPost(post.id);
@@ -485,7 +485,7 @@ const PostList: React.FC<PostListProps> = ({ onEditPost, onAddPost }) => {
                 {/* STATS CARDS */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {stats.map((stat, i) => (
-                        <div key={i} className="bg-white p-6 rounded-[3px] border border-palette-tan/15 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+                        <div key={i} className="bg-white p-6 rounded-[5px] border border-palette-tan/15 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
                             <div className="flex justify-between items-start mb-4">
                                 <div>
                                     <p className="text-[13px] font-bold text-palette-tan/60">{stat.label}</p>
@@ -494,7 +494,7 @@ const PostList: React.FC<PostListProps> = ({ onEditPost, onAddPost }) => {
                                         <span className={`text-[11px] font-black ${stat.change.startsWith('+') ? 'text-emerald-500' : 'text-palette-red'}`}>({stat.change})</span>
                                     </div>
                                 </div>
-                                <div className={`w-10 h-10 ${stat.iconBg} rounded-[3px] flex items-center justify-center ${stat.color.split(' ')[1]}`}>
+                                <div className={`w-10 h-10 ${stat.iconBg} rounded-[5px] flex items-center justify-center ${stat.color.split(' ')[1]}`}>
                                     <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>{stat.icon}</span>
                                 </div>
                             </div>
@@ -505,7 +505,7 @@ const PostList: React.FC<PostListProps> = ({ onEditPost, onAddPost }) => {
                 </div>
 
                 {/* MAIN CONTENT BOX */}
-                <div className="bg-white rounded-[3px] border border-palette-tan/20 shadow-sm min-h-[600px] flex flex-col">
+                <div className="bg-white rounded-[5px] border border-palette-tan/20 shadow-sm min-h-[600px] flex flex-col">
                     {/* HEADER / FILTERS */}
                     <div className="p-8 border-b border-palette-tan/10 space-y-8">
                         <h2 className="text-xl font-black text-palette-maroon uppercase tracking-tight">{t('posts.page_title')}</h2>
@@ -523,7 +523,7 @@ const PostList: React.FC<PostListProps> = ({ onEditPost, onAddPost }) => {
                                     <label className="text-[11px] font-black text-palette-tan/40 uppercase tracking-widest block">{filter.label}</label>
                                     <div className="relative group/select">
                                         <select
-                                            className="w-full h-10 px-3 bg-palette-beige/20 border border-palette-tan/15 rounded-[3px] text-[13px] font-bold text-palette-maroon appearance-none outline-none focus:bg-white focus:border-palette-maroon transition-all cursor-pointer"
+                                            className="w-full h-10 px-3 bg-palette-beige/20 border border-palette-tan/15 rounded-[5px] text-[13px] font-bold text-palette-maroon appearance-none outline-none focus:bg-white focus:border-palette-maroon transition-all cursor-pointer"
                                             value={(filters as any)[filter.key]}
                                             onChange={(e) => setFilters({ ...filters, [filter.key]: e.target.value })}
                                         >
@@ -576,7 +576,7 @@ const PostList: React.FC<PostListProps> = ({ onEditPost, onAddPost }) => {
                                 <div className="flex flex-col items-start gap-2">
                                     <div className="relative group/size">
                                         <select
-                                            className="h-10 px-4 pr-10 bg-palette-beige/20 border border-palette-tan/15 rounded-[3px] text-[13px] font-black text-palette-maroon appearance-none outline-none focus:bg-white focus:border-palette-maroon transition-all cursor-pointer min-w-[70px]"
+                                            className="h-10 px-4 pr-10 bg-palette-beige/20 border border-palette-tan/15 rounded-[5px] text-[13px] font-black text-palette-maroon appearance-none outline-none focus:bg-white focus:border-palette-maroon transition-all cursor-pointer min-w-[70px]"
                                             value={pageSize}
                                             onChange={(e) => setPageSize(Number(e.target.value))}
                                         >
@@ -589,7 +589,7 @@ const PostList: React.FC<PostListProps> = ({ onEditPost, onAddPost }) => {
                                     {selectedIds.length > 0 && (
                                         <button
                                             onClick={() => setShowBulkDeleteModal(true)}
-                                            className="flex items-center justify-center gap-1 px-3 py-1 bg-red-50 text-palette-red border border-palette-red/10 rounded-[2px] text-[10px] font-black tracking-tight hover:bg-palette-red hover:text-white transition-all animate-in fade-in slide-in-from-top-1 whitespace-nowrap shadow-sm"
+                                            className="flex items-center justify-center gap-1 px-3 py-1 bg-red-50 text-palette-red border border-palette-red/10 rounded-[5px] text-[10px] font-black tracking-tight hover:bg-palette-red hover:text-white transition-all animate-in fade-in slide-in-from-top-1 whitespace-nowrap shadow-sm"
                                         >
                                             <span className="material-symbols-rounded" style={{ fontSize: '13px' }}>delete_sweep</span>
                                             {t('common.delete_selected')} ({selectedIds.length})
@@ -603,7 +603,7 @@ const PostList: React.FC<PostListProps> = ({ onEditPost, onAddPost }) => {
                                     <input
                                         type="text"
                                         placeholder={t('posts.search_placeholder')}
-                                        className="w-full md:w-[280px] h-10 pl-4 pr-10 bg-white border border-palette-tan/15 rounded-[3px] text-[13px] font-bold text-palette-maroon outline-none focus:border-palette-maroon focus:ring-4 focus:ring-palette-maroon/5 transition-all shadow-sm"
+                                        className="w-full md:w-[280px] h-10 pl-4 pr-10 bg-white border border-palette-tan/15 rounded-[5px] text-[13px] font-bold text-palette-maroon outline-none focus:border-palette-maroon focus:ring-4 focus:ring-palette-maroon/5 transition-all shadow-sm"
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />
@@ -613,7 +613,7 @@ const PostList: React.FC<PostListProps> = ({ onEditPost, onAddPost }) => {
 
                                 <button
                                     onClick={onAddPost}
-                                    className="flex items-center gap-2 h-10 px-4 bg-palette-red text-white rounded-[3px] text-[13px] font-black tracking-widest hover:bg-palette-maroon transition-all shadow-lg shadow-palette-red/20 active:scale-95"
+                                    className="flex items-center gap-2 h-10 px-4 bg-palette-red text-white rounded-[5px] text-[13px] font-black tracking-widest hover:bg-palette-maroon transition-all shadow-lg shadow-palette-red/20 active:scale-95"
                                 >
                                     <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>add</span>
                                     {t('posts.actions.add_post')}
@@ -632,7 +632,7 @@ const PostList: React.FC<PostListProps> = ({ onEditPost, onAddPost }) => {
                                             type="checkbox"
                                             checked={posts.length > 0 && selectedIds.length === posts.length}
                                             onChange={handleSelectAll}
-                                            className="w-4 h-4 rounded-[2px] border-palette-tan/30 text-palette-maroon focus:ring-palette-maroon cursor-pointer"
+                                            className="w-4 h-4 rounded-[5px] border-palette-tan/30 text-palette-maroon focus:ring-palette-maroon cursor-pointer"
                                         />
                                     </th>
                                     <th className="w-[60px] px-2 py-0 align-middle text-[12px] font-black text-palette-tan uppercase tracking-widest">{t('posts.table.id')}</th>
@@ -651,25 +651,25 @@ const PostList: React.FC<PostListProps> = ({ onEditPost, onAddPost }) => {
                                 {loading && posts.length === 0 ? (
                                     Array(pageSize).fill(0).map((_, i) => (
                                         <tr key={i} className="animate-pulse h-[92px]">
-                                            <td className="px-4 py-0 align-middle"><div className="w-4 h-4 bg-palette-beige rounded-[2px]" /></td>
-                                            <td className="px-2 py-0 align-middle"><div className="h-4 bg-palette-beige rounded-[3px] w-8" /></td>
+                                            <td className="px-4 py-0 align-middle"><div className="w-4 h-4 bg-palette-beige rounded-[5px]" /></td>
+                                            <td className="px-2 py-0 align-middle"><div className="h-4 bg-palette-beige rounded-[5px] w-8" /></td>
                                             <td className="px-2 py-0 align-middle">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="w-[60px] h-[60px] bg-palette-beige rounded-[3px] flex-shrink-0" />
+                                                    <div className="w-[60px] h-[60px] bg-palette-beige rounded-[5px] flex-shrink-0" />
                                                     <div className="space-y-2 flex-1">
-                                                        <div className="h-4 bg-palette-beige rounded-[3px] w-3/4" />
-                                                        <div className="h-3 bg-palette-beige rounded-[3px] w-1/4 opacity-50" />
+                                                        <div className="h-4 bg-palette-beige rounded-[5px] w-3/4" />
+                                                        <div className="h-3 bg-palette-beige rounded-[5px] w-1/4 opacity-50" />
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-3 py-0 align-middle"><div className="h-4 bg-palette-beige rounded-[3px] w-16 mx-auto" /></td>
-                                            <td className="px-3 py-0 align-middle"><div className="h-6 bg-palette-beige rounded-[3px] w-20 mx-auto" /></td>
-                                            <td className="px-3 py-0 align-middle"><div className="h-6 bg-palette-beige rounded-[3px] w-8 mx-auto opacity-50" /></td>
-                                            <td className="px-3 py-0 align-middle"><div className="h-4 bg-palette-beige rounded-[3px] w-20 mx-auto" /></td>
-                                            <td className="px-3 py-0 align-middle"><div className="h-8 bg-palette-beige rounded-[3px] w-12 mx-auto" /></td>
-                                            <td className="px-3 py-0 align-middle"><div className="h-8 bg-palette-beige rounded-[3px] w-12 mx-auto" /></td>
-                                            <td className="px-4 py-0 align-middle"><div className="h-8 bg-palette-beige rounded-[3px] w-24 ml-auto" /></td>
-                                            <td className="px-4 py-0 align-middle"><div className="w-10 h-10 bg-palette-beige rounded-full ml-auto" /></td>
+                                            <td className="px-3 py-0 align-middle"><div className="h-4 bg-palette-beige rounded-[5px] w-16 mx-auto" /></td>
+                                            <td className="px-3 py-0 align-middle"><div className="h-6 bg-palette-beige rounded-[5px] w-20 mx-auto" /></td>
+                                            <td className="px-3 py-0 align-middle"><div className="h-6 bg-palette-beige rounded-[5px] w-8 mx-auto opacity-50" /></td>
+                                            <td className="px-3 py-0 align-middle"><div className="h-4 bg-palette-beige rounded-[5px] w-20 mx-auto" /></td>
+                                            <td className="px-3 py-0 align-middle"><div className="h-8 bg-palette-beige rounded-[5px] w-12 mx-auto" /></td>
+                                            <td className="px-3 py-0 align-middle"><div className="h-8 bg-palette-beige rounded-[5px] w-12 mx-auto" /></td>
+                                            <td className="px-4 py-0 align-middle"><div className="h-8 bg-palette-beige rounded-[5px] w-24 ml-auto" /></td>
+                                            <td className="px-4 py-0 align-middle"><div className="w-10 h-10 bg-palette-beige rounded-[5px] ml-auto" /></td>
                                         </tr>
                                     ))
                                 ) : posts.length === 0 ? (
@@ -714,7 +714,7 @@ const PostList: React.FC<PostListProps> = ({ onEditPost, onAddPost }) => {
                             <button
                                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                 disabled={currentPage === 1 || loading}
-                                className="w-8 h-8 flex items-center justify-center rounded-[3px] border border-palette-tan/15 text-palette-tan hover:bg-white hover:text-palette-maroon transition-all disabled:opacity-30"
+                                className="w-8 h-8 flex items-center justify-center rounded-[5px] border border-palette-tan/15 text-palette-tan hover:bg-white hover:text-palette-maroon transition-all disabled:opacity-30"
                             >
                                 <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>chevron_left</span>
                             </button>
@@ -725,7 +725,7 @@ const PostList: React.FC<PostListProps> = ({ onEditPost, onAddPost }) => {
                                     <button
                                         key={pageNum}
                                         onClick={() => setCurrentPage(pageNum)}
-                                        className={`w-8 h-8 flex items-center justify-center rounded-[3px] transition-all ${currentPage === pageNum ? 'bg-palette-red text-white shadow-lg shadow-palette-red/20' : 'border border-palette-tan/15 text-palette-tan hover:bg-white hover:text-palette-maroon'}`}
+                                        className={`w-8 h-8 flex items-center justify-center rounded-[5px] transition-all ${currentPage === pageNum ? 'bg-palette-red text-white shadow-lg shadow-palette-red/20' : 'border border-palette-tan/15 text-palette-tan hover:bg-white hover:text-palette-maroon'}`}
                                     >
                                         {pageNum}
                                     </button>
@@ -735,7 +735,7 @@ const PostList: React.FC<PostListProps> = ({ onEditPost, onAddPost }) => {
                             <button
                                 onClick={() => setCurrentPage(p => p + 1)}
                                 disabled={currentPage >= Math.ceil(totalCount / pageSize) || loading}
-                                className="w-8 h-8 flex items-center justify-center rounded-[3px] border border-palette-tan/15 text-palette-tan hover:bg-white hover:text-palette-maroon transition-all disabled:opacity-30"
+                                className="w-8 h-8 flex items-center justify-center rounded-[5px] border border-palette-tan/15 text-palette-tan hover:bg-white hover:text-palette-maroon transition-all disabled:opacity-30"
                             >
                                 <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>chevron_right</span>
                             </button>
@@ -749,8 +749,8 @@ const PostList: React.FC<PostListProps> = ({ onEditPost, onAddPost }) => {
             {showDeleteModal && (
                 <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-palette-maroon/40 backdrop-blur-md animate-in fade-in" onClick={() => setShowDeleteModal(false)} />
-                    <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 p-8 text-center">
-                        <div className="w-14 h-14 bg-red-50 text-palette-red rounded-[3px] flex items-center justify-center mx-auto mb-6 shadow-inner">
+                    <div className="relative bg-white rounded-[5px] shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 p-8 text-center">
+                        <div className="w-14 h-14 bg-red-50 text-palette-red rounded-[5px] flex items-center justify-center mx-auto mb-6 shadow-inner">
                             <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>delete</span>
                         </div>
                         <h3 className="text-xl font-black text-palette-maroon tracking-tight mb-3 uppercase">{t('common.confirm_title')}</h3>
@@ -760,13 +760,13 @@ const PostList: React.FC<PostListProps> = ({ onEditPost, onAddPost }) => {
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => setShowDeleteModal(false)}
-                                className="flex-1 h-10 bg-palette-beige/30 text-palette-tan rounded-[3px] font-black text-[11px] tracking-widest hover:bg-palette-beige/50 transition-all uppercase"
+                                className="flex-1 h-10 bg-palette-beige/30 text-palette-tan rounded-[5px] font-black text-[11px] tracking-widest hover:bg-palette-beige/50 transition-all uppercase"
                             >
                                 {t('common.cancel')}
                             </button>
                             <button
                                 onClick={handleDelete}
-                                className="flex-1 h-10 bg-palette-red text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-palette-red/20 flex items-center justify-center gap-2"
+                                className="flex-1 h-10 bg-palette-red text-white rounded-[5px] font-black text-[13px] tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-palette-red/20 flex items-center justify-center gap-2"
                             >
                                 <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>delete</span>
                                 <span className="mt-0.5">{t('common.delete_kalici')}</span>
@@ -780,8 +780,8 @@ const PostList: React.FC<PostListProps> = ({ onEditPost, onAddPost }) => {
             {showBulkDeleteModal && (
                 <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-palette-maroon/40 backdrop-blur-md animate-in fade-in" onClick={() => setShowBulkDeleteModal(false)} />
-                    <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 p-8 text-center">
-                        <div className="w-20 h-20 bg-red-50 text-palette-red rounded-[3px] flex items-center justify-center mx-auto mb-6 shadow-inner">
+                    <div className="relative bg-white rounded-[5px] shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 p-8 text-center">
+                        <div className="w-20 h-20 bg-red-50 text-palette-red rounded-[5px] flex items-center justify-center mx-auto mb-6 shadow-inner">
                             <span className="material-symbols-rounded" style={{ fontSize: '32px' }}>delete_sweep</span>
                         </div>
                         <h3 className="text-xl font-black text-palette-maroon tracking-tight mb-3 uppercase">{t('common.confirm_title')}</h3>
@@ -791,13 +791,13 @@ const PostList: React.FC<PostListProps> = ({ onEditPost, onAddPost }) => {
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => setShowBulkDeleteModal(false)}
-                                className="flex-1 h-10 bg-palette-beige/30 text-palette-tan rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-beige/50 transition-all uppercase"
+                                className="flex-1 h-10 bg-palette-beige/30 text-palette-tan rounded-[5px] font-black text-[13px] tracking-widest hover:bg-palette-beige/50 transition-all uppercase"
                             >
                                 {t('common.cancel')}
                             </button>
                             <button
                                 onClick={handleBulkDelete}
-                                className="flex-1 h-10 bg-palette-red text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-palette-red/20 flex items-center justify-center gap-2"
+                                className="flex-1 h-10 bg-palette-red text-white rounded-[5px] font-black text-[13px] tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-palette-red/20 flex items-center justify-center gap-2"
                             >
                                 <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>delete</span>
                                 <span className="mt-0.5">{t('common.delete_kalici')}</span>

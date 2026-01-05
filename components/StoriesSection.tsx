@@ -54,7 +54,7 @@ const StoriesSection: React.FC<StoriesSectionProps> = ({ onBack }) => {
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[400px]">
-                <div className="w-12 h-12 border-4 border-palette-beige border-t-palette-red rounded-full animate-spin mb-4"></div>
+                <div className="w-12 h-12 border-4 border-palette-beige border-t-palette-red rounded-[5px] animate-spin mb-4"></div>
                 <p className="text-[10px] font-black text-palette-tan/40 uppercase tracking-[0.2em]">{t('feed.status.loading') || 'Yükleniyor...'}</p>
             </div>
         );
@@ -66,7 +66,7 @@ const StoriesSection: React.FC<StoriesSectionProps> = ({ onBack }) => {
                 <div className="flex items-center gap-4">
                     <button
                         onClick={onBack}
-                        className="w-10 h-10 rounded-full bg-white shadow-sm border border-palette-beige flex items-center justify-center text-palette-tan hover:text-palette-red hover:border-palette-red transition-all active:scale-90"
+                        className="w-10 h-10 rounded-[5px] bg-white shadow-sm border border-palette-beige flex items-center justify-center text-palette-tan hover:text-palette-red hover:border-palette-red transition-all active:scale-90"
                     >
                         <ChevronLeft size={20} />
                     </button>
@@ -83,7 +83,7 @@ const StoriesSection: React.FC<StoriesSectionProps> = ({ onBack }) => {
                 {stories.map((story) => (
                     <div
                         key={story.id}
-                        className="group relative aspect-[9/16] rounded-2xl overflow-hidden cursor-pointer bg-palette-beige/20 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-palette-beige/50"
+                        className="group relative aspect-[9/16] rounded-[5px] overflow-hidden cursor-pointer bg-palette-beige/20 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-palette-beige/50"
                     >
                         {/* Background Media */}
                         <div className="absolute inset-0">
@@ -108,7 +108,7 @@ const StoriesSection: React.FC<StoriesSectionProps> = ({ onBack }) => {
                         {/* Story Info */}
                         <div className="absolute inset-x-0 bottom-0 p-4">
                             <div className="flex items-center gap-2 mb-2">
-                                <div className="w-1.5 h-1.5 rounded-full bg-palette-red animate-pulse"></div>
+                                <div className="w-1.5 h-1.5 rounded-[5px] bg-palette-red animate-pulse"></div>
                                 <span className="text-[9px] font-black text-white/70 uppercase tracking-widest truncate">
                                     {story.sourceName || 'Buzz Haber'}
                                 </span>
@@ -119,7 +119,7 @@ const StoriesSection: React.FC<StoriesSectionProps> = ({ onBack }) => {
                         </div>
 
                         {/* Top Badge */}
-                        <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-black/20 backdrop-blur-md px-2 py-1 rounded-full border border-white/10">
+                        <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-black/20 backdrop-blur-md px-2 py-1 rounded-[5px] border border-white/10">
                             {story.mediaType === 'video' ? (
                                 <Play size={10} className="text-white fill-white" />
                             ) : (
@@ -134,7 +134,7 @@ const StoriesSection: React.FC<StoriesSectionProps> = ({ onBack }) => {
                 ))}
 
                 {stories.length === 0 && (
-                    <div className="col-span-full py-20 text-center bg-white rounded-3xl border border-dashed border-palette-beige">
+                    <div className="col-span-full py-20 text-center bg-white rounded-[5px] border border-dashed border-palette-beige">
                         <Zap size={40} className="mx-auto mb-4 text-palette-tan/20" />
                         <p className="text-[11px] font-black text-palette-tan/40 uppercase tracking-[0.2em]">{t('feed.empty')}</p>
                     </div>

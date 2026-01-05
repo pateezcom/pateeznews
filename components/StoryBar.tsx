@@ -35,13 +35,13 @@ const StoryBar: React.FC = () => {
         {stories.map((story) => (
           <div
             key={story.id}
-            className="group relative flex-shrink-0 w-[120px] h-[200px] rounded-2xl cursor-pointer transition-all duration-300 hover:-translate-y-1.5"
+            className="group relative flex-shrink-0 w-[120px] h-[200px] rounded-[5px] cursor-pointer transition-all duration-300 hover:-translate-y-1.5"
           >
             {/* Arka plan gölgesi - Glow Effect */}
-            <div className="absolute inset-2 bg-blue-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="absolute inset-2 bg-blue-500/20 rounded-[5px] blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
             {/* Main Card Container */}
-            <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-sm hover:shadow-xl border border-gray-100 bg-gray-900 transition-all duration-300 z-10">
+            <div className="relative w-full h-full rounded-[5px] overflow-hidden shadow-sm hover:shadow-xl border border-gray-100 bg-gray-900 transition-all duration-300 z-10">
 
               {/* Image */}
               <img
@@ -56,8 +56,8 @@ const StoryBar: React.FC = () => {
 
               {/* Top Badge: Source Avatar */}
               <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                <div className="relative w-8 h-8 p-[1.5px] rounded-xl bg-gradient-to-tr from-blue-400 to-purple-500 shadow-lg">
-                  <div className="w-full h-full rounded-[10px] overflow-hidden border border-black/20">
+                <div className="relative w-8 h-8 p-[1.5px] rounded-[5px] bg-gradient-to-tr from-blue-400 to-purple-500 shadow-lg">
+                  <div className="w-full h-full rounded-[5px] overflow-hidden border border-black/20">
                     <img
                       src={`https://picsum.photos/seed/src${story.id}/100`}
                       alt="Source"
@@ -82,7 +82,7 @@ const StoryBar: React.FC = () => {
               </div>
 
               {/* Active Border Indicator (On Hover) */}
-              <div className="absolute inset-0 rounded-2xl border-2 border-white/0 group-hover:border-white/20 transition-all duration-300 pointer-events-none" />
+              <div className="absolute inset-0 rounded-[5px] border-2 border-white/0 group-hover:border-white/20 transition-all duration-300 pointer-events-none" />
             </div>
           </div>
         ))}

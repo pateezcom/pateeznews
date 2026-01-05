@@ -23,18 +23,18 @@ const PollCard: React.FC<PollCardProps> = ({ data }) => {
 
   return (
     <div className="mt-4 space-y-4">
-      <div className="relative aspect-video rounded-lg overflow-hidden shadow-md group border border-palette-beige/50">
+      <div className="relative aspect-video rounded-[5px] overflow-hidden shadow-md group border border-palette-beige/50">
         <img src={data.thumbnail} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" />
         <div className="absolute inset-0 bg-gradient-to-t from-palette-maroon/60 to-transparent" />
         <div className="absolute bottom-4 left-4 flex items-center gap-2">
-          <div className="bg-palette-red p-1.5 rounded-lg text-white shadow-lg animate-bounce-subtle">
+          <div className="bg-palette-red p-1.5 rounded-[5px] text-white shadow-lg animate-bounce-subtle">
             <BarChart3 size={18} />
           </div>
-          <span className="text-white text-[10px] font-black uppercase tracking-widest bg-palette-maroon/30 px-2 py-1 rounded-lg">{data.category}</span>
+          <span className="text-white text-[10px] font-black uppercase tracking-widest bg-palette-maroon/30 px-2 py-1 rounded-[5px]">{data.category}</span>
         </div>
       </div>
 
-      <div className="bg-palette-beige/20 p-5 rounded-lg border border-palette-beige/50 shadow-inner">
+      <div className="bg-palette-beige/20 p-5 rounded-[5px] border border-palette-beige/50 shadow-inner">
         <div className="flex items-center gap-3 mb-5">
           <TrendingUp className="text-palette-red" size={20} />
           <h4 className="text-xl font-extrabold text-palette-maroon tracking-tight">{data.summary}</h4>
@@ -52,9 +52,8 @@ const PollCard: React.FC<PollCardProps> = ({ data }) => {
                   key={option.id}
                   disabled={hasVoted}
                   onClick={() => handleVote(option.id)}
-                  className={`relative flex flex-col rounded-lg overflow-hidden transition-all duration-500 bg-white border-2 ${
-                    hasVoted ? (isSelected ? 'border-palette-red shadow-lg' : 'opacity-40 grayscale blur-[0.2px] border-transparent') : 'border-transparent hover:border-palette-red/30'
-                  }`}
+                  className={`relative flex flex-col rounded-[5px] overflow-hidden transition-all duration-500 bg-white border-2 ${hasVoted ? (isSelected ? 'border-palette-red shadow-lg' : 'opacity-40 grayscale blur-[0.2px] border-transparent') : 'border-transparent hover:border-palette-red/30'
+                    }`}
                 >
                   <div className="relative aspect-[4/5] overflow-hidden">
                     <img src={option.image} className="w-full h-full object-cover" />
@@ -79,10 +78,10 @@ const PollCard: React.FC<PollCardProps> = ({ data }) => {
                 key={option.id}
                 disabled={hasVoted}
                 onClick={() => handleVote(option.id)}
-                className="relative group overflow-hidden bg-white border border-palette-beige rounded-lg p-4 transition-all hover:border-palette-red/40 active:scale-[0.98] disabled:active:scale-100"
+                className="relative group overflow-hidden bg-white border border-palette-beige rounded-[5px] p-4 transition-all hover:border-palette-red/40 active:scale-[0.98] disabled:active:scale-100"
               >
                 {hasVoted && (
-                  <div 
+                  <div
                     className={`absolute left-0 top-0 bottom-0 transition-all duration-[1200ms] cubic-bezier(0.25, 1, 0.5, 1) ${isSelected ? 'bg-palette-red/5' : 'bg-palette-beige/30'}`}
                     style={{ width: `${percentage}%` }}
                   />
@@ -110,10 +109,10 @@ const PollCard: React.FC<PollCardProps> = ({ data }) => {
           })}
         </div>
         <div className="mt-4 pt-3 border-t border-palette-beige/50 flex justify-center">
-           <span className="text-[10px] font-bold text-palette-tan/40 uppercase tracking-widest flex items-center gap-2">
-            <div className="p-1 rounded bg-palette-beige/50"><Users size={12} /></div>
+          <span className="text-[10px] font-bold text-palette-tan/40 uppercase tracking-widest flex items-center gap-2">
+            <div className="p-1 rounded-[5px] bg-palette-beige/50"><Users size={12} /></div>
             <AnimatedNumber value={hasVoted ? (data.totalVotes || 0) + 1 : (data.totalVotes || 0)} suffix=" Toplam Katılım" />
-           </span>
+          </span>
         </div>
       </div>
     </div>

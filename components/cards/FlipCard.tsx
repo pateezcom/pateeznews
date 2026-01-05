@@ -26,7 +26,7 @@ const FlipCard: React.FC<FlipCardProps> = ({ data }) => {
       >
         {/* Inner Flipper Container */}
         <div
-          className="relative w-full h-full transition-transform duration-700 ease-in-out transform-style-3d shadow-xl rounded-lg"
+          className="relative w-full h-full transition-transform duration-700 ease-in-out transform-style-3d shadow-xl rounded-[5px]"
           style={{
             transformStyle: 'preserve-3d',
             transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
@@ -35,7 +35,7 @@ const FlipCard: React.FC<FlipCardProps> = ({ data }) => {
 
           {/* FRONT FACE */}
           <div
-            className="absolute inset-0 w-full h-full backface-hidden rounded-lg overflow-hidden bg-white border border-gray-100"
+            className="absolute inset-0 w-full h-full backface-hidden rounded-[5px] overflow-hidden bg-white border border-gray-100"
             style={{ backfaceVisibility: 'hidden' }}
           >
             <img src={data.flipData.frontImage} alt="Front" className="w-full h-full object-cover" />
@@ -44,7 +44,7 @@ const FlipCard: React.FC<FlipCardProps> = ({ data }) => {
             {/* Front Content */}
             <div className="absolute bottom-0 left-0 w-full p-6 text-white">
               <div className="flex items-center gap-2 mb-2">
-                <span className="bg-blue-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg animate-pulse">
+                <span className="bg-blue-600 px-3 py-1 rounded-[5px] text-[10px] font-black uppercase tracking-widest shadow-lg animate-pulse">
                   Tıkla & Çevir
                 </span>
               </div>
@@ -74,14 +74,14 @@ const FlipCard: React.FC<FlipCardProps> = ({ data }) => {
             </div>
 
             {/* Top Right Badge */}
-            <div className="absolute top-4 right-4 bg-black/40 backdrop-blur-md p-2 rounded-full border border-white/20">
+            <div className="absolute top-4 right-4 bg-black/40 backdrop-blur-md p-2 rounded-[5px] border border-white/20">
               <RotateCw size={20} className="text-white" />
             </div>
           </div>
 
           {/* BACK FACE */}
           <div
-            className="absolute inset-0 w-full h-full backface-hidden rounded-lg overflow-hidden bg-gray-900"
+            className="absolute inset-0 w-full h-full backface-hidden rounded-[5px] overflow-hidden bg-gray-900"
             style={{
               backfaceVisibility: 'hidden',
               transform: 'rotateY(180deg)'
@@ -92,7 +92,7 @@ const FlipCard: React.FC<FlipCardProps> = ({ data }) => {
 
             {/* Back Content */}
             <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
-              <div className="w-16 h-1 bg-blue-500 rounded-full mb-6"></div>
+              <div className="w-16 h-1 bg-blue-500 rounded-[5px] mb-6"></div>
               {data.flipData.backLink ? (
                 <a
                   href={data.flipData.backLink}
@@ -114,7 +114,7 @@ const FlipCard: React.FC<FlipCardProps> = ({ data }) => {
               )}
 
               <button
-                className="group/btn flex items-center gap-2 bg-white text-black px-6 py-3 rounded-full font-bold text-xs uppercase tracking-widest hover:bg-blue-50 transition-colors shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+                className="group/btn flex items-center gap-2 bg-white text-black px-6 py-3 rounded-[5px] font-bold text-xs uppercase tracking-widest hover:bg-blue-50 transition-colors shadow-[0_0_20px_rgba(255,255,255,0.3)]"
               >
                 <RotateCw size={14} className="group-hover/btn:-rotate-180 transition-transform duration-500" />
                 <span>Geri Dön</span>

@@ -37,7 +37,7 @@ const RightSidebar: React.FC = () => {
       <div className="flex flex-col gap-8 pb-10">
 
          {/* 1. Weather Widget */}
-         <div className="bg-white rounded-2xl border border-palette-beige/60 shadow-sm overflow-hidden relative group">
+         <div className="bg-white rounded-[5px] border border-palette-beige/60 shadow-sm overflow-hidden relative group">
             <div className="p-6 pb-0 flex items-start justify-between">
                <div>
                   <div className="flex items-center gap-1.5 text-palette-tan/40 mb-2">
@@ -52,7 +52,7 @@ const RightSidebar: React.FC = () => {
                      </div>
                   </div>
                </div>
-               <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center">
+               <div className="w-12 h-12 bg-orange-50 rounded-[5px] flex items-center justify-center">
                   <Sun size={28} className="text-orange-400" />
                </div>
             </div>
@@ -69,18 +69,18 @@ const RightSidebar: React.FC = () => {
          </div>
 
          {/* 2. Buzz Gündem (Trending) */}
-         <div className="bg-white rounded-2xl border border-palette-beige/60 shadow-sm overflow-hidden">
+         <div className="bg-white rounded-[5px] border border-palette-beige/60 shadow-sm overflow-hidden">
             <div className="p-6 pb-2 flex items-center justify-between">
                <div className="flex items-center gap-3">
-                  <div className="w-1.5 h-1.5 bg-palette-red rounded-full"></div>
+                  <div className="w-1.5 h-1.5 bg-palette-red rounded-[5px]"></div>
                   <h3 className="font-bold text-gray-900 uppercase tracking-[0.12em] text-[13px]">{t('right.agenda')}</h3>
                </div>
-               <span className="text-[9px] font-black text-palette-red bg-palette-red/5 px-2 py-1 rounded-lg border border-palette-red/10 animate-pulse">{t('right.live')}</span>
+               <span className="text-[9px] font-black text-palette-red bg-palette-red/5 px-2 py-1 rounded-[5px] border border-palette-red/10 animate-pulse">{t('right.live')}</span>
             </div>
 
             <div className="flex flex-col p-3 space-y-1">
                {trending.map((item, idx) => (
-                  <div key={idx} className="group relative flex items-center gap-5 p-4 rounded-2xl hover:bg-palette-beige/20 transition-all duration-300 cursor-pointer border border-transparent hover:border-palette-beige/50">
+                  <div key={idx} className="group relative flex items-center gap-5 p-4 rounded-[5px] hover:bg-palette-beige/20 transition-all duration-300 cursor-pointer border border-transparent hover:border-palette-beige/50">
                      <div className="flex flex-col items-center">
                         <span className="text-2xl font-[900] text-palette-tan/10 group-hover:text-palette-tan/30 transition-colors leading-none italic">
                            {item.id}
@@ -98,7 +98,7 @@ const RightSidebar: React.FC = () => {
                      </div>
 
                      {item.rising && (
-                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-palette-beige/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
+                        <div className="flex-shrink-0 w-8 h-8 rounded-[5px] bg-palette-beige/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
                            <TrendingUp size={14} className="text-emerald-500" />
                         </div>
                      )}
@@ -112,19 +112,19 @@ const RightSidebar: React.FC = () => {
          </div>
 
          {/* 3. Markets Widget */}
-         <div className="bg-white rounded-2xl border border-palette-beige/60 shadow-sm overflow-hidden">
+         <div className="bg-white rounded-[5px] border border-palette-beige/60 shadow-sm overflow-hidden">
             <div className="p-6 pb-2 flex items-center justify-between">
                <div className="flex items-center gap-3">
-                  <div className="w-1.5 h-1.5 bg-palette-tan/20 rounded-full"></div>
+                  <div className="w-1.5 h-1.5 bg-palette-tan/20 rounded-[5px]"></div>
                   <h3 className="font-bold text-gray-900 uppercase tracking-[0.12em] text-[13px]">{t('right.markets')}</h3>
                </div>
                <button className="text-[10px] font-bold text-palette-tan/40 hover:text-palette-red uppercase tracking-widest transition-colors">{t('right.all')}</button>
             </div>
             <div className="p-3 space-y-1.5">
                {markets.map((m, i) => (
-                  <div key={i} className="flex items-center justify-between p-4 rounded-2xl hover:bg-palette-beige/10 transition-all border border-transparent hover:border-palette-beige/30 cursor-pointer group">
+                  <div key={i} className="flex items-center justify-between p-4 rounded-[5px] hover:bg-palette-beige/10 transition-all border border-transparent hover:border-palette-beige/30 cursor-pointer group">
                      <div className="flex items-center gap-4">
-                        <div className={`w-10 h-10 rounded-xl ${m.bg} ${m.color} flex items-center justify-center shadow-sm border border-black/5`}>
+                        <div className={`w-10 h-10 rounded-[5px] ${m.bg} ${m.color} flex items-center justify-center shadow-sm border border-black/5`}>
                            <m.icon size={18} />
                         </div>
                         <div className="flex flex-col">
@@ -156,7 +156,7 @@ const RightSidebar: React.FC = () => {
 
             <div className="space-y-4">
                {suggestions.map((source, i) => (
-                  <div key={i} className="group bg-white rounded-2xl border border-palette-beige/60 p-4 shadow-sm hover:shadow-xl hover:border-palette-tan/10 transition-all duration-500 cursor-pointer relative overflow-hidden">
+                  <div key={i} className="group bg-white rounded-[5px] border border-palette-beige/60 p-4 shadow-sm hover:shadow-xl hover:border-palette-tan/10 transition-all duration-500 cursor-pointer relative overflow-hidden">
                      <div className="absolute top-0 left-0 w-full h-16 bg-palette-beige/10">
                         <img src={source.bg} className="w-full h-full object-cover opacity-20 group-hover:opacity-40 transition-opacity duration-700" />
                         <div className="absolute inset-0 bg-gradient-to-t from-white via-white/40 to-transparent"></div>
@@ -164,8 +164,8 @@ const RightSidebar: React.FC = () => {
 
                      <div className="relative flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                           <div className="w-14 h-14 rounded-2xl bg-white p-1 shadow-2xl border border-palette-beige relative z-10 group-hover:scale-105 transition-transform duration-500">
-                              <img src={`https://picsum.photos/seed/${source.img}/100`} alt={source.name} className="w-full h-full object-cover rounded-[12px]" />
+                           <div className="w-14 h-14 rounded-[5px] bg-white p-1 shadow-2xl border border-palette-beige relative z-10 group-hover:scale-105 transition-transform duration-500">
+                              <img src={`https://picsum.photos/seed/${source.img}/100`} alt={source.name} className="w-full h-full object-cover rounded-[5px]" />
                            </div>
                            <div className="mt-1">
                               <div className="flex items-center gap-1.5">
@@ -175,7 +175,7 @@ const RightSidebar: React.FC = () => {
                               <p className="text-[10px] text-palette-tan/40 font-bold uppercase tracking-widest">{source.handle}</p>
                            </div>
                         </div>
-                        <button className="w-10 h-10 bg-palette-tan text-white rounded-xl flex items-center justify-center hover:bg-gray-900 transition-all shadow-lg shadow-palette-tan/20 active:scale-90">
+                        <button className="w-10 h-10 bg-palette-tan text-white rounded-[5px] flex items-center justify-center hover:bg-gray-900 transition-all shadow-lg shadow-palette-tan/20 active:scale-90">
                            <UserPlus size={16} strokeWidth={2.5} />
                         </button>
                      </div>
@@ -185,10 +185,10 @@ const RightSidebar: React.FC = () => {
          </div>
 
          {/* 5. Newsletter Box */}
-         <div className="bg-gradient-to-br from-gray-900 to-palette-tan rounded-2xl p-7 text-white shadow-2xl shadow-palette-tan/30 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-[50px] -translate-y-10 translate-x-10 group-hover:bg-white/20 transition-all duration-700"></div>
+         <div className="bg-gradient-to-br from-gray-900 to-palette-tan rounded-[5px] p-7 text-white shadow-2xl shadow-palette-tan/30 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-[5px] blur-[50px] -translate-y-10 translate-x-10 group-hover:bg-white/20 transition-all duration-700"></div>
             <div className="relative z-10">
-               <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center mb-5 border border-white/10">
+               <div className="w-10 h-10 bg-white/10 rounded-[5px] flex items-center justify-center mb-5 border border-white/10">
                   <Mail size={20} />
                </div>
                <h4 className="font-bold text-xl leading-tight mb-2 tracking-tighter">{t('right.newsletter_title')}</h4>
@@ -197,9 +197,9 @@ const RightSidebar: React.FC = () => {
                   <input
                      type="email"
                      placeholder="E-posta Adresi"
-                     className="w-full bg-white/10 border border-white/20 rounded-2xl px-5 py-3.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:bg-white/20 focus:border-white/40 transition-all font-bold"
+                     className="w-full bg-white/10 border border-white/20 rounded-[5px] px-5 py-3.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:bg-white/20 focus:border-white/40 transition-all font-bold"
                   />
-                  <button className="w-full bg-white text-gray-900 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-palette-beige transition-all shadow-xl active:scale-95">
+                  <button className="w-full bg-white text-gray-900 py-3.5 rounded-[5px] font-black text-[10px] uppercase tracking-[0.2em] hover:bg-palette-beige transition-all shadow-xl active:scale-95">
                      ABONE OL
                   </button>
                </div>

@@ -232,8 +232,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
   };
 
   const AccessDenied = () => (
-    <div className="h-full flex flex-col items-center justify-center p-20 bg-white rounded-[3px] border border-palette-tan/20 shadow-sm">
-      <div className="w-20 h-20 bg-palette-beige/20 rounded-[3px] flex items-center justify-center mb-6 text-palette-red shadow-inner">
+    <div className="h-full flex flex-col items-center justify-center p-20 bg-white rounded-[5px] border border-palette-tan/20 shadow-sm">
+      <div className="w-20 h-20 bg-palette-beige/20 rounded-[5px] flex items-center justify-center mb-6 text-palette-red shadow-inner">
         <span className="material-symbols-rounded" style={{ fontSize: '32px' }}>lock</span>
       </div>
       <h2 className="text-[26px] font-bold text-palette-maroon mb-2 tracking-tight font-display">{t('common.error')}</h2>
@@ -249,7 +249,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
       <aside className={`bg-white border-r border-palette-tan/20 fixed h-full z-40 flex flex-col transition-all duration-500 ease-in-out ${isSidebarOpen ? 'w-[260px]' : 'w-[88px]'} shadow-[10px_0_60px_rgba(24,37,64,0.03)]`}>
         <div className="h-20 flex items-center px-6 border-b border-palette-tan/20">
           <div className="flex items-center gap-4 overflow-hidden whitespace-nowrap">
-            <div className="w-10 h-10 bg-palette-red rounded-[3px] flex-shrink-0 flex items-center justify-center text-white shadow-lg shadow-palette-red/20">
+            <div className="w-10 h-10 bg-palette-red rounded-[5px] flex-shrink-0 flex items-center justify-center text-white shadow-lg shadow-palette-red/20">
               <span className="material-symbols-rounded text-[22px] font-bold">bolt</span>
             </div>
             <span className={`text-[22px] font-bold text-palette-maroon tracking-tight transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0'}`}>
@@ -276,14 +276,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
                         onClick={() => {
                           handleTabChange(item.id);
                         }}
-                        className={`w-full group flex items-center gap-4 px-4 py-3 rounded-[3px] transition-all duration-300 ${activeTab === item.id
+                        className={`w-full group flex items-center gap-4 px-4 py-3 rounded-[5px] transition-all duration-300 ${activeTab === item.id
                           ? 'bg-palette-maroon text-white shadow-xl shadow-palette-maroon/20'
                           : 'text-palette-tan hover:bg-palette-beige hover:text-palette-maroon'
                           }`}
                       >
                         <span className={`material-symbols-rounded flex-shrink-0 transition-transform ${activeTab === item.id ? 'scale-110' : 'group-hover:scale-110'}`} style={{ fontSize: '20px' }}>{item.icon}</span>
                         <span className={`text-base font-semibold tracking-tight whitespace-nowrap transition-opacity ${isSidebarOpen ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'}`}>{item.label}</span>
-                        {activeTab === item.id && isSidebarOpen && <div className="ml-auto w-1 h-3 rounded-[3px] bg-white/40" />}
+                        {activeTab === item.id && isSidebarOpen && <div className="ml-auto w-1 h-3 rounded-[5px] bg-white/40" />}
                       </button>
                     ))}
                   </div>
@@ -309,7 +309,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
           </div>
 
           <div className="flex items-center gap-0">
-            <div className="hidden lg:flex items-center gap-2 px-2 py-2 bg-palette-beige/30 rounded-[3px] border border-palette-tan/20 focus-within:bg-white focus-within:border-palette-tan transition-all group">
+            <div className="hidden lg:flex items-center gap-2 px-2 py-2 bg-palette-beige/30 rounded-[5px] border border-palette-tan/20 focus-within:bg-white focus-within:border-palette-tan transition-all group">
               <span className="material-symbols-rounded text-palette-tan/40 group-focus-within:text-palette-tan" style={{ fontSize: '18px' }}>search</span>
               <input type="text" placeholder={t('admin.header.search')} className="bg-transparent border-none outline-none text-sm font-semibold w-40 placeholder:text-palette-tan/30 text-palette-maroon" />
             </div>
@@ -318,7 +318,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
               href="/"
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2.5 flex items-center justify-center rounded-[3px] text-palette-tan hover:text-palette-maroon hover:bg-palette-beige transition-all group"
+              className="p-2.5 flex items-center justify-center rounded-[5px] text-palette-tan hover:text-palette-maroon hover:bg-palette-beige transition-all group"
               title={t('nav.home')}
             >
               <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>visibility</span>
@@ -327,7 +327,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
             <div className="h-6 w-px bg-palette-tan/10 mx-1 text-transparent">|</div>
 
             <div className="relative">
-              <button onClick={() => setShowLangMenu(!showLangMenu)} className="flex items-center gap-1 px-1.5 py-2 rounded-[3px] hover:bg-palette-beige transition-all text-palette-tan font-bold text-[13px]">
+              <button onClick={() => setShowLangMenu(!showLangMenu)} className="flex items-center gap-1 px-1.5 py-2 rounded-[5px] hover:bg-palette-beige transition-all text-palette-tan font-bold text-[13px]">
                 <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>public</span>
                 <span>{currentLang.code}</span>
                 <span className={`material-symbols-rounded transition-transform ${showLangMenu ? 'rotate-180' : ''}`} style={{ fontSize: '16px' }}>expand_more</span>
@@ -335,7 +335,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
               {showLangMenu && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setShowLangMenu(false)}></div>
-                  <div className="absolute top-full ltr:right-0 rtl:left-0 mt-2 w-44 bg-white rounded-[3px] shadow-2xl border border-palette-tan/20 py-2 z-50 animate-in">
+                  <div className="absolute top-full ltr:right-0 rtl:left-0 mt-2 w-44 bg-white rounded-[5px] shadow-2xl border border-palette-tan/20 py-2 z-50 animate-in">
                     {availableLanguages.map((lang) => (
                       <button key={lang.code} onClick={() => { setLanguage(lang.code); setShowLangMenu(false); }}
                         className={`w-full flex items-center justify-between px-4 py-2 text-[14px] font-bold transition-all ${currentLang.code === lang.code ? 'text-palette-red bg-palette-red/5' : 'text-palette-tan hover:bg-palette-beige'}`}
@@ -349,18 +349,18 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
               )}
             </div>
 
-            <button className="relative w-9 h-9 flex items-center justify-center rounded-[3px] text-palette-tan hover:text-palette-maroon hover:bg-palette-beige transition-all">
+            <button className="relative w-9 h-9 flex items-center justify-center rounded-[5px] text-palette-tan hover:text-palette-maroon hover:bg-palette-beige transition-all">
               <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>notifications</span>
-              <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-palette-red rounded-[3px]"></span>
+              <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-palette-red rounded-[5px]"></span>
             </button>
 
             <div className="relative">
               <button
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
-                className="flex items-center gap-2 p-1 pl-1 pr-1 rounded-[3px] hover:bg-palette-beige transition-all group"
+                className="flex items-center gap-2 p-1 pl-1 pr-1 rounded-[5px] hover:bg-palette-beige transition-all group"
               >
-                <div className="w-9 h-9 rounded-[3px] border border-palette-tan/20 group-hover:border-palette-tan transition-all">
-                  <img src="https://picsum.photos/seed/admin/200" className="w-full h-full object-cover rounded-[3px]" alt={t('admin.header.my_account')} />
+                <div className="w-9 h-9 rounded-[5px] border border-palette-tan/20 group-hover:border-palette-tan transition-all">
+                  <img src="https://picsum.photos/seed/admin/200" className="w-full h-full object-cover rounded-[5px]" alt={t('admin.header.my_account')} />
                 </div>
                 <div className="hidden sm:flex flex-col items-start text-left">
                   <span className="text-sm font-bold text-palette-maroon leading-none">{t('admin.user.super_admin')}</span>
@@ -371,10 +371,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
               {showProfileMenu && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setShowProfileMenu(false)}></div>
-                  <div className="absolute top-full ltr:right-0 rtl:left-0 mt-3 w-72 bg-white rounded-[3px] shadow-[0_30px_90px_rgba(24,37,64,0.15)] z-50 animate-in border border-palette-tan/20 overflow-hidden">
+                  <div className="absolute top-full ltr:right-0 rtl:left-0 mt-3 w-72 bg-white rounded-[5px] shadow-[0_30px_90px_rgba(24,37,64,0.15)] z-50 animate-in border border-palette-tan/20 overflow-hidden">
                     <div className="p-6 pb-4 flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-[3px] border border-palette-tan/20 p-1">
-                        <img src="https://picsum.photos/seed/admin/200" className="w-full h-full object-cover rounded-[3px] shadow-md" alt="Admin" />
+                      <div className="w-14 h-14 rounded-[5px] border border-palette-tan/20 p-1">
+                        <img src="https://picsum.photos/seed/admin/200" className="w-full h-full object-cover rounded-[5px] shadow-md" alt="Admin" />
                       </div>
                       <div>
                         <h4 className="text-base font-bold text-palette-maroon">Buzz Admin</h4>
@@ -386,24 +386,24 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
                       <div className="px-4 py-2 text-[13px] font-bold text-palette-tan/40 border-t border-palette-tan/15 mt-2 pt-4">{t('admin.account.settings')}</div>
                       <button
                         onClick={() => { handleTabChange('my_profile'); setShowProfileMenu(false); }}
-                        className="w-full flex items-center justify-between px-4 py-2.5 text-palette-tan hover:bg-palette-beige hover:text-palette-maroon rounded-[3px] text-sm font-semibold transition-all"
+                        className="w-full flex items-center justify-between px-4 py-2.5 text-palette-tan hover:bg-palette-beige hover:text-palette-maroon rounded-[5px] text-sm font-semibold transition-all"
                       >
                         <div className="flex items-center gap-3"><span className="material-symbols-rounded" style={{ fontSize: '18px' }}>person</span> {t('users.actions.edit')}</div>
                         <span className="material-symbols-rounded opacity-40 -rotate-90" style={{ fontSize: '16px' }}>expand_more</span>
                       </button>
-                      <button className="w-full flex items-center justify-between px-4 py-2.5 text-palette-tan hover:bg-palette-beige hover:text-palette-maroon rounded-[3px] text-sm font-semibold transition-all">
+                      <button className="w-full flex items-center justify-between px-4 py-2.5 text-palette-tan hover:bg-palette-beige hover:text-palette-maroon rounded-[5px] text-sm font-semibold transition-all">
                         <div className="flex items-center gap-3"><span className="material-symbols-rounded" style={{ fontSize: '18px' }}>credit_card</span> {t('admin.management')}</div>
                         <span className="material-symbols-rounded opacity-40 -rotate-90" style={{ fontSize: '16px' }}>expand_more</span>
                       </button>
-                      <button className="w-full flex items-center justify-between px-4 py-2.5 text-palette-tan hover:bg-palette-beige hover:text-palette-maroon rounded-[3px] text-sm font-semibold transition-all">
+                      <button className="w-full flex items-center justify-between px-4 py-2.5 text-palette-tan hover:bg-palette-beige hover:text-palette-maroon rounded-[5px] text-sm font-semibold transition-all">
                         <div className="flex items-center gap-3"><span className="material-symbols-rounded" style={{ fontSize: '18px' }}>history</span> {t('admin.recent_activity')}</div>
                         <span className="material-symbols-rounded opacity-40 -rotate-90" style={{ fontSize: '16px' }}>expand_more</span>
                       </button>
 
                       <div className="h-px bg-palette-tan/10 mx-4 my-2"></div>
 
-                      <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-palette-red hover:bg-palette-red/5 rounded-[3px] text-xs font-bold transition-all">
-                        <div className="w-8 h-8 rounded-[3px] bg-palette-red/10 flex items-center justify-center">
+                      <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-palette-red hover:bg-palette-red/5 rounded-[5px] text-xs font-bold transition-all">
+                        <div className="w-8 h-8 rounded-[5px] bg-palette-red/10 flex items-center justify-center">
                           <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>logout</span>
                         </div>
                         {t('admin.logout')}
@@ -425,33 +425,33 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
                   { label: t('admin.stats.views'), val: stats.views.toLocaleString(), icon: 'trending_up', change: '+24%' },
                   { label: t('admin.stats.profiles'), val: stats.profiles, icon: 'group', change: '+2' }
                 ].map((stat, i) => (
-                  <div key={i} className="bg-white p-8 rounded-[3px] border border-palette-tan/20 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group overflow-hidden relative">
+                  <div key={i} className="bg-white p-8 rounded-[5px] border border-palette-tan/20 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group overflow-hidden relative">
                     <div className="relative z-10">
                       <div className="flex items-start justify-between mb-6">
-                        <div className="w-12 h-12 bg-palette-beige/20 border border-palette-tan/20 rounded-[3px] flex items-center justify-center text-palette-tan group-hover:bg-palette-red group-hover:text-white group-hover:border-palette-red transition-all">
+                        <div className="w-12 h-12 bg-palette-beige/20 border border-palette-tan/20 rounded-[5px] flex items-center justify-center text-palette-tan group-hover:bg-palette-red group-hover:text-white group-hover:border-palette-red transition-all">
                           <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>{stat.icon}</span>
                         </div>
-                        <span className="px-3 py-1 rounded-[3px] text-[13px] font-bold bg-palette-beige text-palette-maroon border border-palette-tan/25">
+                        <span className="px-3 py-1 rounded-[5px] text-[13px] font-bold bg-palette-beige text-palette-maroon border border-palette-tan/25">
                           {stat.change} {t('admin.stats.acceleration')}
                         </span>
                       </div>
                       <h3 className="text-[32px] font-bold text-palette-tan mb-1 tracking-tight">
-                        {loading ? <div className="h-9 w-24 bg-palette-beige/5 animate-pulse rounded-[3px]" /> : stat.val}
+                        {loading ? <div className="h-9 w-24 bg-palette-beige/5 animate-pulse rounded-[5px]" /> : stat.val}
                       </h3>
                       <p className="text-[13px] font-bold text-palette-tan/60 leading-none">{stat.label}</p>
                     </div>
-                    <div className="absolute -right-4 -bottom-4 w-24 h-24 rounded-[3px] bg-palette-beige opacity-0 group-hover:opacity-100 transition-all duration-700 blur-3xl"></div>
+                    <div className="absolute -right-4 -bottom-4 w-24 h-24 rounded-[5px] bg-palette-beige opacity-0 group-hover:opacity-100 transition-all duration-700 blur-3xl"></div>
                   </div>
                 ))}
               </div>
 
               {!loading && stats.posts === 0 && (
-                <div className="bg-palette-maroon rounded-[3px] p-24 text-center text-white relative overflow-hidden shadow-2xl">
+                <div className="bg-palette-maroon rounded-[5px] p-24 text-center text-white relative overflow-hidden shadow-2xl">
                   <div className="absolute inset-0 bg-gradient-to-br from-palette-maroon to-palette-tan/80"></div>
                   <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03]"></div>
 
                   <div className="relative z-10 max-w-xl mx-auto flex flex-col items-center">
-                    <div className="w-20 h-20 bg-white/5 backdrop-blur-2xl border border-white/10 text-white rounded-[3px] flex items-center justify-center mb-10 shadow-2xl transition-transform hover:rotate-6 duration-500">
+                    <div className="w-20 h-20 bg-white/5 backdrop-blur-2xl border border-white/10 text-white rounded-[5px] flex items-center justify-center mb-10 shadow-2xl transition-transform hover:rotate-6 duration-500">
                       <span className="material-symbols-rounded" style={{ fontSize: '36px' }}>database</span>
                     </div>
                     <h2 className="text-[38px] font-bold mb-5 tracking-tight">{t('admin.stats.setup_title')}</h2>
@@ -462,7 +462,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
                     <button
                       onClick={handleSeedData}
                       disabled={seeding}
-                      className="group flex items-center gap-4 px-10 py-5 bg-palette-red text-white rounded-[3px] font-bold text-base tracking-widest hover:bg-white hover:text-palette-red transition-all shadow-2xl shadow-palette-red/30 active:scale-95"
+                      className="group flex items-center gap-4 px-10 py-5 bg-palette-red text-white rounded-[5px] font-bold text-base tracking-widest hover:bg-white hover:text-palette-red transition-all shadow-2xl shadow-palette-red/30 active:scale-95"
                     >
                       {seeding ? <span className="material-symbols-rounded animate-spin" style={{ fontSize: '18px' }}>progress_activity</span> : <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>bolt</span>}
                       <span>{t('admin.stats.seed_btn')}</span>
@@ -477,14 +477,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
       {statusModal.show && (
         <div className="fixed inset-0 z-[500] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-palette-maroon/20 backdrop-blur-[2px] animate-in fade-in" onClick={() => setStatusModal({ ...statusModal, show: false })} />
-          <div className="relative bg-white rounded-[3px] shadow-2xl w-full max-w-xs overflow-hidden animate-in slide-in-from-bottom-4 border border-palette-tan/20 p-8 text-center">
-            <div className={`w-14 h-14 rounded-[3px] flex items-center justify-center mx-auto mb-6 ${statusModal.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
+          <div className="relative bg-white rounded-[5px] shadow-2xl w-full max-w-xs overflow-hidden animate-in slide-in-from-bottom-4 border border-palette-tan/20 p-8 text-center">
+            <div className={`w-14 h-14 rounded-[5px] flex items-center justify-center mx-auto mb-6 ${statusModal.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
               {statusModal.type === 'error' ? <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>close</span> : <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>check_circle</span>}
             </div>
             <p className="text-base font-black text-palette-maroon mb-8 leading-relaxed">{statusModal.message}</p>
             <button
               onClick={() => setStatusModal({ ...statusModal, show: false })}
-              className="w-full py-4 bg-palette-tan text-white rounded-[3px] font-black text-[13px] tracking-widest hover:bg-palette-maroon transition-all shadow-lg active:scale-95"
+              className="w-full py-4 bg-palette-tan text-white rounded-[5px] font-black text-[13px] tracking-widest hover:bg-palette-maroon transition-all shadow-lg active:scale-95"
             >
               {t('common.ok')}
             </button>
