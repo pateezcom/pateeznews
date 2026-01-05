@@ -84,6 +84,26 @@ const VideoCard: React.FC<VideoCardProps> = ({ data }) => {
               rect.right <= (window.innerWidth || document.documentElement.clientWidth);
 
             if (isFullyVisible) {
+              // Video başlamadan önce duration'ı kontrol et ve timeDisplay'i güncelle
+              if (ytDurationRef.current > 0) {
+                setTimeDisplay(formatTime(ytDurationRef.current));
+              } else if (data.videoDuration) {
+                // data.videoDuration'dan parse et
+                let parsedDuration = 0;
+                const numeric = Number(data.videoDuration);
+                if (!isNaN(numeric) && numeric > 0 && !String(data.videoDuration).includes(':')) {
+                  parsedDuration = numeric;
+                } else if (typeof data.videoDuration === 'string' && data.videoDuration.includes(':')) {
+                  const parts = data.videoDuration.split(':').map(Number);
+                  if (parts.length === 2) parsedDuration = parts[0] * 60 + parts[1];
+                  else if (parts.length === 3) parsedDuration = parts[0] * 3600 + parts[1] * 60 + parts[2];
+                }
+                if (parsedDuration > 0) {
+                  ytDurationRef.current = parsedDuration;
+                  setTimeDisplay(formatTime(parsedDuration));
+                }
+              }
+
               sendYoutubeCommand("playVideo");
               setIsPlaying(true);
             }
@@ -291,6 +311,26 @@ const VideoCard: React.FC<VideoCardProps> = ({ data }) => {
         // Video tamamen görünür - oynat
         if (!userHasPaused.current && !isPlaying) {
           if (isYoutube) {
+            // Video başlamadan önce duration'ı kontrol et ve timeDisplay'i güncelle
+            if (ytDurationRef.current > 0) {
+              setTimeDisplay(formatTime(ytDurationRef.current));
+            } else if (data.videoDuration) {
+              // data.videoDuration'dan parse et
+              let parsedDuration = 0;
+              const numeric = Number(data.videoDuration);
+              if (!isNaN(numeric) && numeric > 0 && !String(data.videoDuration).includes(':')) {
+                parsedDuration = numeric;
+              } else if (typeof data.videoDuration === 'string' && data.videoDuration.includes(':')) {
+                const parts = data.videoDuration.split(':').map(Number);
+                if (parts.length === 2) parsedDuration = parts[0] * 60 + parts[1];
+                else if (parts.length === 3) parsedDuration = parts[0] * 3600 + parts[1] * 60 + parts[2];
+              }
+              if (parsedDuration > 0) {
+                ytDurationRef.current = parsedDuration;
+                setTimeDisplay(formatTime(parsedDuration));
+              }
+            }
+
             sendYoutubeCommand("playVideo");
             setIsPlaying(true);
           } else if (videoRef.current && videoRef.current.paused) {
@@ -361,9 +401,9 @@ const VideoCard: React.FC<VideoCardProps> = ({ data }) => {
   };
 
   return (
-    <div className="mt-4 space-y-4">
-      <div className="px-1 mb-2">
-        <p className="text-gray-600 text-sm leading-relaxed">{data.summary}</p>
+    <div className="mt-1 space-y-3">
+      <div className="px-1 mb-3">
+        <p className="text-gray-600/80 text-[16px] leading-relaxed font-medium">{data.summary}</p>
       </div>
 
       <div

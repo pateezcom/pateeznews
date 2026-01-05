@@ -22,7 +22,7 @@ const PollCard: React.FC<PollCardProps> = ({ data }) => {
   const columnClass = isImage ? (data.pollColumns === 3 ? 'grid-cols-3' : 'grid-cols-2') : 'grid-cols-1';
 
   return (
-    <div className="mt-4 space-y-4">
+    <div className="mt-1 space-y-3">
       <div className="relative aspect-video rounded-[5px] overflow-hidden shadow-md group border border-palette-beige/50">
         <img src={data.thumbnail} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" />
         <div className="absolute inset-0 bg-gradient-to-t from-palette-maroon/60 to-transparent" />
@@ -37,7 +37,7 @@ const PollCard: React.FC<PollCardProps> = ({ data }) => {
       <div className="bg-palette-beige/20 p-5 rounded-[5px] border border-palette-beige/50 shadow-inner">
         <div className="flex items-center gap-3 mb-5">
           <TrendingUp className="text-palette-red" size={20} />
-          <h4 className="text-xl font-extrabold text-palette-maroon tracking-tight">{data.summary}</h4>
+          <h4 className="text-[16px] font-medium text-gray-600/80 leading-relaxed">{data.summary}</h4>
         </div>
 
         <div className={`grid ${columnClass} gap-3`}>

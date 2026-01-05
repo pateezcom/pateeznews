@@ -12,13 +12,12 @@ const StandardCard: React.FC<StandardCardProps> = ({ data }) => {
       <div className="px-1 mb-3">
         <p className="text-gray-600/80 text-[16px] leading-relaxed font-medium">{data.summary}</p>
       </div>
-      <div className="relative rounded-lg overflow-hidden border border-gray-200 shadow-sm group">
+      <div className="relative rounded-lg overflow-hidden group flex items-center justify-center">
         <img
           src={data.thumbnail}
           alt={data.title}
-          className="w-full h-auto object-cover max-h-[600px] transition-transform duration-1000 group-hover:scale-[1.02]"
+          className="w-auto h-auto max-w-full max-h-[400px] object-contain transition-transform duration-1000 group-hover:scale-[1.02]"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
     </div>
   );

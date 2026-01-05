@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { NewsItem } from '../../types';
 
 interface GalleryCardProps {
@@ -9,6 +9,62 @@ interface GalleryCardProps {
 
 const GalleryCard: React.FC<GalleryCardProps> = ({ data }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [maxHeight, setMaxHeight] = useState<number>(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Tüm resimlerin boyutlarını yükle ve en yüksek olanı bul
+  useEffect(() => {
+    if (!data.mediaList || data.mediaList.length === 0) return;
+
+    const loadImageDimensions = async () => {
+      const containerWidth = containerRef.current?.offsetWidth || 800;
+
+      const heights = await Promise.all(
+        data.mediaList!.map((src) => {
+          return new Promise<number>((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+              // Sadece yatay ve kare resimler hesaplamaya dahil (dikey resimler hariç)
+              // Dikey resim: yükseklik > genişlik
+              if (img.naturalHeight > img.naturalWidth) {
+                resolve(0); // Dikey resim - hesaplamaya dahil etme
+              } else {
+                // Yatay veya kare resim - container genişliğine göre yüksekliği hesapla
+                const scale = containerWidth / img.naturalWidth;
+                const scaledHeight = img.naturalHeight * scale;
+                resolve(scaledHeight);
+              }
+            };
+            img.onerror = () => resolve(0);
+            img.src = src;
+          });
+        })
+      );
+
+      const max = Math.max(...heights);
+      if (max > 0) {
+        setMaxHeight(max);
+      }
+    };
+
+    loadImageDimensions();
+
+    // Window resize'da yeniden hesapla
+    const handleResize = () => loadImageDimensions();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [data.mediaList]);
+
+  // Otomatik slider geçişi (4 saniye aralıkla)
+  useEffect(() => {
+    if (!data.mediaList || data.mediaList.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % data.mediaList!.length);
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [data.mediaList]);
 
   const nextSlide = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -27,41 +83,34 @@ const GalleryCard: React.FC<GalleryCardProps> = ({ data }) => {
   if (!data.mediaList || data.mediaList.length === 0) return null;
 
   return (
-    <div className="mt-4 space-y-4">
-      <div className="px-1 mb-2">
-        <p className="text-gray-600 text-sm leading-relaxed">{data.summary}</p>
+    <div className="mt-1 space-y-3">
+      <div className="px-1 mb-3">
+        <p className="text-gray-600/80 text-[16px] leading-relaxed font-medium">{data.summary}</p>
       </div>
 
-      <div className="relative bg-black rounded-[5px] overflow-hidden shadow-lg group select-none aspect-[4/5] sm:aspect-square md:aspect-[4/3]">
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-40 blur-xl scale-110 transition-all duration-700"
-          style={{ backgroundImage: `url(${data.mediaList[currentSlide]})` }}
+      <div
+        ref={containerRef}
+        className="relative rounded-[5px] overflow-hidden shadow-lg group select-none flex items-center justify-center"
+        style={{ height: maxHeight > 0 ? `${maxHeight}px` : 'auto' }}
+      >
+        <img
+          src={data.mediaList[currentSlide]}
+          alt={`Slide ${currentSlide}`}
+          className="max-w-full max-h-full object-contain transition-all duration-500"
         />
-        <div className="absolute inset-0 flex items-center justify-center z-10 p-1">
-          <img
-            src={data.mediaList[currentSlide]}
-            alt={`Slide ${currentSlide}`}
-            className="max-w-full max-h-full object-contain rounded-[5px] shadow-sm transition-all duration-500"
-          />
-        </div>
         <button
           onClick={prevSlide}
-          className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-white/10 hover:bg-white/25 backdrop-blur-md border border-white/20 rounded-[5px] flex items-center justify-center text-white transition-all opacity-0 group-hover:opacity-100 hover:scale-110"
+          className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-white/10 hover:bg-white/25 border border-white/20 rounded-full flex items-center justify-center text-black transition-all hover:scale-110"
         >
-          <ChevronLeft size={24} />
+          <ChevronLeft size={18} />
         </button>
         <button
           onClick={nextSlide}
-          className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-white/10 hover:bg-white/25 backdrop-blur-md border border-white/20 rounded-[5px] flex items-center justify-center text-white transition-all opacity-0 group-hover:opacity-100 hover:scale-110"
+          className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-white/10 hover:bg-white/25 border border-white/20 rounded-full flex items-center justify-center text-black transition-all hover:scale-110"
         >
-          <ChevronRight size={24} />
+          <ChevronRight size={18} />
         </button>
-        <div className="absolute top-4 left-4 z-20">
-          <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-[5px] border border-white/10">
-            <ImageIcon size={14} className="text-white" />
-            <span className="text-[10px] font-bold text-white uppercase tracking-wider">Galeri</span>
-          </div>
-        </div>
+
         <div className="absolute top-4 right-4 z-20">
           <div className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-[5px] border border-white/10">
             <span className="text-xs font-bold text-white tracking-widest">
@@ -74,7 +123,7 @@ const GalleryCard: React.FC<GalleryCardProps> = ({ data }) => {
             <button
               key={idx}
               onClick={(e) => { e.stopPropagation(); setCurrentSlide(idx); }}
-              className={`h-1.5 rounded-[5px] transition-all duration-300 ${currentSlide === idx ? 'w-6 bg-white' : 'w-1.5 bg-white/40 hover:bg-white/60'
+              className={`h-1.5 rounded-[5px] transition-all duration-300 ${currentSlide === idx ? 'w-6 bg-palette-red' : 'w-1.5 bg-white/40 hover:bg-palette-red/60'
                 }`}
             />
           ))}

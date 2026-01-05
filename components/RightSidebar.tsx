@@ -34,7 +34,7 @@ const RightSidebar: React.FC = () => {
    ];
 
    return (
-      <div className="flex flex-col gap-8 pb-10">
+      <div className="flex flex-col gap-8 pt-2 pb-10">
 
          {/* 1. Weather Widget */}
          <div className="bg-white rounded-[5px] border border-palette-beige/60 shadow-sm overflow-hidden relative group">

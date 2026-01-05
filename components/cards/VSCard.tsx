@@ -24,7 +24,7 @@ const VSCard: React.FC<VSCardProps> = ({ data }) => {
   const rightPct = 100 - leftPct;
 
   return (
-    <div className="mt-4 space-y-4">
+    <div className="mt-1 space-y-3">
       <div className="relative h-[200px] rounded-[5px] overflow-hidden shadow-lg border border-palette-beige group">
         <img src={data.thumbnail} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" />
         <div className="absolute inset-0 bg-gradient-to-t from-palette-maroon/70 via-transparent to-transparent" />
@@ -38,7 +38,7 @@ const VSCard: React.FC<VSCardProps> = ({ data }) => {
 
       <div className="bg-white p-2 rounded-[5px] border border-palette-beige shadow-sm overflow-hidden">
         <div className="p-4 text-center">
-          <h4 className="text-xl font-extrabold text-palette-maroon tracking-tight">{data.summary}</h4>
+          <h4 className="text-[16px] font-medium text-gray-600/80 leading-relaxed">{data.summary}</h4>
         </div>
 
         <div className="relative flex items-stretch h-[280px] rounded-[5px] overflow-hidden">

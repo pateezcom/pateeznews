@@ -17,9 +17,9 @@ const BeforeAfterCard: React.FC<BeforeAfterCardProps> = ({ data }) => {
   if (!data.beforeAfterData) return null;
 
   return (
-    <div className="mt-4 space-y-4">
-      <div className="px-1 mb-2">
-        <p className="text-gray-600 text-sm leading-relaxed">{data.summary}</p>
+    <div className="mt-1 space-y-3">
+      <div className="px-1 mb-3">
+        <p className="text-gray-600/80 text-[16px] leading-relaxed font-medium">{data.summary}</p>
       </div>
 
       <div className="relative w-full h-[450px] rounded-[5px] overflow-hidden shadow-2xl select-none group border border-gray-100">

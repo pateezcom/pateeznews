@@ -123,3 +123,49 @@
     text-transform: none !important;
     letter-spacing: normal !important;
 }
+
+/* Heartbeat Animation for Interaction Icons */
+@keyframes heartbeat {
+
+    0%,
+    8%,
+    100% {
+        filter: drop-shadow(0 0 0 transparent);
+        color: inherit;
+    }
+
+    2% {
+        filter: drop-shadow(0 0 6px rgba(208, 53, 78, 0.6));
+        color: #D0354E;
+    }
+
+    4% {
+        filter: drop-shadow(0 0 2px rgba(208, 53, 78, 0.3));
+        color: inherit;
+    }
+
+    6% {
+        filter: drop-shadow(0 0 4px rgba(208, 53, 78, 0.5));
+        color: #D0354E;
+    }
+}
+
+.animate-heartbeat-1 {
+    animation: heartbeat 20s ease-in-out infinite;
+    animation-delay: 0s;
+}
+
+.animate-heartbeat-2 {
+    animation: heartbeat 20s ease-in-out infinite;
+    animation-delay: 1.5s;
+}
+
+.animate-heartbeat-3 {
+    animation: heartbeat 20s ease-in-out infinite;
+    animation-delay: 3s;
+}
+
+.animate-heartbeat-4 {
+    animation: heartbeat 20s ease-in-out infinite;
+    animation-delay: 4.5s;
+}

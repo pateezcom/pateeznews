@@ -95,7 +95,7 @@ const EmbedCard: React.FC<EmbedCardProps> = ({ data }) => {
   }
 
   return (
-    <div className="mt-4 space-y-4">
+    <div className="mt-1 space-y-3">
       {/* Başlık ve Alt Başlık (Summary) */}
       <div className="px-1 space-y-2">
         <div className="flex items-center justify-between">
@@ -105,7 +105,7 @@ const EmbedCard: React.FC<EmbedCardProps> = ({ data }) => {
           </div>
         </div>
         <h3 className="text-xl font-extrabold text-gray-900 leading-tight">{data.title}</h3>
-        <p className="text-gray-600 text-sm leading-relaxed">{data.summary}</p>
+        <p className="text-gray-600/80 text-[16px] leading-relaxed font-medium">{data.summary}</p>
       </div>
 
       {/* Embed Container */}

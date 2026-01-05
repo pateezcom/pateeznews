@@ -81,7 +81,7 @@ const Sidebar: React.FC<SidebarProps> = ({ items: propItems, onPublisherItemClic
     : items.filter(i => !i.parent_id && i.id !== cityRoot?.id);
 
   return (
-    <div className="flex flex-col gap-8 py-4">
+    <div className="flex flex-col gap-8 pt-2 pb-4">
 
       {/* 1. TOP SECTION (CITIES) */}
       <div className="px-1 flex flex-col gap-0.5">

@@ -28,9 +28,9 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ data }) => {
   }
 
   return (
-    <div className="mt-4 space-y-6">
-      <div className="px-1 mb-2">
-        <p className="text-gray-600 text-sm leading-relaxed">{data.summary}</p>
+    <div className="mt-1 space-y-3">
+      <div className="px-1 mb-3">
+        <p className="text-gray-600/80 text-[16px] leading-relaxed font-medium">{data.summary}</p>
       </div>
 
       <div className="bg-white rounded-[5px] border border-gray-200 overflow-hidden shadow-sm">
