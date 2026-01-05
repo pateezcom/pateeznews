@@ -244,7 +244,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
   return (
     <div
       onClick={handleCardClick}
-      className="bg-white rounded-[5px] border border-palette-beige/30 shadow-[0_2px_20px_rgba(24,37,64,0.03)] overflow-hidden transition-all duration-300 hover:shadow-[0_8px_30px_rgba(24,37,64,0.06)] hover:border-palette-red/10 cursor-pointer group/card"
+      className="bg-white rounded-[5px] border border-palette-beige/30 shadow-[0_2px_20px_rgba(24,37,64,0.03)] transition-all duration-300 hover:shadow-[0_8px_30px_rgba(24,37,64,0.06)] hover:border-palette-red/10 cursor-pointer group/card relative"
     >
       {/* HEADER */}
       <div className="px-6 pt-6 pb-2 flex items-start justify-between">
@@ -294,10 +294,10 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
       </div>
 
       {/* MEDIA CONTENT */}
-      <div className="px-6 pb-2">{renderContent()}</div>
+      <div className="px-6 pb-2 rounded-[5px]">{renderContent()}</div>
 
       {/* INTERACTION BAR */}
-      <div className="mt-0.5 px-6 py-1 border-t border-palette-beige/20 bg-white/50 backdrop-blur-md">
+      <div className="mt-0.5 px-6 py-1 border-t border-palette-beige/20 bg-white/50 backdrop-blur-md relative z-[100]">
         <div className="flex items-center justify-between">
           {/* Sol Grup: Paylaş + Yorum */}
           <div className="flex items-center gap-1 relative">
@@ -316,53 +316,55 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
             {showShareMenu && (
               <div
                 ref={shareMenuRef}
-                className="absolute bottom-full left-0 mb-4 bg-white/95 backdrop-blur-xl rounded-[12px] shadow-[0_25px_60px_rgba(24,37,64,0.2)] border border-palette-beige/30 p-1.5 min-w-[220px] z-[9999] animate-in fade-in zoom-in-95 slide-in-from-bottom-2 duration-300"
+                className="absolute bottom-full left-0 mb-4 bg-white/95 backdrop-blur-xl rounded-[12px] shadow-[0_25px_60px_rgba(24,37,64,0.2)] border border-palette-beige/30 p-1.5 min-w-[220px] z-[99999] animate-in fade-in zoom-in-95 slide-in-from-bottom-2 duration-300"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="flex items-center justify-between px-3 py-2 border-b border-palette-beige/10 mb-1">
-                  <span className="text-[9px] font-[900] text-palette-tan/40 uppercase tracking-[0.2em]">Haber Paylaş</span>
-                  <button
-                    onClick={() => setShowShareMenu(false)}
-                    className="w-6 h-6 flex items-center justify-center text-palette-tan/20 hover:text-palette-red transition-all active:scale-95 hover:bg-palette-red/5 rounded-full"
-                  >
-                    <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>close</span>
-                  </button>
-                </div>
-
-                <div className="px-1 py-1 mb-1">
-                  <button onClick={() => setShowShareMenu(false)} className="w-8 h-8 flex items-center justify-center rounded-[8px] hover:bg-palette-beige/10 text-palette-tan/60 hover:text-gray-900 transition-all active:scale-90">
-                    <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>arrow_back</span>
-                  </button>
-                </div>
-
                 <div className="grid grid-cols-1 gap-0.5">
                   <button onClick={shareToWhatsApp} className="w-full h-[38px] flex items-center gap-3 px-3 rounded-[8px] hover:bg-[#25D366]/5 transition-all duration-300 group">
-                    <span className="material-symbols-rounded text-[#25D366]/70 group-hover:text-[#25D366] group-hover:scale-110 transition-all" style={{ fontSize: '18px' }}>chat</span>
+                    <div className="w-[18px] h-[18px] flex items-center justify-center text-[#25D366]/70 group-hover:text-[#25D366] group-hover:scale-110 transition-all">
+                      <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.72 1.541 3.91 10.114 5.711 5.711h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" /></svg>
+                    </div>
                     <span className="text-[11px] font-bold text-gray-600 group-hover:text-gray-900 transition-colors">WhatsApp</span>
                   </button>
 
                   <button onClick={shareToTelegram} className="w-full h-[38px] flex items-center gap-3 px-3 rounded-[8px] hover:bg-[#0088cc]/5 transition-all duration-300 group">
-                    <span className="material-symbols-rounded text-[#0088cc]/70 group-hover:text-[#0088cc] group-hover:scale-110 transition-all" style={{ fontSize: '18px' }}>send</span>
+                    <div className="w-[18px] h-[18px] flex items-center justify-center text-[#0088cc]/70 group-hover:text-[#0088cc] group-hover:scale-110 transition-all">
+                      <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full">
+                        <path d="M11.944 0C5.346 0 0 5.346 0 11.944s5.346 11.944 11.944 11.944 11.944-5.346 11.944-11.944S18.542 0 11.944 0zm5.808 8.358l-1.916 9.034c-.145.642-.525.8-.1.442l-2.92-2.152-1.41 1.356c-.156.156-.287.287-.588.287l.21-2.977 5.418-4.894c.235-.21-.051-.326-.366-.117l-6.696 4.215-2.885-.902c-.627-.196-.64-.627.13-.926l11.272-4.344c.523-.19.98.124.84.927z" /></svg>
+                    </div>
                     <span className="text-[11px] font-bold text-gray-600 group-hover:text-gray-900 transition-colors">Telegram</span>
                   </button>
 
                   <button onClick={shareToTwitter} className="w-full h-[38px] flex items-center gap-3 px-3 rounded-[8px] hover:bg-black/5 transition-all duration-300 group">
-                    <span className="material-symbols-rounded text-black/70 group-hover:text-black group-hover:scale-110 transition-all" style={{ fontSize: '18px' }}>tag</span>
+                    <div className="w-[18px] h-[18px] flex items-center justify-center text-black/70 group-hover:text-black group-hover:scale-110 transition-all">
+                      <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
+                    </div>
                     <span className="text-[11px] font-bold text-gray-600 group-hover:text-gray-900 transition-colors">X (Twitter)</span>
                   </button>
 
                   <button onClick={shareToFacebook} className="w-full h-[38px] flex items-center gap-3 px-3 rounded-[8px] hover:bg-[#1877F2]/5 transition-all duration-300 group">
-                    <span className="material-symbols-rounded text-[#1877F2]/70 group-hover:text-[#1877F2] group-hover:scale-110 transition-all" style={{ fontSize: '18px' }}>thumb_up</span>
+                    <div className="w-[18px] h-[18px] flex items-center justify-center text-[#1877F2]/70 group-hover:text-[#1877F2] group-hover:scale-110 transition-all">
+                      <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full">
+                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" /></svg>
+                    </div>
                     <span className="text-[11px] font-bold text-gray-600 group-hover:text-gray-900 transition-colors">Facebook</span>
                   </button>
 
                   <button onClick={shareToInstagram} className="w-full h-[38px] flex items-center gap-3 px-3 rounded-[8px] hover:bg-[#E4405F]/5 transition-all duration-300 group">
-                    <span className="material-symbols-rounded text-[#E4405F]/70 group-hover:text-[#E4405F] group-hover:scale-110 transition-all" style={{ fontSize: '18px' }}>camera_alt</span>
+                    <div className="w-[18px] h-[18px] flex items-center justify-center text-[#E4405F]/70 group-hover:text-[#E4405F] group-hover:scale-110 transition-all">
+                      <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full">
+                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.266.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.848 0-3.204.012-3.584.07-4.849.149-3.225 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
+                    </div>
                     <span className="text-[11px] font-bold text-gray-600 group-hover:text-gray-900 transition-colors">Instagram</span>
                   </button>
 
                   <button onClick={shareToTikTok} className="w-full h-[38px] flex items-center gap-3 px-3 rounded-[8px] hover:bg-black/5 transition-all duration-300 group">
-                    <span className="material-symbols-rounded text-black/70 group-hover:text-black group-hover:scale-110 transition-all" style={{ fontSize: '18px' }}>music_note</span>
+                    <div className="w-[18px] h-[18px] flex items-center justify-center text-black/70 group-hover:text-black group-hover:scale-110 transition-all">
+                      <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full">
+                        <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.17-2.86-.6-4.13-1.31-.12 3.31-.16 6.61-.04 9.91-.14 2.23-1.33 4.41-3.37 5.42-2.04 1.01-4.71.93-6.62-.27-2.02-1.11-3.23-3.39-3.06-5.69.06-2.31 1.51-4.5 3.73-5.23 1.14-.38 2.37-.41 3.55-.2v3.91c-.91-.25-1.92-.12-2.71.39-.81.42-1.39 1.27-1.43 2.19-.04 1.1.72 2.12 1.77 2.4 1.05.31 2.25-.09 2.87-1.01.27-.4.38-.88.35-1.36-.01-4.66.01-9.33.01-14z" /></svg>
+                    </div>
                     <span className="text-[11px] font-bold text-gray-600 group-hover:text-gray-900 transition-colors">TikTok</span>
                   </button>
 
