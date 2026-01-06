@@ -29,6 +29,7 @@ import VideoCard from './cards/VideoCard';
 import GalleryCard from './cards/GalleryCard';
 import PollCard from './cards/PollCard';
 import VSCard from './cards/VSCard';
+import ParagraphCard from './cards/ParagraphCard';
 import CommentSection from './CommentSection';
 
 interface NewsDetailProps {
@@ -60,6 +61,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack }) => {
       case NewsType.GALLERY: return <GalleryCard data={data} />;
       case NewsType.POLL: return <PollCard data={data} />;
       case NewsType.VS: return <VSCard data={data} />;
+      case NewsType.PARAGRAPH: return <ParagraphCard data={data} />;
       default: return (
         <div className="rounded-[5px] overflow-hidden border border-gray-100 shadow-xl mt-4 mb-8">
           <img
@@ -194,13 +196,20 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack }) => {
                         {item.description && <p className="text-sm text-gray-500 font-medium italic text-center px-4">{item.description}</p>}
                       </div>
                     );
+                  case 'paragraph':
                   case 'quote':
                     return (
-                      <div key={item.id} className="my-14 p-10 bg-gray-50 rounded-[5px] border-l-4 border-blue-600 italic">
-                        <p className="text-2xl font-bold text-gray-800 leading-relaxed">
-                          "{item.description}"
-                        </p>
-                        {item.title && <cite className="block mt-4 text-xs font-black text-gray-400 uppercase tracking-widest">— {item.title}</cite>}
+                      <div key={item.id} className="py-4">
+                        <ParagraphCard
+                          data={{
+                            ...data,
+                            summary: '', // Ana özetle karışmasın
+                            paragraphData: {
+                              items: item.description ? [item.description] : (item.paragraphData?.items || []),
+                              quoteAuthor: item.title || item.paragraphData?.quoteAuthor
+                            }
+                          } as any}
+                        />
                       </div>
                     );
                   case 'slider':

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Check, X, BarChart3, Award } from 'lucide-react';
 import { NewsItem } from '../../types';
 import AnimatedNumber from '../ui/AnimatedNumber';
@@ -11,6 +11,23 @@ interface ReviewCardProps {
 const ReviewCard: React.FC<ReviewCardProps> = ({ data }) => {
   if (!data.reviewData) return null;
   const { productName, productImage, score, pros, cons, breakdown, verdict } = data.reviewData;
+
+  const [imageRatio, setImageRatio] = useState<'vertical' | 'horizontal'>('horizontal');
+
+  useEffect(() => {
+    const url = productImage || data.thumbnail;
+    if (url) {
+      const img = new Image();
+      img.onload = () => {
+        if (img.height > img.width) {
+          setImageRatio('vertical');
+        } else {
+          setImageRatio('horizontal');
+        }
+      };
+      img.src = url;
+    }
+  }, [productImage, data.thumbnail]);
 
   // Skor rengi belirleme
   let scoreColor = 'text-emerald-500';
@@ -34,11 +51,31 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ data }) => {
       </div>
 
       <div className="bg-white rounded-[5px] border border-gray-200 overflow-hidden shadow-sm">
-        {/* Header Section */}
-        <div className="relative h-[240px] w-full bg-gray-900 group">
-          <img src={productImage} alt={productName} className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90" />
-          <div className="absolute bottom-0 left-0 w-full p-6 text-white">
+        {/* Header Section - Modern Dynamic Sizing */}
+        <div className={`relative w-full bg-gray-900 group overflow-hidden flex items-center justify-center transition-all duration-700 ${imageRatio === 'vertical' ? 'h-[400px]' : 'h-auto min-h-[240px]'
+          }`}>
+          {/* Background Blur for empty spaces in Vertical mode */}
+          {imageRatio === 'vertical' && (
+            <div
+              className="absolute inset-0 bg-center bg-no-repeat bg-cover blur-2xl opacity-20 scale-110"
+              style={{ backgroundImage: `url(${productImage || data.thumbnail})` }}
+            />
+          )}
+
+          <img
+            src={productImage || data.thumbnail}
+            alt={productName}
+            className={`relative z-10 transition-transform duration-1000 group-hover:scale-105 ${imageRatio === 'vertical' ? 'h-full w-auto object-contain' : 'w-full h-auto block'
+              }`}
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              if (data.thumbnail && target.src !== data.thumbnail) {
+                target.src = data.thumbnail;
+              }
+            }}
+          />
+          <div className="absolute inset-0 z-20 bg-gradient-to-t from-black via-transparent to-transparent opacity-90" />
+          <div className="absolute bottom-0 left-0 w-full p-6 text-white z-30">
             <div className="flex items-center justify-between">
               <div>
                 <span className="inline-block px-3 py-1 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-[5px] mb-2">
@@ -126,9 +163,10 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ data }) => {
                 <Award size={20} />
                 <span className="text-xs font-black uppercase tracking-widest">Buzz Kararı</span>
               </div>
-              <p className="text-sm leading-relaxed font-medium text-gray-300 italic">
-                "{verdict}"
-              </p>
+              <div
+                className="text-sm leading-relaxed font-medium text-gray-300 italic [&>p]:mb-0"
+                dangerouslySetInnerHTML={{ __html: verdict }}
+              />
             </div>
           </div>
         </div>

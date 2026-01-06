@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { CheckCircle2, Heart, MessageCircle, Bookmark, Share2 } from 'lucide-react';
 import { NewsItem, NewsType } from '../types';
 import CommentSection from './CommentSection';
+import { useToast } from '../context/ToastContext';
 import { supabase } from '../lib/supabase';
 
 // Kart Bileşenleri
@@ -16,6 +17,7 @@ import GalleryCard from './cards/GalleryCard';
 import PollCard from './cards/PollCard';
 import VSCard from './cards/VSCard';
 import StandardCard from './cards/StandardCard';
+import ParagraphCard from './cards/ParagraphCard';
 
 interface NewsCardProps {
   data: NewsItem;
@@ -24,6 +26,7 @@ interface NewsCardProps {
 }
 
 const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => {
+  const { showToast } = useToast();
   const [isLiked, setIsLiked] = useState(false);
   const [showComments, setShowComments] = useState(true);
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -75,7 +78,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
 
     // Giriş yapmamışsa uyarı göster
     if (!userId) {
-      alert('Beğenmek için giriş yapmalısınız.');
+      showToast('Beğenmek için giriş yapmalısınız.', 'info');
       return;
     }
 
@@ -107,7 +110,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
 
     // Giriş yapmamışsa uyarı göster
     if (!userId) {
-      alert('Kaydetmek için giriş yapmalısınız.');
+      showToast('Kaydetmek için giriş yapmalısınız.', 'info');
       return;
     }
 
@@ -206,7 +209,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
-      alert('Link kopyalandı!');
+      showToast('Link kopyalandı!', 'success');
     } catch (error) { }
     setShowShareMenu(false);
   };
@@ -222,6 +225,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
       case NewsType.GALLERY: return <GalleryCard data={data} />;
       case NewsType.POLL: return <PollCard data={data} />;
       case NewsType.VS: return <VSCard data={data} />;
+      case NewsType.PARAGRAPH: return <ParagraphCard data={data} />;
       case NewsType.IMAGE:
       case NewsType.STANDARD:
       default: return <StandardCard data={data} />;

@@ -509,7 +509,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack }) => {
     const [activeMediaSubTarget, setActiveMediaSubTarget] = useState<string | null>(null);
     const [activeMediaOptionTarget, setActiveMediaOptionTarget] = useState<string | null>(null);
     const [tagInput, setTagInput] = useState('');
-    const [activeDetailTab, setActiveDetailTab] = useState<'article' | 'quiz' | 'poll' | 'video' | 'contents' | 'recipe' | 'TABLE OF CONTENTS'>('article');
+    const [activeDetailTab, setActiveDetailTab] = useState<'article' | 'quiz' | 'poll' | 'video' | 'contents' | 'recipe' | 'TABLE OF CONTENTS' | 'paragraph'>('article');
     const [activeMediaType, setActiveMediaType] = useState<'image' | 'video' | 'audio' | 'file'>('image');
     const [categories, setCategories] = useState<NavigationItem[]>([]);
     const [languages, setLanguages] = useState<Language[]>([]);
@@ -696,6 +696,19 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack }) => {
                     }
                 };
                 setFormData(prev => ({ ...prev, items: [quizItem] }));
+            }
+        } else if (activeDetailTab === 'paragraph') {
+            const hasQuote = formData.items.some(item => item.type === 'quote');
+            if (!hasQuote) {
+                const quoteItem: PostItem = {
+                    id: Math.random().toString(36).substr(2, 9),
+                    type: 'quote',
+                    title: '',
+                    description: '',
+                    orderNumber: 1,
+                    showOnHomepage: true
+                };
+                setFormData(prev => ({ ...prev, items: [quoteItem] }));
             }
         }
     }, [activeDetailTab]);
@@ -1717,17 +1730,27 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack }) => {
                             publishAt: '',
                             publisher_id: '',
                             isPinned: false,
-                            items: [{
-                                id: Math.random().toString(36).substr(2, 9),
-                                type: 'text',
-                                title: '',
-                                description: '',
-                                mediaUrl: '',
-                                createdAt: Date.now(),
-                                orderNumber: 1
-                            }]
+                            items: [
+                                activeDetailTab === 'paragraph' ? {
+                                    id: Math.random().toString(36).substr(2, 9),
+                                    type: 'quote',
+                                    title: '',
+                                    description: '',
+                                    orderNumber: 1,
+                                    showOnHomepage: true
+                                } : {
+                                    id: Math.random().toString(36).substr(2, 9),
+                                    type: 'text',
+                                    title: '',
+                                    description: '',
+                                    mediaUrl: '',
+                                    createdAt: Date.now(),
+                                    orderNumber: 1
+                                }
+                            ]
                         });
                         setSelectedParentId('');
+                        setSelectedSubId('');
                         setSelectedSubId('');
                         setActiveDetailTab('article');
                         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1775,6 +1798,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack }) => {
                             <div className="flex h-24">
                                 {[
                                     { id: 'article', label: t('admin.post.tab.article'), icon: 'description' },
+                                    { id: 'paragraph', label: t('admin.post.tab.paragraph') || 'Özlü Söz', icon: 'format_quote' },
                                     { id: 'quiz', label: t('admin.post.tab.quiz'), icon: 'quiz' },
                                     { id: 'poll', label: t('admin.post.tab.poll'), icon: 'poll' },
                                     { id: 'video', label: t('admin.post.tab.video'), icon: 'smart_display' },

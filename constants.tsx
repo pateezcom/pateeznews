@@ -317,5 +317,26 @@ export const NEWS_FEED: NewsItem[] = [
       { id: 'c1', text: 'Tamamen Elektrikli', votes: 11000, image: 'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?auto=format&fit=crop&q=80&w=400' },
       { id: 'c2', text: 'Hidrojen Yakıtlı', votes: 7200, image: 'https://images.unsplash.com/photo-1533106418989-88406c7cc8ca?auto=format&fit=crop&q=80&w=400' },
     ]
+  },
+  {
+    id: 'n_paragraph_1',
+    type: NewsType.PARAGRAPH,
+    title: 'Günün İlham Veren Sözü',
+    summary: 'Hayatın anlamı ve bakış açısı üzerine Albert Einstein\'dan unutulmaz bir düşünce.',
+    category: 'Yaşam / Psikoloji',
+    source: 'Buzz Wisdom',
+    author: 'Editör',
+    timestamp: 'Yeni',
+    mediaUrl: '',
+    thumbnail: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&q=80&w=800',
+    likes: 12500,
+    comments: 450,
+    shares: 2300,
+    paragraphData: {
+      items: [
+        'Hayatınızı yaşamanın sadece iki yolu vardır. Biri, sanki hiçbir şey mucize değilmiş gibi. Diğeri ise, sanki her şey bir mucizeymiş gibi.'
+      ],
+      quoteAuthor: 'Albert Einstein'
+    }
   }
 ];

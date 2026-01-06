@@ -647,5 +647,7 @@ export default {
   "admin.post.quiz.add_answer": "+ Cevap Ekle",
   "admin.post.quiz.add_question": "+ Yeni Soru Ekle",
   "admin.story.editor.brand": "Buzz Creative",
-  "admin.story.editor.title": "Gelişmiş Story Editörü"
+  "admin.story.editor.title": "Gelişmiş Story Editörü",
+  "admin.post.tab.paragraph": "Özlü Söz / Paragraf",
+  "admin.post.save_success": "Haber başarıyla eklendi"
 };

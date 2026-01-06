@@ -64,9 +64,18 @@ const PollCard: React.FC<PollCardProps> = ({ data }) => {
         </div>
       </div>
 
-      <div className="bg-palette-beige/20 p-5 rounded-[5px] border border-palette-beige/50 shadow-inner">
+      <div className="bg-white p-6 rounded-[5px] border border-palette-beige shadow-sm overflow-hidden">
+        {/* POLL TITLE - Reference to VSCard logic if available */}
+        {(data as any).blockTitle && (
+          <div className="pb-5 px-1 text-center">
+            <h3 className="text-[20px] font-[900] italic text-palette-maroon tracking-tighter uppercase leading-none">
+              {(data as any).blockTitle}
+            </h3>
+            <div className="w-16 h-[4px] bg-palette-red/10 mx-auto mt-3 rounded-full" />
+          </div>
+        )}
 
-        <div className={`grid ${columnClass} gap-3`}>
+        <div className={`grid ${columnClass} gap-4`}>
           {data.options?.map((option) => {
             const isSelected = votedOption === option.id;
             const displayTotalVotes = hasVoted ? (data.totalVotes || 0) + 1 : (data.totalVotes || 0);
@@ -79,52 +88,53 @@ const PollCard: React.FC<PollCardProps> = ({ data }) => {
                   key={option.id}
                   disabled={hasVoted}
                   onClick={() => handleVote(option.id)}
-                  className={`relative flex flex-col rounded-[5px] overflow-hidden transition-all duration-700 bg-white shadow-sm border-0 ${hasVoted ? (isSelected ? 'bg-palette-red/[0.03] shadow-2xl shadow-palette-red/10 ring-1 ring-palette-red/10' : 'opacity-50 grayscale-[0.5]') : 'hover:shadow-md hover:ring-1 hover:ring-palette-red/5'
-                    }`}
+                  className={`relative group flex flex-col rounded-[6px] overflow-hidden transition-all duration-700 ${hasVoted
+                    ? (isSelected
+                      ? 'opacity-100 scale-[1.02] z-20 shadow-xl border-palette-tan/20'
+                      : 'opacity-40 grayscale-[0.8] scale-[0.98] border-palette-beige/50'
+                    )
+                    : 'hover:scale-[1.01] hover:shadow-lg border-palette-beige'
+                    } border`}
+                  style={{
+                    transition: 'all 800ms cubic-bezier(0.19, 1, 0.22, 1)',
+                  }}
                 >
-                  <div className="relative aspect-[4/5] overflow-hidden bg-palette-beige/5">
-                    {/* Subtle Background Layer */}
-                    <div
-                      className="absolute inset-0 bg-center bg-no-repeat bg-cover blur-lg opacity-10 scale-105"
-                      style={{ backgroundImage: `url(${option.image})` }}
+                  <div className="relative aspect-[4/5] overflow-hidden bg-black/5">
+                    <img
+                      src={option.image}
+                      className={`w-full h-full object-contain transition-transform duration-1000 ${!hasVoted ? 'group-hover:scale-110' : ''
+                        } ${isSelected && hasVoted ? 'scale-105' : ''}`}
                     />
-                    <img src={option.image} className="relative z-10 w-full h-full object-contain p-2" />
+
+                    {/* Dark Overlay for better text legibility when results shown */}
+                    {hasVoted && (
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+                    )}
 
                     {hasVoted && (
-                      <div className="absolute inset-0 z-20 pointer-events-none p-2">
-                        {/* Top Right Result Pill - Executive & Minimal */}
-                        <div className="absolute top-2 right-2">
-                          <div className={`px-2.5 py-1 rounded-[3px] backdrop-blur-xl text-white shadow-lg border border-white/10 flex items-baseline gap-1.5 transition-all duration-700 ${isSelected ? 'bg-palette-red/90' : 'bg-black/40'}`}>
-                            <span className="text-[13px] font-black leading-none tracking-tighter"><AnimatedNumber value={percentage} /></span>
-                            <span className="text-[8px] font-bold uppercase tracking-widest opacity-80"><AnimatedNumber value={currentOptionVotes} suffix=" OY" /></span>
-                          </div>
-                        </div>
-
-                        {/* Selection Indicator - Simple & Modern */}
-                        {isSelected && (
-                          <div className="absolute top-2 left-2 bg-palette-red text-white p-1 rounded-[3px] shadow-lg border border-white/20 animate-in fade-in zoom-in duration-500">
-                            <CheckCircle2 size={12} strokeWidth={3} />
-                          </div>
-                        )}
-
-                        {/* Bottom Glow Progress Line */}
-                        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-black/5">
-                          <div
-                            className={`h-full transition-all duration-[1500ms] cubic-bezier(0.16, 1, 0.3, 1) ${isSelected ? 'bg-palette-red shadow-[0_0_8px_rgba(185,28,28,0.5)]' : 'bg-palette-tan/30'}`}
-                            style={{ width: `${percentage}%` }}
-                          />
+                      <div className="absolute inset-0 flex flex-col justify-end p-4 items-center text-center">
+                        <div className={`animate-in slide-in-from-bottom-4 duration-700 flex flex-col items-center ${isSelected ? 'text-white' : 'text-white/60'}`}>
+                          <span className="text-4xl font-[1000] italic tracking-tighter leading-none mb-1">
+                            <AnimatedNumber value={percentage} />
+                          </span>
+                          <span className="text-[10px] font-black uppercase tracking-widest bg-white/10 backdrop-blur-md px-2 py-0.5 rounded-[2px]">
+                            <AnimatedNumber value={currentOptionVotes} suffix=" OY" />
+                          </span>
                         </div>
                       </div>
                     )}
-                  </div>
-                  {/* Premium Answer Text Section - No Border */}
-                  <div className={`relative overflow-hidden transition-all duration-500 ${isSelected ? 'bg-gradient-to-r from-palette-red/[0.06] via-palette-red/[0.02] to-transparent' : 'bg-white'}`}>
-                    {/* Left Accent Bar for Selected */}
-                    {isSelected && (
-                      <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-palette-red" />
-                    )}
 
-                    <p className={`px-3 py-3 text-[11px] font-black tracking-tight line-clamp-1 transition-all duration-500 ${isSelected ? 'text-palette-red pl-4' : 'text-palette-tan/70 text-center'}`}>
+                    {/* Selection Checkmark */}
+                    {isSelected && hasVoted && (
+                      <div className="absolute top-3 left-3 bg-palette-red text-white p-1 rounded-full shadow-lg border-2 border-white animate-bounce-subtle z-30">
+                        <CheckCircle2 size={14} strokeWidth={3} />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className={`p-3 text-center transition-colors duration-500 ${isSelected && hasVoted ? 'bg-palette-tan text-white' : 'bg-white text-palette-tan/80'
+                    }`}>
+                    <p className={`text-[12px] font-black capitalize tracking-tight leading-tight line-clamp-2`}>
                       {option.text}
                     </p>
                   </div>
@@ -137,29 +147,49 @@ const PollCard: React.FC<PollCardProps> = ({ data }) => {
                 key={option.id}
                 disabled={hasVoted}
                 onClick={() => handleVote(option.id)}
-                className="relative group overflow-hidden bg-white border border-palette-beige rounded-[5px] p-4 transition-all hover:border-palette-red/40 active:scale-[0.98] disabled:active:scale-100"
+                className={`relative group flex flex-col w-full rounded-[5px] overflow-hidden transition-all duration-700 border ${hasVoted
+                  ? (isSelected
+                    ? 'border-palette-tan/20 shadow-md bg-palette-tan/[0.02]'
+                    : 'border-palette-beige/50 opacity-50 grayscale'
+                  )
+                  : 'border-palette-beige hover:border-palette-tan/30 hover:bg-black/[0.02]'
+                  }`}
+                style={{
+                  transition: 'all 700ms cubic-bezier(0.16, 1, 0.3, 1)',
+                }}
               >
+                {/* Progress Bar Background */}
                 {hasVoted && (
                   <div
-                    className={`absolute left-0 top-0 bottom-0 transition-all duration-[1200ms] cubic-bezier(0.25, 1, 0.5, 1) ${isSelected ? 'bg-palette-red/5' : 'bg-palette-beige/30'}`}
+                    className={`absolute left-0 top-0 bottom-0 transition-all duration-[1500ms] cubic-bezier(0.16, 1, 0.3, 1) ${isSelected ? 'bg-palette-tan/[0.05]' : 'bg-black/[0.02]'
+                      }`}
                     style={{ width: `${percentage}%` }}
                   />
                 )}
-                <div className="relative flex justify-between items-center gap-3">
-                  <span className={`text-sm font-bold text-left ${hasVoted && isSelected ? 'text-palette-red' : 'text-palette-tan/80'}`}>
+
+                <div className="relative px-5 py-4 flex justify-between items-center gap-4">
+                  <span className={`text-[14px] font-[800] capitalize tracking-tight text-left transition-all duration-500 ${isSelected && hasVoted ? 'text-palette-tan' : 'text-palette-tan/80'
+                    }`}>
                     {option.text}
                   </span>
+
                   {hasVoted && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-4 animate-in slide-in-from-right duration-700">
                       <div className="flex flex-col items-end">
-                        <span className="text-sm font-black text-palette-maroon leading-none">
+                        <span className={`text-2xl font-[1000] italic leading-none ${isSelected ? 'text-palette-tan' : 'text-palette-tan/40'
+                          }`}>
                           <AnimatedNumber value={percentage} />
                         </span>
-                        <span className="text-[10px] font-bold text-palette-tan/30 mt-0.5 tracking-tight">
+                        <span className="text-[9px] font-black text-palette-tan/30 uppercase mt-1 tracking-widest">
                           <AnimatedNumber value={currentOptionVotes} suffix=" oy" />
                         </span>
                       </div>
-                      {isSelected && <CheckCircle2 size={16} className="text-palette-red ml-1" />}
+
+                      {isSelected && (
+                        <div className="text-palette-red animate-in zoom-in duration-500">
+                          <CheckCircle2 size={18} strokeWidth={3} className="drop-shadow-sm" />
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -167,9 +197,12 @@ const PollCard: React.FC<PollCardProps> = ({ data }) => {
             );
           })}
         </div>
-        <div className="mt-4 pt-3 border-t border-palette-beige/50 flex justify-center">
-          <span className="text-[10px] font-bold text-palette-tan/40 uppercase tracking-widest flex items-center gap-2">
-            <div className="p-1 rounded-[5px] bg-palette-beige/50"><Users size={12} /></div>
+
+        <div className="mt-8 pt-4 border-t border-palette-beige flex justify-center items-center gap-3">
+          <div className="p-1.5 rounded-[4px] bg-palette-beige text-palette-tan/40 border border-palette-tan/5">
+            <Users size={14} />
+          </div>
+          <span className="text-[11px] font-[900] text-palette-tan/40 uppercase tracking-[0.2em]">
             <AnimatedNumber value={hasVoted ? (data.totalVotes || 0) + 1 : (data.totalVotes || 0)} suffix=" Toplam Katılım" />
           </span>
         </div>

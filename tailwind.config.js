@@ -37,6 +37,7 @@ export default {
         'equalizer': 'equalizer 1s ease-in-out infinite',
         'modal-entry': 'modal-entry 0.1s ease-out forwards',
         'backdrop-entry': 'fade-in 0.1s ease-out forwards',
+        'shimmer': 'shimmer 2s infinite ease-in-out',
       },
       keyframes: {
         'bounce-subtle': {
@@ -55,6 +56,10 @@ export default {
         'fade-in': {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
+        },
+        'shimmer': {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' },
         }
       }
     }

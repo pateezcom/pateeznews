@@ -107,13 +107,33 @@ const App: React.FC = () => {
             } else if (homepageItem.type === 'audio') {
               cardType = 'AUDIO';
               extraData.mediaUrl = homepageItem.mediaUrl;
+            } else if (homepageItem.type === 'paragraph' || homepageItem.type === 'quote' || homepageItem.type === 'quotation') {
+              cardType = 'PARAGRAPH';
+              extraData.paragraphData = {
+                items: homepageItem.description ? [homepageItem.description] : (homepageItem.paragraphData?.items || []),
+                quoteAuthor: homepageItem.title || homepageItem.paragraphData?.quoteAuthor
+              };
             } else if (homepageItem.type === 'social' || homepageItem.type === 'iframe') {
               cardType = 'EMBED';
               extraData.mediaUrl = homepageItem.mediaUrl;
             }
           } else {
-            // Default to STANDARD if no homepage item is specified
-            cardType = 'STANDARD';
+            // If no homepageItem, keep the post's original type if it's one of our special ones, 
+            // otherwise default to STANDARD
+            const upperType = item.type?.toUpperCase();
+            if (upperType === 'PARAGRAPH' || upperType === 'QUOTE' || upperType === 'QUOTATION' || upperType === 'REVIEW' || upperType === 'POLL' || upperType === 'VS') {
+              cardType = (upperType === 'QUOTE' || upperType === 'QUOTATION') ? 'PARAGRAPH' : upperType;
+            } else {
+              cardType = 'STANDARD';
+            }
+          }
+
+          // Fallback for ParagraphCard data if not set by homepageItem
+          if (cardType === 'PARAGRAPH' && !extraData.paragraphData) {
+            extraData.paragraphData = {
+              items: item.summary ? [item.summary] : [],
+              quoteAuthor: profile?.full_name || profile?.username || 'Editör'
+            };
           }
 
           return {

@@ -12,7 +12,8 @@ export enum NewsType {
   IMAGE = 'IMAGE',
   FLIP_CARD = 'FLIP_CARD',
   BEFORE_AFTER = 'BEFORE_AFTER',
-  REVIEW = 'REVIEW'
+  REVIEW = 'REVIEW',
+  PARAGRAPH = 'PARAGRAPH'
 }
 
 export interface PollOption {
@@ -49,8 +50,8 @@ export interface NewsItem {
     frontTitle: string;
     backImage: string;
     backTitle: string;
-    frontDescription: string;
-    backDescription: string;
+    frontDescription?: string;
+    backDescription?: string;
     frontLink?: string;
     backLink?: string;
   };
@@ -68,6 +69,10 @@ export interface NewsItem {
     cons: string[];
     breakdown: { label: string; score: number }[];
     verdict: string;
+  };
+  paragraphData?: {
+    items: string[];
+    quoteAuthor?: string;
   };
   items?: any[];
   sourceAvatar?: string;
