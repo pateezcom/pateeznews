@@ -392,10 +392,36 @@ const PostList: React.FC<PostListProps> = ({ onEditPost, onAddPost }) => {
 
     const handleTogglePinned = async (post: PostRecord) => {
         const newPinned = !post.is_pinned;
+
+        if (newPinned) {
+            // Check current pinned count from database
+            const { count, error: countError } = await supabase
+                .from('posts')
+                .select('*', { count: 'exact', head: true })
+                .eq('is_pinned', true);
+
+            if (countError) {
+                showToast(t('admin.error.fetch_failed'), 'error');
+                return;
+            }
+
+            if (count && count >= 2) {
+                showToast('En fazla 2 haber başa tutturulabilir. Lütfen önce mevcut tutturulmuş haberlerden birini kaldırın.', 'error');
+                return;
+            }
+        }
+
         const previousPosts = [...posts];
 
-        // Optimistic UI Update
-        setPosts(posts.map(p => p.id === post.id ? { ...p, is_pinned: newPinned } : p));
+        // Optimistic UI Update with Sorting (Başa tutturulduğunda en üste çıkar, kaldırıldığında normal sırasına döner)
+        const updatedPosts = posts.map(p => p.id === post.id ? { ...p, is_pinned: newPinned } : p);
+        const sortedPosts = [...updatedPosts].sort((a, b) => {
+            if (a.is_pinned !== b.is_pinned) {
+                return a.is_pinned ? -1 : 1;
+            }
+            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        });
+        setPosts(sortedPosts);
 
         try {
             const { error } = await supabase

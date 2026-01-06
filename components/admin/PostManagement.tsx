@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import PostTextItem, { PostItem } from './PostTextItem';
 import PostImageItem from './PostImageItem';
 import PostSliderImageItem from './PostSliderImageItem';
@@ -470,9 +470,10 @@ interface Language {
 interface PostManagementProps {
     postId?: string;
     onBack?: () => void;
+    onDirtyChange?: (isDirty: boolean) => void;
 }
 
-const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack }) => {
+const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirtyChange }) => {
     const { t } = useLanguage();
     const { showToast } = useToast();
     const [formData, setFormData] = useState({
@@ -517,6 +518,41 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack }) => {
     const [selectedParentId, setSelectedParentId] = useState<string>('');
     const [selectedSubId, setSelectedSubId] = useState<string>('');
     const [publishers, setPublishers] = useState<any[]>([]);
+
+    const titleRef = useRef<HTMLInputElement>(null);
+    const summaryRef = useRef<HTMLTextAreaElement>(null);
+    const categoryRef = useRef<HTMLSelectElement>(null);
+    const initialCategoryRef = useRef<string>('');
+
+    const isDirty = useMemo(() => {
+        if (postId) return false;
+
+        // Varsayılan olarak eklenen boş içeriği kontrol et
+        const hasActiveItems = formData.items.length > 1 || (formData.items.length === 1 && (
+            (formData.items[0].title && formData.items[0].title.trim() !== '') ||
+            (formData.items[0].description && formData.items[0].description !== '' && formData.items[0].description !== '<p><br></p>') ||
+            (formData.items[0].mediaUrl && formData.items[0].mediaUrl !== '')
+        ));
+
+        return (
+            formData.title.trim() !== '' ||
+            formData.summary.trim() !== '' ||
+            (formData.category !== '' && formData.category !== initialCategoryRef.current) ||
+            formData.thumbnail !== '' ||
+            formData.seoTitle !== '' ||
+            formData.seoDescription !== '' ||
+            formData.keywords !== '' ||
+            formData.slug !== '' ||
+            hasActiveItems ||
+            formData.factChecked !== false ||
+            formData.isPinned !== false ||
+            formData.publishAt !== ''
+        );
+    }, [formData, postId]);
+
+    useEffect(() => {
+        if (onDirtyChange) onDirtyChange(isDirty);
+    }, [isDirty, onDirtyChange]);
 
     useEffect(() => {
         const fetchUserAndPublishers = async () => {
@@ -1033,6 +1069,9 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack }) => {
 
                         // Sync formData if needed (e.g. setting the default)
                         if (formData.category !== matchedItem.label) {
+                            if (!postId && !initialCategoryRef.current) {
+                                initialCategoryRef.current = matchedItem.label;
+                            }
                             setFormData(prev => ({ ...prev, category: matchedItem!.label }));
                         }
                     }
@@ -1651,13 +1690,45 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack }) => {
         });
     };
 
+    const handleTogglePinned = async () => {
+        const newPinnedValue = !formData.isPinned;
+
+        if (newPinnedValue) {
+            // Check current pinned count from database
+            const { count, error: countError } = await supabase
+                .from('posts')
+                .select('*', { count: 'exact', head: true })
+                .eq('is_pinned', true)
+                .neq('id', formData.id || 'new-post-id'); // Exclude current post if it's being edited
+
+            if (countError) {
+                showToast(t('admin.error.fetch_failed'), 'error');
+                return;
+            }
+
+            if (count && count >= 2) {
+                showToast('En fazla 2 haber başa tutturulabilir. Lütfen önce mevcut tutturulmuş haberlerden birini kaldırın.', 'error');
+                return;
+            }
+        }
+
+        setFormData(prev => ({ ...prev, isPinned: newPinnedValue }));
+    };
+
     const handleSave = async (status: 'published' | 'draft') => {
         if (!formData.title) {
             showToast(t('admin.post.title_required') || 'Başlık zorunludur', 'error');
+            titleRef.current?.focus();
             return;
         }
-        if (!formData.publisher_id) {
-            showToast(t('admin.post.publisher_required') || 'Yayıncı seçimi zorunludur', 'error');
+        if (!formData.summary) {
+            showToast(t('admin.post.summary_required') || 'Özet (Spot) zorunludur', 'error');
+            summaryRef.current?.focus();
+            return;
+        }
+        if (!formData.category) {
+            showToast(t('admin.post.category_required') || 'Kategori seçimi zorunludur', 'error');
+            categoryRef.current?.focus();
             return;
         }
 
@@ -1686,7 +1757,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack }) => {
                 seo_description: formData.seoDescription,
                 keywords: formData.keywords,
                 status: status,
-                publisher_id: formData.publisher_id,
+                publisher_id: formData.publisher_id || user.id,
                 language_code: selectedLanguage,
                 is_pinned: formData.isPinned,
                 published_at: status === 'published' ? (formData.publishAt || new Date().toISOString()) : null,
@@ -1798,7 +1869,6 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack }) => {
                             <div className="flex h-24">
                                 {[
                                     { id: 'article', label: t('admin.post.tab.article'), icon: 'description' },
-                                    { id: 'paragraph', label: t('admin.post.tab.paragraph') || 'Özlü Söz', icon: 'format_quote' },
                                     { id: 'quiz', label: t('admin.post.tab.quiz'), icon: 'quiz' },
                                     { id: 'poll', label: t('admin.post.tab.poll'), icon: 'poll' },
                                     { id: 'video', label: t('admin.post.tab.video'), icon: 'smart_display' },
@@ -1852,7 +1922,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack }) => {
                                 <div className="flex items-center gap-3">
                                     <span className="text-[13px] font-bold text-palette-tan">{t('admin.post.pin_to_top')}</span>
                                     <button
-                                        onClick={() => setFormData(prev => ({ ...prev, isPinned: !prev.isPinned }))}
+                                        onClick={handleTogglePinned}
                                         className={`w-10 h-5 rounded-full relative transition-all shadow-inner ${formData.isPinned ? 'bg-amber-500' : 'bg-palette-tan/20'}`}
                                     >
                                         <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all shadow-sm ${formData.isPinned ? 'right-1' : 'left-1'}`} />
@@ -1864,6 +1934,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack }) => {
                                 <div className="space-y-1.5">
                                     <label className="text-[13px] font-bold text-palette-tan ml-1">{t('admin.post.post_title')}</label>
                                     <input
+                                        ref={titleRef}
                                         type="text"
                                         value={formData.title}
                                         onChange={(e) => handleTitleChange(e.target.value)}
@@ -1875,6 +1946,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack }) => {
                                 <div className="space-y-1.5">
                                     <label className="text-[13px] font-bold text-palette-tan ml-1">{t('admin.post.summary')}</label>
                                     <textarea
+                                        ref={summaryRef}
                                         rows={2}
                                         value={formData.summary}
                                         onChange={(e) => handleSummaryChange(e.target.value)}
@@ -2593,6 +2665,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack }) => {
                                 </label>
                                 <div className="relative group">
                                     <select
+                                        ref={categoryRef}
                                         value={selectedParentId}
                                         onChange={(e) => handleParentCategoryChange(e.target.value)}
                                         className="w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] p-3 text-sm font-bold text-palette-maroon outline-none appearance-none cursor-pointer focus:border-palette-red transition-all"

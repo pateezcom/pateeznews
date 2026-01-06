@@ -5,7 +5,11 @@ import { useLanguage } from '../../context/LanguageContext';
 import { StoryItem } from '../../types';
 import WebStoryEditor from './WebStoryEditor';
 
-const StoryManagement: React.FC = () => {
+interface StoryManagementProps {
+    onEditStory?: (id: string) => void;
+}
+
+const StoryManagement: React.FC<StoryManagementProps> = ({ onEditStory }) => {
     const { t } = useLanguage();
     const [stories, setStories] = useState<StoryItem[]>([]);
     const [loading, setLoading] = useState(true);
@@ -306,7 +310,11 @@ const StoryManagement: React.FC = () => {
                                                 {t('common.edit')}
                                             </button>
                                             <button
-                                                onClick={() => { window.open(`/admin/hikaye-editor/${story.id}`, '_blank'); setOpenDropdownId(null); }}
+                                                onClick={() => {
+                                                    if (onEditStory) onEditStory(story.id);
+                                                    else window.open(`/admin/hikaye-editor/${story.id}`, '_blank');
+                                                    setOpenDropdownId(null);
+                                                }}
                                                 className="w-full flex items-center gap-3 px-4 py-2.5 text-[11px] font-bold text-palette-maroon hover:bg-palette-beige/50 transition-colors text-left"
                                             >
                                                 <span className="material-symbols-rounded text-palette-red" style={{ fontSize: '14px' }}>view_quilt</span>

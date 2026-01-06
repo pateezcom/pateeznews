@@ -419,6 +419,13 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
             </div>
           </div>
         </div>
+        {/* PINNED INDICATOR */}
+        {data.isPinned && (
+          <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-500/5 border border-amber-100 rounded-[5px] text-amber-600 animate-in fade-in slide-in-from-right-4 duration-500">
+            <span className="material-symbols-rounded" style={{ fontSize: '16px', fontVariationSettings: "'FILL' 1" }}>push_pin</span>
+            <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline-block">ÖNE ÇIKAN</span>
+          </div>
+        )}
       </div>
 
       {/* CONTENT Title */}

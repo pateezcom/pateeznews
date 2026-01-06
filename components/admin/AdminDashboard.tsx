@@ -40,6 +40,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
   const [permissions, setPermissions] = useState<string[]>([]);
   const [permissionLoading, setPermissionLoading] = useState(true);
   const [statusModal, setStatusModal] = useState<{ show: boolean, type: 'error' | 'success', message: string }>({ show: false, type: 'success', message: '' });
+  const [isDirty, setIsDirty] = useState(false);
+  const [showUnsavedModal, setShowUnsavedModal] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<{ tab: string, userId?: string } | null>(null);
+  const [postsKey, setPostsKey] = useState(0);
 
   const menuItems = useMemo(() => [
     { id: 'overview', label: t('admin.sidebar.overview'), icon: 'dashboard', perm: 'view_overview', group: t('admin.management') },
@@ -65,19 +69,40 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
   }, [initialTab, initialUserId]);
 
   const handleTabChange = (tab: string, userId?: string) => {
+    if (isDirty) {
+      setPendingNavigation({ tab, userId });
+      setShowUnsavedModal(true);
+      return;
+    }
+
+    if (tab === 'posts' && activeTab === 'posts') {
+      setPostsKey(prev => prev + 1);
+    }
+
     setActiveTab(tab);
     if (userId !== undefined) setEditingUserId(userId || null);
 
-    const url = new URL(window.location.href);
-    url.searchParams.set('tab', tab);
-    if (userId) {
-      url.searchParams.set('userId', userId);
-    } else {
-      url.searchParams.delete('userId');
-    }
-    window.history.pushState({}, '', url.toString());
-
     if (onTabChange) onTabChange(tab, userId);
+  };
+
+  const confirmNavigation = () => {
+    if (pendingNavigation) {
+      const { tab, userId } = pendingNavigation;
+
+      // Doğrudan state güncellemelerini yap (dirty kontrolünü atlayarak)
+      if (tab === 'posts' && activeTab === 'posts') {
+        setPostsKey(prev => prev + 1);
+      }
+
+      setActiveTab(tab);
+      if (userId !== undefined) setEditingUserId(userId || null);
+      if (onTabChange) onTabChange(tab, userId);
+
+      // Modal ve dirty state'i temizle
+      setIsDirty(false);
+      setShowUnsavedModal(false);
+      setPendingNavigation(null);
+    }
   };
 
   const fetchUserPermissions = async () => {
@@ -192,10 +217,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
         {(() => {
           switch (activeTab) {
             case 'users': return <UserManagement onEditUser={handleEditUser} initialSearchTerm={editingUserId || undefined} />;
-            case 'posts': return <PostManagement onBack={() => handleTabChange('news_list')} />;
+            case 'posts': return <PostManagement key={`posts-${postsKey}`} onDirtyChange={setIsDirty} onBack={() => handleTabChange('news_list')} />;
             case 'news_list': return <PostList onEditPost={handleEditPost} onAddPost={() => handleTabChange('posts')} />;
-            case 'edit_post': return <PostManagement postId={editingUserId || undefined} onBack={() => handleTabChange('news_list')} />;
-            case 'stories': return <StoryManagement />;
+            case 'edit_post': return <PostManagement key={`edit-${editingUserId}`} postId={editingUserId || undefined} onDirtyChange={setIsDirty} onBack={() => handleTabChange('news_list')} />;
+            case 'stories': return <StoryManagement onEditStory={(id) => handleTabChange('hikaye-editor', id)} />;
             case 'navigation': return <NavigationSettings />;
             case 'languages': return <LanguageSettings />;
             case 'roles': return <RoleSettings />;
@@ -276,14 +301,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
                         onClick={() => {
                           handleTabChange(item.id);
                         }}
-                        className={`w-full group flex items-center gap-4 px-4 py-3 rounded-[5px] transition-all duration-300 ${activeTab === item.id
+                        className={`w-full group flex items-center gap-4 px-4 py-3 rounded-[5px] transition-all duration-300 ${(activeTab === item.id || (item.id === 'news_list' && activeTab === 'edit_post'))
                           ? 'bg-palette-maroon text-white shadow-xl shadow-palette-maroon/20'
                           : 'text-palette-tan hover:bg-palette-beige hover:text-palette-maroon'
                           }`}
                       >
-                        <span className={`material-symbols-rounded flex-shrink-0 transition-transform ${activeTab === item.id ? 'scale-110' : 'group-hover:scale-110'}`} style={{ fontSize: '20px' }}>{item.icon}</span>
+                        <span className={`material-symbols-rounded flex-shrink-0 transition-transform ${(activeTab === item.id || (item.id === 'news_list' && activeTab === 'edit_post')) ? 'scale-110' : 'group-hover:scale-110'}`} style={{ fontSize: '20px' }}>{item.icon}</span>
                         <span className={`text-base font-semibold tracking-tight whitespace-nowrap transition-opacity ${isSidebarOpen ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'}`}>{item.label}</span>
-                        {activeTab === item.id && isSidebarOpen && <div className="ml-auto w-1 h-3 rounded-[5px] bg-white/40" />}
+                        {(activeTab === item.id || (item.id === 'news_list' && activeTab === 'edit_post')) && isSidebarOpen && <div className="ml-auto w-1 h-3 rounded-[5px] bg-white/40" />}
                       </button>
                     ))}
                   </div>
@@ -488,6 +513,36 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
             >
               {t('common.ok')}
             </button>
+          </div>
+        </div>
+      )}
+
+      {showUnsavedModal && (
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-palette-maroon/40 backdrop-blur-md animate-in fade-in" onClick={() => setShowUnsavedModal(false)} />
+          <div className="relative bg-white rounded-[5px] shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 border border-palette-tan/15 p-8 text-center" style={{ direction: currentLang.direction }}>
+            <div className="w-14 h-14 bg-red-50 text-palette-red rounded-[5px] flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <span className="material-symbols-rounded" style={{ fontSize: '24px' }}>warning</span>
+            </div>
+            <h3 className="text-xl font-black text-palette-maroon tracking-tight mb-3 uppercase">{t('common.confirm_title')}</h3>
+            <p className="text-[14px] font-bold text-palette-tan/60 leading-relaxed mb-8 px-4">
+              Yaptığınız değişiklikler kaydedilmedi. Sayfadan çıkmak istediğinize emin misiniz?
+            </p>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowUnsavedModal(false); setPendingNavigation(null); }}
+                className="flex-1 h-12 bg-palette-beige/30 text-palette-tan rounded-[5px] font-black text-[11px] tracking-widest hover:bg-palette-beige/50 transition-all uppercase"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); confirmNavigation(); }}
+                className="flex-1 h-12 bg-palette-red text-white rounded-[5px] font-black text-[13px] tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-palette-red/20 flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>logout</span>
+                <span className="mt-0.5">ÇIK</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

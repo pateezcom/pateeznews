@@ -224,7 +224,11 @@ const App: React.FC = () => {
   const updateUrl = useCallback((newView: ViewType, id?: string | null, name?: string | null, tab?: string | null) => {
     let newPath = '/';
     switch (newView) {
-      case 'admin': newPath = tab ? `/admin/${tab}` : '/admin'; break;
+      case 'admin':
+        if (tab && id) newPath = `/admin/${tab}/${id}`;
+        else if (tab) newPath = `/admin/${tab}`;
+        else newPath = '/admin';
+        break;
       case 'detail': newPath = `/haber/${id}`; break;
       case 'login': newPath = '/giris'; break;
       case 'publishers': newPath = '/yayinlar'; break;
@@ -301,7 +305,7 @@ const App: React.FC = () => {
   const handleProfileClick = () => {
     if (session) {
       setView('admin');
-      updateUrl('admin');
+      updateUrl('admin', null, null, 'overview');
     } else {
       setLastView(view);
       setView('login');
@@ -343,7 +347,14 @@ const App: React.FC = () => {
   if (view === 'web_story_editor') {
     return (
       <React.Suspense fallback={<MainLoading />}>
-        <WebStoryEditor story={{ id: selectedNewsId || '' } as any} onClose={() => setView('admin')} />
+        <WebStoryEditor
+          story={{ id: selectedNewsId || '' } as any}
+          onClose={() => {
+            setView('admin');
+            setAdminTab('stories');
+            updateUrl('admin', null, null, 'stories');
+          }}
+        />
       </React.Suspense>
     );
   }
@@ -351,7 +362,26 @@ const App: React.FC = () => {
   if (view === 'admin' && session) {
     return (
       <React.Suspense fallback={<MainLoading />}>
-        <AdminDashboard onLogout={() => setView('feed')} initialTab={adminTab || 'overview'} />
+        <AdminDashboard
+          onLogout={() => setView('feed')}
+          initialTab={adminTab || 'overview'}
+          initialUserId={adminUserId || undefined}
+          onTabChange={(tab, userId) => {
+            if (tab === 'hikaye-editor') {
+              setView('web_story_editor');
+              setSelectedNewsId(userId || null);
+              // Handle URL update for story editor if needed
+              if (userId) {
+                const newPath = `/admin/hikaye-editor/${userId}`;
+                if (window.location.pathname !== newPath) window.history.pushState(null, '', newPath);
+              }
+              return;
+            }
+            setAdminTab(tab);
+            setAdminUserId(userId || null);
+            updateUrl('admin', userId, null, tab);
+          }}
+        />
       </React.Suspense>
     );
   }
