@@ -117,8 +117,16 @@ const PollCard: React.FC<PollCardProps> = ({ data }) => {
                       </div>
                     )}
                   </div>
-                  <div className={`p-2.5 text-[11px] font-black tracking-tight line-clamp-1 border-t border-palette-beige/20 transition-colors duration-700 ${isSelected ? 'text-palette-red' : 'text-palette-tan'}`}>
-                    {option.text}
+                  {/* Premium Answer Text Section - No Border */}
+                  <div className={`relative overflow-hidden transition-all duration-500 ${isSelected ? 'bg-gradient-to-r from-palette-red/[0.06] via-palette-red/[0.02] to-transparent' : 'bg-white'}`}>
+                    {/* Left Accent Bar for Selected */}
+                    {isSelected && (
+                      <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-palette-red" />
+                    )}
+
+                    <p className={`px-3 py-3 text-[11px] font-black tracking-tight line-clamp-1 transition-all duration-500 ${isSelected ? 'text-palette-red pl-4' : 'text-palette-tan/70 text-center'}`}>
+                      {option.text}
+                    </p>
                   </div>
                 </button>
               );
