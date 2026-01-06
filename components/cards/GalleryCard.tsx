@@ -90,7 +90,7 @@ const GalleryCard: React.FC<GalleryCardProps> = ({ data }) => {
 
       <div
         ref={containerRef}
-        className="relative rounded-[5px] overflow-hidden shadow-lg group select-none flex items-center justify-center"
+        className="relative overflow-hidden group select-none flex items-center justify-center"
         style={{ height: maxHeight > 0 ? `${maxHeight}px` : 'auto' }}
       >
         <img

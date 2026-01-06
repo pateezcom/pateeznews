@@ -174,13 +174,13 @@ const PostVSItem: React.FC<PostVSItemProps> = ({
                                             className="flex flex-col items-center cursor-pointer group/pick mb-4"
                                         >
                                             <span className="material-symbols-rounded text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-2" style={{ fontSize: '48px' }}>add</span>
-                                            <span className="text-[14px] font-bold text-palette-tan/50 px-4 text-center">{t('admin.post.poll.pick_image')}</span>
+                                            <span className="text-[14px] font-bold text-palette-tan/50 px-4 text-center">{t('admin.post.pick_image')}</span>
                                         </div>
                                         <button
                                             onClick={() => onOpenUrlMode(item.id, 'mediaUrl')}
                                             className="mt-2 text-[10px] font-black text-palette-tan/60 hover:text-palette-maroon border border-palette-tan/20 px-3 py-1.5 rounded-[3px] bg-white shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 uppercase tracking-wider"
                                         >
-                                            <span className="material-symbols-rounded" style={{ fontSize: '11px' }}>public</span> URL VEYA YÜKLE
+                                            <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>public</span> {t('admin.post.url_or_upload')}
                                         </button>
                                     </div>
                                 )}
@@ -244,19 +244,19 @@ const PostVSItem: React.FC<PostVSItemProps> = ({
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="w-full h-full flex flex-col items-center justify-center py-4 px-4 text-center">
+                                        <div className="flex flex-col items-center justify-center py-12">
                                             <div
                                                 onClick={() => onOpenFileManager(item.id, 'options', option.id)}
-                                                className="flex flex-col items-center cursor-pointer group/pick mb-3"
+                                                className="flex flex-col items-center cursor-pointer group/pick mb-4"
                                             >
-                                                <span className="material-symbols-rounded text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-1" style={{ fontSize: '32px' }}>add</span>
-                                                <span className="text-[11px] font-bold text-palette-tan/50 leading-tight">{t('admin.post.vs.pick_image')}</span>
+                                                <span className="material-symbols-rounded text-palette-tan/20 group-hover/pick:text-palette-maroon transition-all mb-2" style={{ fontSize: '48px' }}>add</span>
+                                                <span className="text-[14px] font-bold text-palette-tan/50 px-4 text-center">{t('admin.post.pick_image')}</span>
                                             </div>
                                             <button
                                                 onClick={() => onOpenUrlMode(item.id, 'options', option.id)}
-                                                className="mt-1 text-[9px] font-black text-palette-tan/60 hover:text-palette-maroon border border-palette-tan/20 px-3 py-1.5 rounded-[3px] bg-white shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 uppercase tracking-wider"
+                                                className="mt-2 text-[10px] font-black text-palette-tan/60 hover:text-palette-maroon border border-palette-tan/20 px-3 py-1.5 rounded-[3px] bg-white shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 uppercase tracking-wider"
                                             >
-                                                <span className="material-symbols-rounded" style={{ fontSize: '11px' }}>public</span> {t('admin.post.url_or_upload')}
+                                                <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>public</span> {t('admin.post.url_or_upload')}
                                             </button>
                                         </div>
                                     )}

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BarChart3, TrendingUp, CheckCircle2, Users } from 'lucide-react';
 import { NewsItem } from '../../types';
 import AnimatedNumber from '../ui/AnimatedNumber';
@@ -11,6 +11,21 @@ interface PollCardProps {
 const PollCard: React.FC<PollCardProps> = ({ data }) => {
   const [hasVoted, setHasVoted] = useState(false);
   const [votedOption, setVotedOption] = useState<string | null>(null);
+  const [imageRatio, setImageRatio] = useState<'vertical' | 'horizontal'>('horizontal');
+
+  useEffect(() => {
+    if (data.thumbnail) {
+      const img = new Image();
+      img.onload = () => {
+        if (img.height > img.width) {
+          setImageRatio('vertical');
+        } else {
+          setImageRatio('horizontal');
+        }
+      };
+      img.src = data.thumbnail;
+    }
+  }, [data.thumbnail]);
 
   const handleVote = (id: string) => {
     if (hasVoted) return;
@@ -22,11 +37,26 @@ const PollCard: React.FC<PollCardProps> = ({ data }) => {
   const columnClass = isImage ? (data.pollColumns === 3 ? 'grid-cols-3' : 'grid-cols-2') : 'grid-cols-1';
 
   return (
-    <div className="mt-1 space-y-3">
-      <div className="relative aspect-video rounded-[5px] overflow-hidden shadow-md group border border-palette-beige/50">
-        <img src={data.thumbnail} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" />
-        <div className="absolute inset-0 bg-gradient-to-t from-palette-maroon/60 to-transparent" />
-        <div className="absolute bottom-4 left-4 flex items-center gap-2">
+    <div className="mt-1 space-y-4">
+      {/* SUBTITLE (SUMMARY) - StandardCard Style */}
+      <div className="px-1 mb-3">
+        <p className="text-gray-600/80 text-[16px] leading-relaxed font-medium">
+          {data.summary}
+        </p>
+      </div>
+
+      {/* MAIN IMAGE CONTAINER - StandardCard Logic */}
+      <div className="relative rounded-[5px] overflow-hidden shadow-lg group border border-palette-beige/50 bg-black/5 flex items-center justify-center min-h-[200px]">
+        <div
+          className="absolute inset-0 bg-center bg-no-repeat bg-cover blur-2xl opacity-30 scale-110"
+          style={{ backgroundImage: `url(${data.thumbnail})` }}
+        />
+        <img
+          src={data.thumbnail}
+          className="w-auto h-auto max-w-full max-h-[400px] object-contain transition-transform duration-1000 group-hover:scale-[1.05] relative z-10"
+        />
+        <div className="absolute inset-0 z-20 bg-gradient-to-t from-palette-maroon/40 to-transparent" />
+        <div className="absolute bottom-4 left-4 z-30 flex items-center gap-2">
           <div className="bg-palette-red p-1.5 rounded-[5px] text-white shadow-lg animate-bounce-subtle">
             <BarChart3 size={18} />
           </div>
@@ -35,16 +65,13 @@ const PollCard: React.FC<PollCardProps> = ({ data }) => {
       </div>
 
       <div className="bg-palette-beige/20 p-5 rounded-[5px] border border-palette-beige/50 shadow-inner">
-        <div className="flex items-center gap-3 mb-5">
-          <TrendingUp className="text-palette-red" size={20} />
-          <h4 className="text-[16px] font-medium text-gray-600/80 leading-relaxed">{data.summary}</h4>
-        </div>
 
         <div className={`grid ${columnClass} gap-3`}>
           {data.options?.map((option) => {
-            const percentage = data.totalVotes ? Math.round((option.votes / data.totalVotes) * 100) : 0;
             const isSelected = votedOption === option.id;
-            const currentOptionVotes = isSelected ? option.votes + 1 : option.votes;
+            const displayTotalVotes = hasVoted ? (data.totalVotes || 0) + 1 : (data.totalVotes || 0);
+            const currentOptionVotes = (isSelected && hasVoted) ? (option.votes || 0) + 1 : (option.votes || 0);
+            const percentage = displayTotalVotes > 0 ? Math.round((currentOptionVotes / displayTotalVotes) * 100) : 0;
 
             if (isImage) {
               return (
@@ -52,23 +79,47 @@ const PollCard: React.FC<PollCardProps> = ({ data }) => {
                   key={option.id}
                   disabled={hasVoted}
                   onClick={() => handleVote(option.id)}
-                  className={`relative flex flex-col rounded-[5px] overflow-hidden transition-all duration-500 bg-white border-2 ${hasVoted ? (isSelected ? 'border-palette-red shadow-lg' : 'opacity-40 grayscale blur-[0.2px] border-transparent') : 'border-transparent hover:border-palette-red/30'
+                  className={`relative flex flex-col rounded-[5px] overflow-hidden transition-all duration-700 bg-white shadow-sm border-0 ${hasVoted ? (isSelected ? 'bg-palette-red/[0.03] shadow-2xl shadow-palette-red/10 ring-1 ring-palette-red/10' : 'opacity-50 grayscale-[0.5]') : 'hover:shadow-md hover:ring-1 hover:ring-palette-red/5'
                     }`}
                 >
-                  <div className="relative aspect-[4/5] overflow-hidden">
-                    <img src={option.image} className="w-full h-full object-cover" />
+                  <div className="relative aspect-[4/5] overflow-hidden bg-palette-beige/5">
+                    {/* Subtle Background Layer */}
+                    <div
+                      className="absolute inset-0 bg-center bg-no-repeat bg-cover blur-lg opacity-10 scale-105"
+                      style={{ backgroundImage: `url(${option.image})` }}
+                    />
+                    <img src={option.image} className="relative z-10 w-full h-full object-contain p-2" />
+
                     {hasVoted && (
-                      <div className="absolute inset-0 bg-palette-maroon/70 flex flex-col items-center justify-center p-2">
-                        <div className="text-white text-2xl font-black leading-none">
-                          <AnimatedNumber value={percentage} />
+                      <div className="absolute inset-0 z-20 pointer-events-none p-2">
+                        {/* Top Right Result Pill - Executive & Minimal */}
+                        <div className="absolute top-2 right-2">
+                          <div className={`px-2.5 py-1 rounded-[3px] backdrop-blur-xl text-white shadow-lg border border-white/10 flex items-baseline gap-1.5 transition-all duration-700 ${isSelected ? 'bg-palette-red/90' : 'bg-black/40'}`}>
+                            <span className="text-[13px] font-black leading-none tracking-tighter"><AnimatedNumber value={percentage} /></span>
+                            <span className="text-[8px] font-bold uppercase tracking-widest opacity-80"><AnimatedNumber value={currentOptionVotes} suffix=" OY" /></span>
+                          </div>
                         </div>
-                        <div className="text-white/70 text-[10px] font-bold uppercase mt-1 tracking-tighter">
-                          <AnimatedNumber value={currentOptionVotes} suffix=" Oy" />
+
+                        {/* Selection Indicator - Simple & Modern */}
+                        {isSelected && (
+                          <div className="absolute top-2 left-2 bg-palette-red text-white p-1 rounded-[3px] shadow-lg border border-white/20 animate-in fade-in zoom-in duration-500">
+                            <CheckCircle2 size={12} strokeWidth={3} />
+                          </div>
+                        )}
+
+                        {/* Bottom Glow Progress Line */}
+                        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-black/5">
+                          <div
+                            className={`h-full transition-all duration-[1500ms] cubic-bezier(0.16, 1, 0.3, 1) ${isSelected ? 'bg-palette-red shadow-[0_0_8px_rgba(185,28,28,0.5)]' : 'bg-palette-tan/30'}`}
+                            style={{ width: `${percentage}%` }}
+                          />
                         </div>
                       </div>
                     )}
                   </div>
-                  <div className="p-2 text-[11px] font-bold text-palette-tan line-clamp-1">{option.text}</div>
+                  <div className={`p-2.5 text-[11px] font-black tracking-tight line-clamp-1 border-t border-palette-beige/20 transition-colors duration-700 ${isSelected ? 'text-palette-red' : 'text-palette-tan'}`}>
+                    {option.text}
+                  </div>
                 </button>
               );
             }

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { RotateCw } from 'lucide-react';
 import { NewsItem } from '../../types';
 
@@ -9,6 +9,56 @@ interface FlipCardProps {
 
 const FlipCard: React.FC<FlipCardProps> = ({ data }) => {
   const [isFlipped, setIsFlipped] = useState(false);
+  const [cardHeight, setCardHeight] = useState<number>(500);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!data.flipData) return;
+
+    const img1 = new Image();
+    const img2 = new Image();
+    let loadedCount = 0;
+
+    const calculateHeight = () => {
+      loadedCount++;
+      if (loadedCount === 2) {
+        const containerWidth = containerRef.current?.offsetWidth || 600;
+
+        const isFrontVertical = img1.naturalHeight > img1.naturalWidth;
+        const isBackVertical = img2.naturalHeight > img2.naturalWidth;
+
+        if (isFrontVertical && isBackVertical) {
+          setCardHeight(400);
+        } else {
+          const height1 = (containerWidth / img1.naturalWidth) * img1.naturalHeight;
+          const height2 = (containerWidth / img2.naturalWidth) * img2.naturalHeight;
+          // Küçüğe göre ayarla
+          setCardHeight(Math.min(height1, height2));
+        }
+      }
+    };
+
+    img1.onload = calculateHeight;
+    img2.onload = calculateHeight;
+    img1.src = data.flipData.frontImage;
+    img2.src = data.flipData.backImage;
+
+    const handleResize = () => {
+      if (img1.complete && img2.complete) {
+        const containerWidth = containerRef.current?.offsetWidth || 600;
+        if (img1.naturalHeight > img1.naturalWidth && img2.naturalHeight > img2.naturalWidth) {
+          setCardHeight(400);
+        } else {
+          const height1 = (containerWidth / img1.naturalWidth) * img1.naturalHeight;
+          const height2 = (containerWidth / img2.naturalWidth) * img2.naturalHeight;
+          setCardHeight(Math.min(height1, height2));
+        }
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [data.flipData]);
 
   if (!data.flipData) return null;
 
@@ -20,13 +70,20 @@ const FlipCard: React.FC<FlipCardProps> = ({ data }) => {
 
       {/* Card Container with Perspective */}
       <div
-        className="w-full h-[500px] cursor-pointer group perspective-1000"
-        onClick={() => setIsFlipped(!isFlipped)}
-        style={{ perspective: '1000px' }}
+        ref={containerRef}
+        className="w-full cursor-pointer group perspective-1000 relative"
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsFlipped(!isFlipped);
+        }}
+        style={{
+          perspective: '1000px',
+          height: `${cardHeight}px`
+        }}
       >
         {/* Inner Flipper Container */}
         <div
-          className="relative w-full h-full transition-transform duration-700 ease-in-out transform-style-3d shadow-xl rounded-[5px]"
+          className="relative w-full h-full transition-transform duration-700 ease-in-out transform-style-3d overflow-visible"
           style={{
             transformStyle: 'preserve-3d',
             transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
@@ -35,16 +92,26 @@ const FlipCard: React.FC<FlipCardProps> = ({ data }) => {
 
           {/* FRONT FACE */}
           <div
-            className="absolute inset-0 w-full h-full backface-hidden rounded-[5px] overflow-hidden bg-white border border-gray-100"
+            className="absolute inset-0 w-full h-full backface-hidden flex items-center justify-center overflow-hidden"
             style={{ backfaceVisibility: 'hidden' }}
           >
-            <img src={data.flipData.frontImage} alt="Front" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+            {/* Creative Blurred Background Layer */}
+            <div className="absolute inset-0 z-0 pointer-events-none">
+              <img
+                src={data.flipData.frontImage}
+                alt=""
+                className="w-full h-full object-cover blur-[60px] opacity-40 scale-110"
+              />
+              <div className="absolute inset-0 bg-white/10" />
+            </div>
+
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent z-[1] pointer-events-none" />
+            <img src={data.flipData.frontImage} alt="Front" className="max-w-full max-h-full object-contain relative z-[2]" />
 
             {/* Front Content */}
-            <div className="absolute bottom-0 left-0 w-full p-6 text-white">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="bg-blue-600 px-3 py-1 rounded-[5px] text-[10px] font-black uppercase tracking-widest shadow-lg animate-pulse">
+            <div className="absolute bottom-0 left-0 w-full p-8 text-white z-10">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="bg-blue-600/90 backdrop-blur-md px-3 py-1 rounded-[5px] text-[10px] font-black uppercase tracking-widest shadow-lg border border-white/20">
                   Tıkla & Çevir
                 </span>
               </div>
@@ -56,43 +123,58 @@ const FlipCard: React.FC<FlipCardProps> = ({ data }) => {
                   onClick={(e) => e.stopPropagation()}
                   className="block hover:opacity-80 transition-opacity"
                 >
-                  <h3 className="text-3xl font-black leading-none mb-1">{data.flipData.frontTitle}</h3>
+                  <h3 className="text-3xl font-black leading-tight mb-2 drop-shadow-md">{data.flipData.frontTitle}</h3>
                 </a>
               ) : (
-                <h3 className="text-3xl font-black leading-none mb-1">{data.flipData.frontTitle}</h3>
+                <h3 className="text-3xl font-black leading-tight mb-2 drop-shadow-md">{data.flipData.frontTitle}</h3>
               )}
               {data.flipData.frontDescription && (
                 <div
-                  className="text-white/90 text-sm leading-relaxed mb-4 quill-content"
+                  className="text-white/90 text-sm leading-relaxed mb-5 line-clamp-2 font-medium"
                   dangerouslySetInnerHTML={{ __html: data.flipData.frontDescription }}
                 />
               )}
-              <div className="flex items-center gap-2 text-white/80 text-xs font-medium">
-                <RotateCw size={14} className="animate-spin-slow" />
-                <span>Arkası için dokun</span>
+              <div className="flex items-center gap-2.5 text-white/70 text-[10px] font-bold uppercase tracking-widest">
+                <div className="p-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20">
+                  <RotateCw size={12} className="animate-spin-slow" />
+                </div>
+                <span>Arka Yüz İçin Tıkla</span>
               </div>
             </div>
 
-            {/* Top Right Badge */}
-            <div className="absolute top-4 right-4 bg-black/40 backdrop-blur-md p-2 rounded-[5px] border border-white/20">
-              <RotateCw size={20} className="text-white" />
+            <div className="absolute top-5 right-5 bg-black/30 backdrop-blur-md p-2.5 rounded-full border border-white/20 z-10 shadow-lg group-hover:scale-110 transition-transform">
+              <RotateCw size={18} className="text-white" />
             </div>
           </div>
 
           {/* BACK FACE */}
           <div
-            className="absolute inset-0 w-full h-full backface-hidden rounded-[5px] overflow-hidden bg-gray-900"
+            className="absolute inset-0 w-full h-full backface-hidden flex items-center justify-center overflow-hidden"
             style={{
               backfaceVisibility: 'hidden',
               transform: 'rotateY(180deg)'
             }}
           >
-            <img src={data.flipData.backImage} alt="Back" className="w-full h-full object-cover opacity-60 mix-blend-overlay" />
-            <div className="absolute inset-0 bg-gradient-to-br from-black/90 via-black/40 to-black/80" />
+            {/* Creative Blurred Background Layer */}
+            <div className="absolute inset-0 z-0 pointer-events-none">
+              <img
+                src={data.flipData.backImage}
+                alt=""
+                className="w-full h-full object-cover blur-[60px] opacity-40 scale-110"
+              />
+              <div className="absolute inset-0 bg-white/10" />
+            </div>
 
-            {/* Back Content */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
-              <div className="w-16 h-1 bg-blue-500 rounded-[5px] mb-6"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent z-[1] pointer-events-none" />
+            <img src={data.flipData.backImage} alt="Back" className="max-w-full max-h-full object-contain relative z-[2]" />
+
+            {/* Back Content - Matches Front layout */}
+            <div className="absolute bottom-0 left-0 w-full p-8 text-white z-10">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="bg-emerald-600/90 backdrop-blur-md px-3 py-1 rounded-[5px] text-[10px] font-black uppercase tracking-widest shadow-lg border border-white/20">
+                  Yanıt / Bilgi
+                </span>
+              </div>
               {data.flipData.backLink ? (
                 <a
                   href={data.flipData.backLink}
@@ -101,24 +183,27 @@ const FlipCard: React.FC<FlipCardProps> = ({ data }) => {
                   onClick={(e) => e.stopPropagation()}
                   className="block hover:opacity-80 transition-opacity"
                 >
-                  <h3 className="text-3xl font-black text-white mb-4 leading-tight">{data.flipData.backTitle}</h3>
+                  <h3 className="text-3xl font-black leading-tight mb-2 drop-shadow-md">{data.flipData.backTitle}</h3>
                 </a>
               ) : (
-                <h3 className="text-3xl font-black text-white mb-4 leading-tight">{data.flipData.backTitle}</h3>
+                <h3 className="text-3xl font-black leading-tight mb-2 drop-shadow-md">{data.flipData.backTitle}</h3>
               )}
               {data.flipData.backDescription && (
                 <div
-                  className="text-gray-200 text-sm leading-relaxed font-medium mb-8 max-w-sm quill-content"
+                  className="text-white/90 text-sm leading-relaxed mb-5 line-clamp-2 font-medium"
                   dangerouslySetInnerHTML={{ __html: data.flipData.backDescription }}
                 />
               )}
+              <div className="flex items-center gap-2.5 text-white/70 text-[10px] font-bold uppercase tracking-widest">
+                <div className="p-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20">
+                  <RotateCw size={12} className="animate-spin-slow" />
+                </div>
+                <span>Ön Yüz İçin Tıkla</span>
+              </div>
+            </div>
 
-              <button
-                className="group/btn flex items-center gap-2 bg-white text-black px-6 py-3 rounded-[5px] font-bold text-xs uppercase tracking-widest hover:bg-blue-50 transition-colors shadow-[0_0_20px_rgba(255,255,255,0.3)]"
-              >
-                <RotateCw size={14} className="group-hover/btn:-rotate-180 transition-transform duration-500" />
-                <span>Geri Dön</span>
-              </button>
+            <div className="absolute top-5 right-5 bg-black/30 backdrop-blur-md p-2.5 rounded-full border border-white/20 z-10 shadow-lg group-hover:scale-110 transition-transform">
+              <RotateCw size={18} className="text-white" />
             </div>
           </div>
 

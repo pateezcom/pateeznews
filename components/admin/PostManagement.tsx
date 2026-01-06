@@ -860,7 +860,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack }) => {
                             ...currentData,
                             [activeMediaSubTarget]: newSrc
                         });
-                    } else if (targetItem?.type === 'poll') {
+                    } else if (targetItem?.type === 'poll' || targetItem?.type === 'vs') {
                         if (activeMediaSubTarget === 'options' && activeMediaOptionTarget) {
                             const currentOptions = targetItem.options || [];
                             handleUpdateItem(activeMediaTarget, 'options', currentOptions.map(o =>
@@ -1110,7 +1110,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack }) => {
                             ...currentData,
                             [activeMediaSubTarget]: trimmedUrl
                         });
-                    } else if (targetItem?.type === 'poll') {
+                    } else if (targetItem?.type === 'poll' || targetItem?.type === 'vs') {
                         if (activeMediaSubTarget === 'options' && activeMediaOptionTarget) {
                             const currentOptions = targetItem.options || [];
                             handleUpdateItem(activeMediaTarget, 'options', currentOptions.map(o =>
@@ -2725,7 +2725,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack }) => {
                                     ...currentData,
                                     [activeMediaSubTarget]: src
                                 } as any);
-                            } else if (targetItem?.type === 'poll') {
+                            } else if (targetItem?.type === 'poll' || targetItem?.type === 'vs') {
                                 if (activeMediaSubTarget === 'options' && activeMediaOptionTarget) {
                                     const currentOptions = targetItem.options || [];
                                     handleUpdateItem(activeMediaTarget, 'options', currentOptions.map(o =>
