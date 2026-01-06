@@ -37,6 +37,7 @@ export interface NewsItem {
   mediaList?: string[];
   thumbnail: string;
   likes: number;
+  dislikes?: number;
   comments: number;
   shares: number;
   options?: PollOption[];

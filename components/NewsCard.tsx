@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { CheckCircle2, Heart, MessageCircle, Bookmark, Share2 } from 'lucide-react';
 import { NewsItem, NewsType } from '../types';
 import CommentSection from './CommentSection';
@@ -28,12 +28,16 @@ interface NewsCardProps {
 const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => {
   const { showToast } = useToast();
   const [isLiked, setIsLiked] = useState(false);
+  const [isDisliked, setIsDisliked] = useState(false);
   const [showComments, setShowComments] = useState(true);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [likesCount, setLikesCount] = useState(data.likes || 0);
+  const [dislikesCount, setDislikesCount] = useState(data.dislikes || 0); // Initialize from data.dislikes
   const [savesCount, setSavesCount] = useState(data.shares || 0);
   const [isLoading, setIsLoading] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [publisherId, setPublisherId] = useState<string | null>(null);
+  const [isFollowing, setIsFollowing] = useState(false);
 
   // Kullanıcı ve mevcut like/save durumunu kontrol et
   useEffect(() => {
@@ -62,46 +66,167 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
             .single();
 
           if (saveData) setIsBookmarked(true);
+
+          // Beğenmeme durumunu kontrol et
+          const { data: dislikeData } = await supabase
+            .from('post_dislikes')
+            .select('id')
+            .eq('post_id', data.id)
+            .eq('user_id', user.id)
+            .single();
+
+          if (dislikeData) setIsDisliked(true);
+
+          // Yayıncı bilgisini al (Takip durumu için)
+          const { data: postInfo } = await supabase
+            .from('posts')
+            .select('publisher_id, dislikes_count')
+            .eq('id', data.id)
+            .single();
+
+          if (postInfo) {
+            if (postInfo.dislikes_count) setDislikesCount(postInfo.dislikes_count);
+            if (postInfo.publisher_id) {
+              setPublisherId(postInfo.publisher_id);
+              const { data: followData } = await supabase
+                .from('publisher_follows')
+                .select('id')
+                .eq('publisher_id', postInfo.publisher_id)
+                .eq('user_id', user.id)
+                .single();
+              if (followData) setIsFollowing(true);
+            }
+          }
         }
       } catch (error) {
         // Kullanıcı giriş yapmamış veya hata
+        console.error("Error checking user status:", error);
       }
     };
 
     checkUserAndStatus();
   }, [data.id]);
 
-  // Beğeni işlemi (giriş gerektirir)
   const handleLike = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (isLoading) return;
 
-    // Giriş yapmamışsa uyarı göster
     if (!userId) {
       showToast('Beğenmek için giriş yapmalısınız.', 'info');
       return;
     }
 
     const newIsLiked = !isLiked;
+    const wasDisliked = isDisliked;
+
     setIsLiked(newIsLiked);
     setLikesCount(prev => newIsLiked ? prev + 1 : Math.max(0, prev - 1));
+
+    if (newIsLiked && wasDisliked) {
+      setIsDisliked(false);
+      setDislikesCount(prev => Math.max(0, prev - 1));
+    }
 
     setIsLoading(true);
     try {
       if (newIsLiked) {
         await supabase.from('post_likes').insert({ post_id: data.id, user_id: userId });
         await supabase.from('posts').update({ likes_count: likesCount + 1 }).eq('id', data.id);
+
+        if (wasDisliked) {
+          await supabase.from('post_dislikes').delete().eq('post_id', data.id).eq('user_id', userId);
+          await supabase.from('posts').update({ dislikes_count: Math.max(0, dislikesCount - 1) }).eq('id', data.id);
+        }
       } else {
         await supabase.from('post_likes').delete().eq('post_id', data.id).eq('user_id', userId);
         await supabase.from('posts').update({ likes_count: Math.max(0, likesCount - 1) }).eq('id', data.id);
       }
     } catch (error) {
+      // Revert states on error
       setIsLiked(!newIsLiked);
-      setLikesCount(prev => newIsLiked ? prev - 1 : prev + 1);
+      setLikesCount(prev => newIsLiked ? Math.max(0, prev - 1) : prev + 1);
+      if (newIsLiked && wasDisliked) {
+        setIsDisliked(true);
+        setDislikesCount(prev => prev + 1);
+      }
+      showToast('Beğeni işlemi başarısız oldu.', 'error');
     } finally {
       setIsLoading(false);
     }
-  }, [isLiked, isLoading, userId, data.id, likesCount]);
+  }, [isLiked, isDisliked, isLoading, userId, data.id, likesCount, dislikesCount, showToast]);
+
+  const handleDislike = useCallback(async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isLoading) return;
+
+    if (!userId) {
+      showToast('Beğenmemek için giriş yapmalısınız.', 'info');
+      return;
+    }
+
+    const newIsDisliked = !isDisliked;
+    const wasLiked = isLiked;
+
+    setIsDisliked(newIsDisliked);
+    setDislikesCount(prev => newIsDisliked ? prev + 1 : Math.max(0, prev - 1));
+
+    if (newIsDisliked && wasLiked) {
+      setIsLiked(false);
+      setLikesCount(prev => Math.max(0, prev - 1));
+    }
+
+    setIsLoading(true);
+    try {
+      if (newIsDisliked) {
+        await supabase.from('post_dislikes').insert({ post_id: data.id, user_id: userId });
+        await supabase.from('posts').update({ dislikes_count: dislikesCount + 1 }).eq('id', data.id);
+
+        if (wasLiked) {
+          await supabase.from('post_likes').delete().eq('post_id', data.id).eq('user_id', userId);
+          await supabase.from('posts').update({ likes_count: Math.max(0, likesCount - 1) }).eq('id', data.id);
+        }
+      } else {
+        await supabase.from('post_dislikes').delete().eq('post_id', data.id).eq('user_id', userId);
+        await supabase.from('posts').update({ dislikes_count: Math.max(0, dislikesCount - 1) }).eq('id', data.id);
+      }
+    } catch (error) {
+      // Revert states on error
+      setIsDisliked(!newIsDisliked);
+      setDislikesCount(prev => newIsDisliked ? Math.max(0, prev - 1) : prev + 1);
+      if (newIsDisliked && wasLiked) {
+        setIsLiked(true);
+        setLikesCount(prev => prev + 1);
+      }
+      showToast('Beğenmeme işlemi başarısız oldu.', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isLiked, isDisliked, isLoading, userId, data.id, likesCount, dislikesCount, showToast]);
+
+  const handleFollow = useCallback(async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isLoading || !publisherId || !userId) {
+      if (!userId) showToast('Takip etmek için giriş yapmalısınız.', 'info');
+      return;
+    }
+
+    const newIsFollowing = !isFollowing;
+    setIsFollowing(newIsFollowing);
+
+    setIsLoading(true);
+    try {
+      if (newIsFollowing) {
+        await supabase.from('publisher_follows').insert({ publisher_id: publisherId, user_id: userId });
+      } else {
+        await supabase.from('publisher_follows').delete().eq('publisher_id', publisherId).eq('user_id', userId);
+      }
+    } catch (error) {
+      setIsFollowing(!newIsFollowing);
+      showToast('Takip işlemi başarısız oldu.', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isFollowing, isLoading, publisherId, userId, showToast]);
 
   // Kaydetme işlemi (giriş gerektirir)
   const handleSave = useCallback(async (e: React.MouseEvent) => {
@@ -128,10 +253,11 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
     } catch (error) {
       setIsBookmarked(!newIsBookmarked);
       setSavesCount(prev => newIsBookmarked ? prev - 1 : prev + 1);
+      showToast('Kaydetme işlemi başarısız oldu.', 'error');
     } finally {
       setIsLoading(false);
     }
-  }, [isBookmarked, isLoading, userId, data.id]);
+  }, [isBookmarked, isLoading, userId, data.id, showToast]);
 
   // Paylaş menüsü state
   const [showShareMenu, setShowShareMenu] = useState(false);
@@ -251,7 +377,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
       className="bg-white rounded-[5px] border border-palette-beige/30 shadow-[0_2px_20px_rgba(24,37,64,0.03)] transition-all duration-300 hover:shadow-[0_8px_30px_rgba(24,37,64,0.06)] hover:border-palette-red/10 cursor-pointer group/card relative"
     >
       {/* HEADER */}
-      <div className="px-6 pt-6 pb-2 flex items-start justify-between">
+      <div className="px-6 pt-6 pb-2 flex items-center justify-between">
         <div className="flex items-center gap-3.5">
           <div
             onClick={handleSourceAction}
@@ -283,6 +409,13 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
               <span className="text-palette-red bg-palette-red/5 px-1.5 py-0.5 rounded-[5px] uppercase tracking-wider text-[9px]">{data.category}</span>
               <span className="w-0.5 h-0.5 bg-palette-beige rounded-[5px]"></span>
               <span>{data.timestamp}</span>
+              <span className="w-0.5 h-0.5 bg-palette-beige rounded-[5px]"></span>
+              <button
+                onClick={handleFollow}
+                className={`uppercase tracking-tighter text-[10px] font-[900] transition-colors ${isFollowing ? 'text-palette-maroon/20 hover:text-palette-maroon/40' : 'text-palette-red hover:text-palette-maroon'}`}
+              >
+                {isFollowing ? 'Takipte' : 'Takip Et'}
+              </button>
             </div>
           </div>
         </div>
@@ -407,11 +540,11 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
             </button>
           </div>
 
-          {/* Sağ Grup: Kaydet + Beğen */}
-          <div className="flex items-center gap-1">
+          {/* Sağ Grup: Kaydet + Like/Dislike */}
+          <div className="flex items-center gap-2">
             <button
               onClick={handleSave}
-              className={`flex items-center gap-2 px-2.5 py-1.5 rounded-[5px] transition-all duration-500 group/bookmark ${isBookmarked
+              className={`flex items-center justify-center w-10 h-10 rounded-[5px] transition-all duration-500 group/bookmark ${isBookmarked
                 ? 'text-palette-red bg-palette-red/5'
                 : 'text-palette-tan/40 hover:text-palette-red hover:bg-palette-red/5'
                 }`}
@@ -425,31 +558,42 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
               >
                 bookmark
               </span>
-              <span className="text-[12px] font-bold leading-none">
-                {savesCount.toLocaleString()}
-              </span>
             </button>
 
-            <button
-              onClick={handleLike}
-              className={`flex items-center gap-2 px-2.5 py-1.5 rounded-[5px] transition-all duration-500 group/like ${isLiked
-                ? 'bg-palette-red/5 text-palette-red'
-                : 'text-palette-tan/50 hover:text-palette-red hover:bg-palette-red/5'
-                }`}
-            >
-              <span
-                className="material-symbols-rounded transition-all duration-300 animate-heartbeat-4"
-                style={{
-                  fontSize: '22px',
-                  fontVariationSettings: isLiked ? "'FILL' 1, 'wght' 400" : "'FILL' 0, 'wght' 300",
-                }}
+            {/* Premium Like/Dislike Capsule */}
+            <div className="flex items-center bg-palette-beige/10 rounded-[5px] border border-palette-beige/30 p-1">
+              <button
+                onClick={handleLike}
+                className={`
+                  flex items-center gap-2 px-3 py-1.5 rounded-[5px] transition-all duration-300
+                  ${isLiked
+                    ? 'bg-palette-red text-white shadow-md'
+                    : 'text-palette-maroon/60 hover:bg-white hover:text-palette-red'}
+                `}
               >
-                favorite
-              </span>
-              <span className="text-[12px] font-bold leading-none">
-                {likesCount.toLocaleString()}
-              </span>
-            </button>
+                <span className="material-symbols-rounded !text-[20px]" style={{ fontVariationSettings: isLiked ? "'FILL' 1" : "'FILL' 0" }}>
+                  thumb_up
+                </span>
+                <span className="text-[12px] font-[900]">{likesCount.toLocaleString()}</span>
+              </button>
+
+              <div className="w-px h-4 bg-palette-beige/60 mx-1" />
+
+              <button
+                onClick={handleDislike}
+                className={`
+                  flex items-center gap-2 px-3 py-1.5 rounded-[5px] transition-all duration-300
+                  ${isDisliked
+                    ? 'bg-gray-800 text-white shadow-md'
+                    : 'text-palette-maroon/60 hover:bg-white hover:text-gray-900'}
+                `}
+              >
+                <span className="material-symbols-rounded !text-[20px]" style={{ fontVariationSettings: isDisliked ? "'FILL' 1" : "'FILL' 0" }}>
+                  thumb_down
+                </span>
+                <span className="text-[12px] font-[900]">{dislikesCount.toLocaleString()}</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
