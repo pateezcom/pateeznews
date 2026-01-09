@@ -12,6 +12,7 @@ import CategoriesList from './components/CategoriesList';
 import { NewsItem, NavigationItem, SiteSettings } from './types';
 import { useLanguage } from './context/LanguageContext';
 import MainLoading from './components/MainLoading';
+import { isUUID } from './utils/helpers';
 
 // Lazy Components
 const AdminDashboard = React.lazy(() => import('./components/admin/AdminDashboard'));
@@ -132,13 +133,15 @@ const App: React.FC = () => {
         let userLikes: string[] = [];
         let userSaves: string[] = [];
         if (user && postsData.length > 0) {
-          const postIds = postsData.map(p => p.id);
-          const [likes, saves] = await Promise.all([
-            supabase.from('post_likes').select('post_id').in('post_id', postIds).eq('user_id', user.id),
-            supabase.from('post_saves').select('post_id').in('post_id', postIds).eq('user_id', user.id)
-          ]);
-          userLikes = (likes.data || []).map(l => l.post_id);
-          userSaves = (saves.data || []).map(s => s.post_id);
+          const postIds = postsData.map(p => p.id).filter(isUUID);
+          if (postIds.length > 0) {
+            const [likes, saves] = await Promise.all([
+              supabase.from('post_likes').select('post_id').in('post_id', postIds).eq('user_id', user.id),
+              supabase.from('post_saves').select('post_id').in('post_id', postIds).eq('user_id', user.id)
+            ]);
+            userLikes = (likes.data || []).map(l => l.post_id);
+            userSaves = (saves.data || []).map(s => s.post_id);
+          }
         }
 
         const mappedNews: NewsItem[] = postsData.map((item: any) => {
@@ -195,11 +198,17 @@ const App: React.FC = () => {
 
   const fetchSingleNews = useCallback(async (newsId: string) => {
     try {
-      const { data: item, error } = await supabase
+      let query = supabase
         .from('posts')
-        .select(`*, profiles:publisher_id (id, username, full_name, avatar_url, role)`)
-        .eq('id', newsId)
-        .maybeSingle();
+        .select(`*, profiles:publisher_id (id, username, full_name, avatar_url, role)`);
+
+      if (isUUID(newsId)) {
+        query = query.eq('id', newsId);
+      } else {
+        query = query.eq('slug', newsId);
+      }
+
+      const { data: item, error } = await query.maybeSingle();
 
       if (error) throw error;
       if (item) {
@@ -448,21 +457,23 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 transition-opacity duration-500" dir={currentLang.direction}>
-      <Navbar
-        onHomeClick={() => {
-          const lastCat = localStorage.getItem(`${CACHE_CONFIG.PREFIX}${CACHE_CONFIG.KEYS.LAST_CAT}`);
-          setView('feed');
-          setSelectedCategory(lastCat);
-          updateUrl('feed', lastCat);
-          fetchNews(lastCat);
-        }}
-        onProfileClick={() => { setView(session ? 'admin' : 'login'); updateUrl(session ? 'admin' : 'login'); }}
-        isLoggedIn={!!session}
-        navItems={navigationItems}
-        siteSettings={siteSettings}
-      />
+      {view !== 'admin' && (
+        <Navbar
+          onHomeClick={() => {
+            const lastCat = localStorage.getItem(`${CACHE_CONFIG.PREFIX}${CACHE_CONFIG.KEYS.LAST_CAT}`);
+            setView('feed');
+            setSelectedCategory(lastCat);
+            updateUrl('feed', lastCat);
+            fetchNews(lastCat);
+          }}
+          onProfileClick={() => { setView(session ? 'admin' : 'login'); updateUrl(session ? 'admin' : 'login'); }}
+          isLoggedIn={!!session}
+          navItems={navigationItems}
+          siteSettings={siteSettings}
+        />
+      )}
 
-      <main className={`${view === 'admin' ? 'max-w-full' : 'max-w-[1280px]'} mx-auto pt-[72px] flex justify-center items-start gap-8 px-4`}>
+      <main className={`${view === 'admin' ? 'max-w-full pt-0 gap-0 px-0' : 'max-w-[1280px] pt-[72px] gap-8 px-4'} mx-auto flex justify-center items-start`}>
         {view !== 'detail' && view !== 'admin' && view !== 'login' && (
           <aside className="hidden lg:block w-[260px] flex-shrink-0 sticky top-[72px] h-[calc(100vh-72px)] overflow-y-auto pb-8 no-scrollbar">
             <Sidebar items={navigationItems} activeCategory={selectedCategory} onCategoryItemClick={handleCategorySelect} />

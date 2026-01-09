@@ -1,4 +1,4 @@
-
+import { isUUID } from '../utils/helpers';
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { CheckCircle2, Heart, MessageCircle, Bookmark, Share2 } from 'lucide-react';
 import { NewsItem, NewsType } from '../types';
@@ -42,6 +42,9 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
   // Kullanıcı ve mevcut like/save durumunu kontrol et
   useEffect(() => {
     const checkUserAndStatus = async () => {
+      // Eğer ID bir UUID değilse (local data veya slug ise) Supabase sorgusunu atla
+      if (!isUUID(data.id)) return;
+
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
@@ -111,8 +114,8 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
     e.stopPropagation();
     if (isLoading) return;
 
-    if (!userId) {
-      showToast('Beğenmek için giriş yapmalısınız.', 'info');
+    if (!userId || !isUUID(data.id)) {
+      if (!userId) showToast('Beğenmek için giriş yapmalısınız.', 'info');
       return;
     }
 
@@ -159,8 +162,8 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
     e.stopPropagation();
     if (isLoading) return;
 
-    if (!userId) {
-      showToast('Beğenmemek için giriş yapmalısınız.', 'info');
+    if (!userId || !isUUID(data.id)) {
+      if (!userId) showToast('Beğenmemek için giriş yapmalısınız.', 'info');
       return;
     }
 
@@ -234,8 +237,8 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
     if (isLoading) return;
 
     // Giriş yapmamışsa uyarı göster
-    if (!userId) {
-      showToast('Kaydetmek için giriş yapmalısınız.', 'info');
+    if (!userId || !isUUID(data.id)) {
+      if (!userId) showToast('Kaydetmek için giriş yapmalısınız.', 'info');
       return;
     }
 
