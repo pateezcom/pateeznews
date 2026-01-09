@@ -1,9 +1,13 @@
-
 import React from 'react';
 import { TrendingUp, ArrowUpRight, ArrowDownRight, Sun, Cloud, CloudRain, CloudSun, DollarSign, Euro, Bitcoin, Coins, UserPlus, CheckCircle2, MapPin, Mail, Zap } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { NewsItem } from '../types';
 
-const RightSidebar: React.FC = () => {
+interface RightSidebarProps {
+   newsData?: NewsItem[];
+}
+
+const RightSidebar: React.FC<RightSidebarProps> = ({ newsData }) => {
    const { t } = useLanguage();
 
    const trending = [
@@ -30,7 +34,7 @@ const RightSidebar: React.FC = () => {
 
    const suggestions = [
       { name: 'Uzay Kaşifi', handle: '@uzaykasifi', img: 'space', bg: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=400' },
-      { name: 'Gurme Buzz', handle: '@gurmebuzz', img: 'food', bg: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=400' },
+      { name: 'Gurme Rehber', handle: '@gurmeist', img: 'food', bg: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=400' },
    ];
 
    return (
@@ -68,7 +72,7 @@ const RightSidebar: React.FC = () => {
             </div>
          </div>
 
-         {/* 2. Buzz Gündem (Trending) */}
+         {/* 2. Gündem (Trending) */}
          <div className="bg-white rounded-[5px] border border-palette-beige/60 shadow-sm overflow-hidden">
             <div className="p-6 pb-2 flex items-center justify-between">
                <div className="flex items-center gap-3">
@@ -144,12 +148,12 @@ const RightSidebar: React.FC = () => {
             </div>
          </div>
 
-         {/* 4. Buzz Radar (Suggestions) */}
+         {/* 4. Keşfet (Suggestions) */}
          <div>
             <div className="flex items-center justify-between px-3 mb-4">
                <div className="flex items-center gap-2">
                   <Zap size={16} className="text-palette-red" />
-                  <h3 className="font-bold text-gray-900 uppercase tracking-[0.12em] text-[13px]">Buzz Radar</h3>
+                  <h3 className="font-bold text-gray-900 uppercase tracking-[0.12em] text-[13px]">Keşfet</h3>
                </div>
                <button className="text-[10px] font-bold text-palette-tan/40 hover:underline uppercase tracking-widest">{t('right.all')}</button>
             </div>

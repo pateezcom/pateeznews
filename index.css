@@ -169,3 +169,84 @@
     animation: heartbeat 20s ease-in-out infinite;
     animation-delay: 4.5s;
 }
+
+/* 📝 RICH TEXT CONTENT STYLING (GLOBAL) */
+.rich-text-content,
+.rich-text-content * {
+    overflow-wrap: break-word !important;
+    word-wrap: break-word !important;
+    word-break: normal !important;
+    hyphens: none !important;
+    -webkit-hyphens: none !important;
+    -moz-hyphens: none !important;
+    -ms-hyphens: none !important;
+}
+
+.rich-text-content img {
+    max-width: 100% !important;
+    height: auto !important;
+    border-radius: 5px;
+    margin: 1.5rem auto;
+    display: block;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.rich-text-content iframe,
+.rich-text-content video {
+    max-width: 100% !important;
+    width: 100% !important;
+    aspect-ratio: 16 / 9;
+    border-radius: 5px;
+    margin: 1.5rem 0;
+}
+
+.rich-text-content p {
+    margin-bottom: 1.5rem;
+    line-height: 1.8;
+}
+
+.rich-text-content h1,
+.rich-text-content h2,
+.rich-text-content h3 {
+    font-weight: 800;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    color: #111827;
+}
+
+.rich-text-content ul,
+.rich-text-content ol {
+    margin-bottom: 1.5rem;
+    padding-left: 1.5rem;
+    list-style-type: disc;
+}
+
+.rich-text-content ol {
+    list-style-type: decimal;
+}
+
+.rich-text-content li {
+    margin-bottom: 0.75rem;
+}
+
+.rich-text-content blockquote {
+    border-left: 4px solid #D0354E;
+    padding-left: 1.5rem;
+    font-style: italic;
+    color: #4B5563;
+    margin: 2rem 0;
+}
+
+.rich-text-content table {
+    width: 100% !important;
+    overflow-x: auto;
+    display: block;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+}
+
+.rich-text-content th,
+.rich-text-content td {
+    border: 1px solid #E5E7EB;
+    padding: 0.75rem;
+}

@@ -49,7 +49,7 @@ const VSCard: React.FC<VSCardProps> = ({ data }) => {
   const rightFlex = 100 - leftFlex;
 
   return (
-    <div className="mt-1 space-y-4">
+    <div className="mt-1 space-y-4 overflow-hidden">
       {/* VS SUMMARY SECTION - StandardCard Style */}
       <div className="px-1 mb-3">
         <p className="text-gray-600/80 text-[16px] leading-relaxed font-medium">
@@ -90,11 +90,11 @@ const VSCard: React.FC<VSCardProps> = ({ data }) => {
       <div className="bg-white p-2 rounded-[5px] border border-palette-beige shadow-sm overflow-hidden">
         {/* VS ITEM TITLE - Elite & Modern Style */}
         {(data.items?.[0]?.title || (data as any).blockTitle) && (
-          <div className="pt-4 pb-2 px-4 text-center">
+          <div className="pt-4 pb-2 px-4 text-left">
             <h3 className="text-[18px] font-[900] italic text-palette-maroon tracking-tighter uppercase leading-none drop-shadow-sm">
               {data.items?.[0]?.title || (data as any).blockTitle}
             </h3>
-            <div className="w-12 h-[3px] bg-palette-red/10 mx-auto mt-2 rounded-full" />
+            <div className="w-12 h-[3px] bg-palette-red/10 mt-2 rounded-full" />
           </div>
         )}
 
@@ -131,15 +131,15 @@ const VSCard: React.FC<VSCardProps> = ({ data }) => {
               }}
             />
 
-            <div className={`absolute inset-0 p-6 flex flex-col justify-end items-center text-center ${hasVoted ? 'opacity-100' : 'opacity-80'}`} style={{ transition: 'opacity 500ms cubic-bezier(0.25, 0.46, 0.45, 0.94)' }}>
+            <div className={`absolute inset-0 p-6 flex flex-col justify-end items-start text-left ${hasVoted ? 'opacity-100' : 'opacity-80'}`} style={{ transition: 'opacity 500ms cubic-bezier(0.25, 0.46, 0.45, 0.94)' }}>
               <span
-                className={`text-white text-[10px] font-black uppercase tracking-[0.2em] mb-2 ${hasVoted ? 'scale-110 origin-center' : ''}`}
+                className={`text-white text-[10px] font-black uppercase tracking-[0.2em] mb-2 ${hasVoted ? 'scale-110 origin-left' : ''}`}
                 style={{ transition: 'transform 500ms cubic-bezier(0.25, 0.46, 0.45, 0.94)' }}
               >{left!.text}</span>
               {hasVoted && (
-                <div className="flex flex-col items-center animate-in slide-in-from-left duration-700">
+                <div className="flex flex-col items-start animate-in slide-in-from-left duration-700">
                   <div className="text-white text-5xl font-[900] italic tracking-tighter leading-none"><AnimatedNumber value={leftPct} /></div>
-                  <div className="text-white/80 text-[10px] font-black uppercase tracking-widest mt-2 bg-white/10 backdrop-blur-sm px-2 py-0.5 rounded-[2px] self-center">
+                  <div className="text-white/80 text-[10px] font-black uppercase tracking-widest mt-2 bg-white/10 backdrop-blur-sm px-2 py-0.5 rounded-[2px] self-start">
                     <AnimatedNumber value={leftVotes} suffix=" OY" />
                   </div>
                 </div>
@@ -231,15 +231,15 @@ const VSCard: React.FC<VSCardProps> = ({ data }) => {
               }}
             />
 
-            <div className={`absolute inset-0 p-6 flex flex-col justify-end items-center text-center ${hasVoted ? 'opacity-100' : 'opacity-80'}`} style={{ transition: 'opacity 500ms cubic-bezier(0.25, 0.46, 0.45, 0.94)' }}>
+            <div className={`absolute inset-0 p-6 flex flex-col justify-end items-start text-left ${hasVoted ? 'opacity-100' : 'opacity-80'}`} style={{ transition: 'opacity 500ms cubic-bezier(0.25, 0.46, 0.45, 0.94)' }}>
               <span
-                className={`text-white text-[10px] font-black uppercase tracking-[0.2em] mb-2 ${hasVoted ? 'scale-110 origin-center' : ''}`}
+                className={`text-white text-[10px] font-black uppercase tracking-[0.2em] mb-2 ${hasVoted ? 'scale-110 origin-left' : ''}`}
                 style={{ transition: 'transform 500ms cubic-bezier(0.25, 0.46, 0.45, 0.94)' }}
               >{right!.text}</span>
               {hasVoted && (
-                <div className="flex flex-col items-center animate-in slide-in-from-right duration-700">
+                <div className="flex flex-col items-start animate-in slide-in-from-right duration-700">
                   <div className="text-white text-5xl font-[900] italic tracking-tighter leading-none"><AnimatedNumber value={rightPct} /></div>
-                  <div className="text-white/80 text-[10px] font-black uppercase tracking-widest mt-2 bg-white/10 backdrop-blur-sm px-2 py-0.5 rounded-[2px] self-center">
+                  <div className="text-white/80 text-[10px] font-black uppercase tracking-widest mt-2 bg-white/10 backdrop-blur-sm px-2 py-0.5 rounded-[2px] self-start">
                     <AnimatedNumber value={rightVotes} suffix=" OY" />
                   </div>
                 </div>
@@ -254,7 +254,7 @@ const VSCard: React.FC<VSCardProps> = ({ data }) => {
           </button>
         </div>
 
-        <div className="p-4 flex items-center justify-center gap-2 text-palette-tan/40">
+        <div className="p-4 flex items-center justify-start gap-2 text-palette-tan/40">
           <div className="p-1 rounded-[4px] bg-palette-beige/50 border border-palette-tan/10"><Users size={14} /></div>
           <span className="text-[10px] font-[900] uppercase tracking-[0.15em]">
             <AnimatedNumber value={hasVoted ? (data.totalVotes || 0) + 1 : (data.totalVotes || 0)} suffix=" Oy Verildi" />

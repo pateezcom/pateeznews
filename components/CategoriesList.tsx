@@ -61,11 +61,11 @@ const CategoriesList: React.FC<CategoriesListProps> = ({ onBack, onCategorySelec
         <div className="max-w-2xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-[5px] text-[10px] font-black uppercase tracking-widest mb-4">
             <LayoutGrid size={14} />
-            Buzz Hub
+            Haber Havuzu
           </div>
           <h1 className="text-4xl md:text-5xl font-[900] text-gray-900 tracking-tight mb-4">Keşfete Başla</h1>
           <p className="text-gray-500 text-lg font-medium leading-relaxed">
-            Sadece ilgini çeken dünyalara dal. Buzz ekosistemindeki binlerce haberi kategorize ettik.
+            Sadece ilgini çeken dünyalara dal. Haber ekosistemindeki binlerce haberi kategorize ettik.
           </p>
         </div>
       </div>

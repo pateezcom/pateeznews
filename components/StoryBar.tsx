@@ -2,10 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { Zap } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
-const StoryBar: React.FC = () => {
-  const [stories, setStories] = useState<any[]>([]);
+interface StoryBarProps {
+  initialStories?: any[];
+}
+
+const StoryBar: React.FC<StoryBarProps> = ({ initialStories }) => {
+  const [stories, setStories] = useState<any[]>(initialStories || []);
 
   useEffect(() => {
+    if (initialStories && initialStories.length > 0) return;
+
     const fetchStories = async () => {
       try {
         const { data, error } = await supabase
@@ -22,7 +28,7 @@ const StoryBar: React.FC = () => {
       }
     };
     fetchStories();
-  }, []);
+  }, [initialStories]);
 
   if (stories.length === 0) return null;
 
@@ -72,7 +78,7 @@ const StoryBar: React.FC = () => {
                 {/* Kategori Tag */}
                 <div className="flex items-center gap-1 mb-1.5 opacity-80">
                   <Zap size={10} className="text-yellow-400 fill-yellow-400" />
-                  <span className="text-[9px] font-black text-blue-200 uppercase tracking-widest">{story.source_name || story.source || 'Buzz'}</span>
+                  <span className="text-[9px] font-black text-blue-200 uppercase tracking-widest">{story.source_name || story.source || 'Pateez'}</span>
                 </div>
 
                 {/* Title */}

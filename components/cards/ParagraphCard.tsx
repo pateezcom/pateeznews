@@ -12,7 +12,7 @@ const ParagraphCard: React.FC<ParagraphCardProps> = ({ data }) => {
     const quoteAuthor = data.paragraphData?.quoteAuthor;
 
     return (
-        <div className="mt-1 space-y-4">
+        <div className="mt-1 space-y-4 overflow-hidden">
             {/* SUBTITLE (SUMMARY) - Standard Card Style as Alt Başlık */}
             <div className="px-1 mb-2">
                 <p className="text-palette-tan/60 text-[16px] font-medium leading-relaxed">
@@ -27,28 +27,27 @@ const ParagraphCard: React.FC<ParagraphCardProps> = ({ data }) => {
                 </div>
 
                 {/* Content Section */}
-                <div className="relative z-10 flex flex-col items-center text-center">
-                    <div className="bg-white p-4 rounded-full shadow-md border border-palette-beige/30 mb-8 transform -rotate-3 group-hover:rotate-0 transition-transform duration-700">
+                <div className="relative z-10 flex flex-col items-start text-left">
+                    <div className="bg-white p-4 rounded-full shadow-md border border-palette-beige/30 mb-8 transform -rotate-3 group-hover:rotate-0 transition-transform duration-700 ml-0 mr-auto">
                         <Quote size={32} className="text-palette-red drop-shadow-sm" fill="currentColor" />
                     </div>
 
-                    <div className="space-y-6 max-w-[90%] mx-auto">
+                    <div className="space-y-6 max-w-[90%] ml-0 mr-auto">
                         {items.map((item, index) => (
                             <div
                                 key={index}
-                                className="text-[22px] md:text-[26px] font-[800] text-palette-maroon/90 leading-snug tracking-tight italic flex flex-col items-center"
+                                className="rich-text-content text-[22px] md:text-[26px] font-[800] text-palette-maroon/90 leading-snug tracking-tight italic flex flex-col items-start break-words"
                                 dangerouslySetInnerHTML={{ __html: item }}
                             />
                         ))}
                     </div>
 
                     {quoteAuthor && (
-                        <div className="mt-10 flex items-center gap-3">
+                        <div className="mt-10 flex items-center gap-3 ml-0 mr-auto">
                             <div className="w-10 h-[2px] bg-palette-red/20 rounded-full" />
                             <span className="text-[14px] font-black uppercase tracking-[0.2em] text-palette-tan/60">
                                 {quoteAuthor}
                             </span>
-                            <div className="w-10 h-[2px] bg-palette-red/20 rounded-full" />
                         </div>
                     )}
                 </div>

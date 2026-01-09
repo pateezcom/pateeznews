@@ -65,7 +65,7 @@ const PostRow = React.memo(({
                     className="w-4 h-4 rounded-[5px] border-palette-tan/30 text-palette-maroon focus:ring-palette-maroon cursor-pointer"
                 />
             </td>
-            <td className="px-2 py-0 align-middle text-[13px] font-bold text-palette-tan/60">{post.id.slice(0, 5).toUpperCase()}</td>
+            <td className="px-2 py-0 align-middle text-[13px] font-bold text-palette-tan/60">{post.id}</td>
             <td className="px-2 py-0 align-middle">
                 <div className="flex items-center gap-4 min-w-0">
                     <div className="w-[60px] h-[60px] flex-shrink-0 bg-palette-beige rounded-[5px] overflow-hidden border border-palette-tan/10 shadow-sm relative group-hover:shadow-md transition-all">

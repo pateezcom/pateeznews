@@ -12,6 +12,7 @@ const PostManagement = React.lazy(() => import('./PostManagement'));
 const PostList = React.lazy(() => import('./PostList'));
 const PublisherManagement = React.lazy(() => import('./PublisherManagement'));
 const PublisherProfileSettings = React.lazy(() => import('./PublisherProfileSettings'));
+const Settings = React.lazy(() => import('./Settings'));
 import { useLanguage } from '../../context/LanguageContext';
 
 interface AdminDashboardProps {
@@ -249,6 +250,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
                 onSuccess={() => handleTabChange('publishers')}
               />
             );
+            case 'settings': return <Settings />;
             default: return null;
           }
         })()}
@@ -278,7 +280,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
               <span className="material-symbols-rounded text-[22px] font-bold">bolt</span>
             </div>
             <span className={`text-[22px] font-bold text-palette-maroon tracking-tight transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0'}`}>
-              Buzz<span className="text-palette-tan font-medium">Panel</span>
+              Pateez<span className="text-palette-tan font-medium">Panel</span>
             </span>
           </div>
         </div>
@@ -402,7 +404,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
                         <img src="https://picsum.photos/seed/admin/200" className="w-full h-full object-cover rounded-[5px] shadow-md" alt="Admin" />
                       </div>
                       <div>
-                        <h4 className="text-base font-bold text-palette-maroon">Buzz Admin</h4>
+                        <h4 className="text-base font-bold text-palette-maroon">Pateez Admin</h4>
                         <p className="text-[13px] text-palette-tan font-bold">{userRole}</p>
                       </div>
                     </div>

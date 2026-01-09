@@ -6,7 +6,7 @@ export const loadLocaleData = async (langCode: string) => {
   try {
     // 1. Önce sonradan eklenmiş (Import edilmiş) dilleri kontrol et
     if (typeof window !== 'undefined') {
-      const storedTranslation = localStorage.getItem(`buzz_locale_${langCode}`);
+      const storedTranslation = localStorage.getItem(`pateez_locale_${langCode}`);
       if (storedTranslation) {
         try {
           const parsed = JSON.parse(storedTranslation);

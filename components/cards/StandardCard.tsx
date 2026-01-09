@@ -8,11 +8,14 @@ interface StandardCardProps {
 
 const StandardCard: React.FC<StandardCardProps> = ({ data }) => {
   return (
-    <div className="mt-1 space-y-3">
+    <div className="mt-1 space-y-3 overflow-hidden">
       <div className="px-1 mb-3">
-        <p className="text-gray-600/80 text-[16px] leading-relaxed font-medium">{data.summary}</p>
+        <div
+          className="rich-text-content text-gray-600/80 text-[16px] leading-relaxed font-medium"
+          dangerouslySetInnerHTML={{ __html: data.summary }}
+        />
       </div>
-      <div className="relative rounded-lg overflow-hidden group flex items-center justify-center">
+      <div className="relative rounded-lg overflow-hidden group flex items-center justify-start">
         <img
           src={data.thumbnail}
           alt={data.title}

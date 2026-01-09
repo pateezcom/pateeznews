@@ -27,17 +27,17 @@ interface NewsCardProps {
 
 const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => {
   const { showToast } = useToast();
-  const [isLiked, setIsLiked] = useState(false);
-  const [isDisliked, setIsDisliked] = useState(false);
+  const [isLiked, setIsLiked] = useState(data.userLiked || false);
+  const [isDisliked, setIsDisliked] = useState(data.userDisliked || false);
   const [showComments, setShowComments] = useState(true);
-  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(data.userSaved || false);
   const [likesCount, setLikesCount] = useState(data.likes || 0);
-  const [dislikesCount, setDislikesCount] = useState(data.dislikes || 0); // Initialize from data.dislikes
+  const [dislikesCount, setDislikesCount] = useState(data.dislikes || 0);
   const [savesCount, setSavesCount] = useState(data.shares || 0);
   const [isLoading, setIsLoading] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
-  const [publisherId, setPublisherId] = useState<string | null>(null);
-  const [isFollowing, setIsFollowing] = useState(false);
+  const [publisherId, setPublisherId] = useState<string | null>(data.publisherId || null);
+  const [isFollowing, setIsFollowing] = useState(data.isFollowingPublisher || false);
 
   // Kullanıcı ve mevcut like/save durumunu kontrol et
   useEffect(() => {
@@ -53,7 +53,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
             .select('id')
             .eq('post_id', data.id)
             .eq('user_id', user.id)
-            .single();
+            .maybeSingle();
 
           if (likeData) setIsLiked(true);
 
@@ -63,7 +63,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
             .select('id')
             .eq('post_id', data.id)
             .eq('user_id', user.id)
-            .single();
+            .maybeSingle();
 
           if (saveData) setIsBookmarked(true);
 
@@ -73,7 +73,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
             .select('id')
             .eq('post_id', data.id)
             .eq('user_id', user.id)
-            .single();
+            .maybeSingle();
 
           if (dislikeData) setIsDisliked(true);
 
@@ -82,7 +82,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
             .from('posts')
             .select('publisher_id, dislikes_count')
             .eq('id', data.id)
-            .single();
+            .maybeSingle();
 
           if (postInfo) {
             if (postInfo.dislikes_count) setDislikesCount(postInfo.dislikes_count);
@@ -93,7 +93,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
                 .select('id')
                 .eq('publisher_id', postInfo.publisher_id)
                 .eq('user_id', user.id)
-                .single();
+                .maybeSingle();
               if (followData) setIsFollowing(true);
             }
           }
@@ -438,7 +438,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
       </div>
 
       {/* MEDIA CONTENT */}
-      <div className="px-6 pb-2 rounded-[5px]">{renderContent()}</div>
+      <div className="px-6 pb-2 rounded-[5px] overflow-hidden">{renderContent()}</div>
 
       {/* INTERACTION BAR */}
       <div className="mt-0.5 px-6 py-1 border-t border-palette-beige/20 bg-white/50 backdrop-blur-md relative z-[100]">

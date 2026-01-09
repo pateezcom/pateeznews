@@ -46,7 +46,7 @@ const PublishersList: React.FC<PublishersListProps> = ({ onBack, onPublisherSele
             followers: '1.2M', // This could be dynamic if we had a follows table
             posts: '1.4K', // This could be dynamic with a count query
             verified: true,
-            description: p.about_me || 'Buzz Haber yayıncısı.'
+            description: p.about_me || 'Haber Yayıncısı'
           }));
           setPublishers(mapped);
         }
@@ -97,7 +97,7 @@ const PublishersList: React.FC<PublishersListProps> = ({ onBack, onPublisherSele
             <Plus size={12} strokeWidth={3} />
             Keşfet
           </div>
-          <h1 className="text-5xl font-[900] text-gray-900 tracking-tight mb-4">Buzz Yayıncıları</h1>
+          <h1 className="text-5xl font-[900] text-gray-900 tracking-tight mb-4">Tüm Yayıncılar</h1>
           <p className="text-gray-500 text-xl font-medium leading-relaxed">
             Haber ekosistemimizin kalbinde yer alan, her biri kendi alanında uzman ve doğrulanmış yayıncıları keşfedin.
           </p>
@@ -189,7 +189,7 @@ const PublishersList: React.FC<PublishersListProps> = ({ onBack, onPublisherSele
           </div>
           <h4 className="text-2xl font-black text-gray-900 mb-4 tracking-tight">Yayıncı Olmak İster misiniz?</h4>
           <p className="text-gray-500 font-medium mb-8 leading-relaxed">
-            Buzz ekosistemine katılarak milyonlarca okuyucuya ulaşın. Kendi markanızı yaratın ve doğrulanmış yayıncı rozetiyle güvenilirliğinizi artırın.
+            Haber ekosistemine katılarak milyonlarca okuyucuya ulaşın. Kendi markanızı yaratın ve doğrulanmış yayıncı rozetiyle güvenilirliğinizi artırın.
           </p>
           <button className="px-8 py-4 bg-white border-2 border-gray-900 text-gray-900 rounded-[5px] font-black text-sm uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-all shadow-sm">
             Hemen Başvur

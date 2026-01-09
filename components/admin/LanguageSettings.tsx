@@ -57,7 +57,7 @@ const LanguageSettings: React.FC = () => {
       if (data && data.length > 0) {
         setLanguages(data);
       } else {
-        const savedLang = localStorage.getItem('buzz_lang');
+        const savedLang = localStorage.getItem('pateez_lang');
         const defaultLangs = [
           { code: 'tr', name: 'Türkçe', direction: 'ltr', status: 'active', flag_code: 'tr', is_default: savedLang === 'tr' },
           { code: 'en', name: 'English', direction: 'ltr', status: 'active', flag_code: 'us', is_default: savedLang === 'en' }
@@ -123,10 +123,10 @@ const LanguageSettings: React.FC = () => {
 
       const newLanguages = languages.filter(l => l.code !== langToDelete.code);
       setLanguages(newLanguages);
-      localStorage.removeItem(`buzz_locale_${langToDelete.code}`);
+      localStorage.removeItem(`pateez_locale_${langToDelete.code}`);
 
-      if (localStorage.getItem('buzz_lang') === langToDelete.code) {
-        localStorage.setItem('buzz_lang', 'tr');
+      if (localStorage.getItem('pateez_lang') === langToDelete.code) {
+        localStorage.setItem('pateez_lang', 'tr');
         window.location.reload();
       }
     } catch (err: any) {
@@ -184,7 +184,7 @@ const LanguageSettings: React.FC = () => {
     try {
       setProcessing(code);
       await supabase.from('languages').update({ is_default: true }).eq('code', code);
-      localStorage.setItem('buzz_lang', code);
+      localStorage.setItem('pateez_lang', code);
       window.location.reload();
     } catch (err) {
       window.location.reload();
@@ -218,7 +218,7 @@ const LanguageSettings: React.FC = () => {
           status: json.meta.status || 'active', flag_code: json.meta.flag_code || json.meta.code, is_default: false
         };
         await supabase.from('languages').upsert(dbPayload, { onConflict: 'code' });
-        localStorage.setItem(`buzz_locale_${dbPayload.code}`, JSON.stringify(json.translations));
+        localStorage.setItem(`pateez_locale_${dbPayload.code}`, JSON.stringify(json.translations));
         window.location.reload();
       } catch (err) { setStatusModal({ show: true, type: 'error', message: t('lang.import_error') }); } finally { setImporting(false); }
     };

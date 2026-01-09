@@ -37,7 +37,7 @@ const PublisherProfileSettings: React.FC<PublisherProfileSettingsProps> = ({ pub
                 .from('profiles')
                 .select('*')
                 .eq('id', targetId)
-                .single();
+                .maybeSingle();
 
             if (error) throw error;
 

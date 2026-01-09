@@ -74,11 +74,13 @@ export default defineConfig(({ mode }) => {
             const videoBaseDir = path.join(uploadRootDir, 'video');
             const audioBaseDir = path.join(uploadRootDir, 'audio');
             const fileBaseDir = path.join(uploadRootDir, 'file');
+            const logoBaseDir = path.join(uploadRootDir, 'logo');
 
             if (!fs.existsSync(imageBaseDir)) fs.mkdirSync(imageBaseDir, { recursive: true });
             if (!fs.existsSync(videoBaseDir)) fs.mkdirSync(videoBaseDir, { recursive: true });
             if (!fs.existsSync(audioBaseDir)) fs.mkdirSync(audioBaseDir, { recursive: true });
             if (!fs.existsSync(fileBaseDir)) fs.mkdirSync(fileBaseDir, { recursive: true });
+            if (!fs.existsSync(logoBaseDir)) fs.mkdirSync(logoBaseDir, { recursive: true });
 
             const getMimeType = (filePath: string) => {
               const ext = path.extname(filePath).toLowerCase();
@@ -180,7 +182,7 @@ export default defineConfig(({ mode }) => {
               try {
                 const url = new URL(req.url, `http://${req.headers.host}`);
                 const type = url.searchParams.get('type') || 'image';
-                const baseDir = type === 'video' ? videoBaseDir : (type === 'audio' ? audioBaseDir : (type === 'file' ? fileBaseDir : imageBaseDir));
+                const baseDir = type === 'video' ? videoBaseDir : (type === 'audio' ? audioBaseDir : (type === 'file' ? fileBaseDir : (type === 'logo' ? logoBaseDir : imageBaseDir)));
                 const fileData = getAllFiles(baseDir, type, baseDir);
                 res.setHeader('Content-Type', 'application/json');
                 res.end(JSON.stringify(fileData));
@@ -205,6 +207,8 @@ export default defineConfig(({ mode }) => {
                 fullPath = path.join(fileBaseDir, relativePath.replace('file/', ''));
               } else if (relativePath.startsWith('image/')) {
                 fullPath = path.join(imageBaseDir, relativePath.replace('image/', ''));
+              } else if (relativePath.startsWith('logo/')) {
+                fullPath = path.join(logoBaseDir, relativePath.replace('logo/', ''));
               } else {
                 fullPath = path.join(imageBaseDir, relativePath);
               }
@@ -237,7 +241,7 @@ export default defineConfig(({ mode }) => {
                     (file.originalFilename.match(/\.(mp4|webm|mov|avi)$/i) ? 'video' :
                       (file.originalFilename.match(/\.(mp3|wav|ogg|m4a|aac)$/i) ? 'audio' :
                         (file.originalFilename.match(/\.(pdf|doc|docx|xls|xlsx|ppt|pptx)$/i) ? 'file' : 'image')));
-                  const baseDir = type === 'video' ? videoBaseDir : (type === 'audio' ? audioBaseDir : (type === 'file' ? fileBaseDir : imageBaseDir));
+                  const baseDir = type === 'video' ? videoBaseDir : (type === 'audio' ? audioBaseDir : (type === 'file' ? fileBaseDir : (type === 'logo' ? logoBaseDir : imageBaseDir)));
 
                   let targetDir = path.join(baseDir, today);
                   let cleanFileName = path.parse(file.originalFilename).name.replace(/\s+/g, '-').toLowerCase();
@@ -249,6 +253,12 @@ export default defineConfig(({ mode }) => {
                       targetDir = path.join(baseDir, parts[0]);
                       cleanFileName = parts.slice(1).join('/');
                     }
+                  }
+
+                  const customFilename = fields.customFilename?.[0];
+                  if (customFilename && type === 'logo') {
+                    // For logos, if customFilename is provided, we use it exactly
+                    cleanFileName = path.parse(customFilename).name;
                   }
 
                   if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true });
@@ -294,6 +304,31 @@ export default defineConfig(({ mode }) => {
                       value: file.originalFilename,
                       src: `/api/storage/file/file/${finalDateDir}/${file.originalFilename}`,
                       type: 'file'
+                    }));
+                  } else if (type === 'logo') {
+                    const lang = fields.lang?.[0] || 'tr';
+                    const langDir = path.join(logoBaseDir, lang);
+                    if (!fs.existsSync(langDir)) fs.mkdirSync(langDir, { recursive: true });
+
+                    const ext = customFilename ? '.png' : path.extname(file.originalFilename).toLowerCase();
+                    const finalFileName = `${cleanFileName}${ext}`;
+                    const finalPath = path.join(langDir, finalFileName);
+
+                    // Ensure we overwrite by deleting if exists (sharp toFile usually overwrites but better safe)
+                    if (fs.existsSync(finalPath)) {
+                      fs.unlinkSync(finalPath);
+                    }
+
+                    const originalImage = sharp(file.path);
+                    await originalImage.toFile(finalPath);
+                    fs.unlinkSync(file.path);
+
+                    const cacheBuster = Date.now();
+                    res.end(JSON.stringify({
+                      id: `logo/${lang}/${finalFileName}`,
+                      value: finalFileName,
+                      src: `/api/storage/file/logo/${lang}/${finalFileName}?t=${cacheBuster}`,
+                      type: 'logo'
                     }));
                   } else {
                     const originalImage = sharp(file.path);

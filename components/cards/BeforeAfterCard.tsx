@@ -17,7 +17,7 @@ const BeforeAfterCard: React.FC<BeforeAfterCardProps> = ({ data }) => {
   if (!data.beforeAfterData) return null;
 
   return (
-    <div className="mt-1 space-y-3">
+    <div className="mt-1 space-y-3 overflow-hidden">
       <div className="px-1 mb-3">
         <p className="text-gray-600/80 text-[16px] leading-relaxed font-medium">{data.summary}</p>
       </div>
@@ -83,7 +83,7 @@ const BeforeAfterCard: React.FC<BeforeAfterCardProps> = ({ data }) => {
         </div>
 
         {/* Hint overlay */}
-        <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-black/30 backdrop-blur-sm px-3 py-1 rounded-[5px] border border-white/10 pointer-events-none">
+        <div className="absolute top-6 left-6 bg-black/30 backdrop-blur-sm px-3 py-1 rounded-[5px] border border-white/10 pointer-events-none">
           <span className="text-[10px] text-white/80 font-bold uppercase tracking-widest">Karşılaştırmak için kaydır</span>
         </div>
 

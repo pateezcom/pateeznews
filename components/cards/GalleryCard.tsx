@@ -83,14 +83,14 @@ const GalleryCard: React.FC<GalleryCardProps> = ({ data }) => {
   if (!data.mediaList || data.mediaList.length === 0) return null;
 
   return (
-    <div className="mt-1 space-y-3">
+    <div className="mt-1 space-y-3 overflow-hidden">
       <div className="px-1 mb-3">
         <p className="text-gray-600/80 text-[16px] leading-relaxed font-medium">{data.summary}</p>
       </div>
 
       <div
         ref={containerRef}
-        className="relative overflow-hidden group select-none flex items-center justify-center"
+        className="relative overflow-hidden group select-none flex items-center justify-start"
         style={{ height: maxHeight > 0 ? `${maxHeight}px` : 'auto' }}
       >
         <img
@@ -118,7 +118,7 @@ const GalleryCard: React.FC<GalleryCardProps> = ({ data }) => {
             </span>
           </div>
         </div>
-        <div className="absolute bottom-4 left-0 right-0 z-20 flex justify-center gap-2">
+        <div className="absolute bottom-4 left-6 right-0 z-20 flex justify-start gap-2">
           {data.mediaList.map((_, idx) => (
             <button
               key={idx}

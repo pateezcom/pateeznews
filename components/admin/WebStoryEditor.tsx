@@ -23,7 +23,6 @@ interface WebStoryEditorProps {
 const WebStoryEditor: React.FC<WebStoryEditorProps> = ({ story, onClose, onSaveSuccess }) => {
     const { t } = useLanguage();
 
-
     const config = useMemo(() => ({
         apiCallbacks: {
             saveStoryById: async ({ pages, globalStoryStyles, currentStoryStyles, content, title }: any) => {
@@ -87,7 +86,7 @@ const WebStoryEditor: React.FC<WebStoryEditorProps> = ({ story, onClose, onSaveS
                         <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>save</span>
                     </div>
                     <div>
-                        <h2 className="text-[20px] font-black text-palette-maroon leading-none">Buzz <span className="text-palette-red">Creative</span></h2>
+                        <h2 className="text-[20px] font-black text-palette-maroon leading-none">Pateez <span className="text-palette-red">Creative</span></h2>
                         <p className="text-[12px] font-bold text-palette-tan/50 tracking-widest">Gelişmiş Story Editörü</p>
                     </div>
                 </div>

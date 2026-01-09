@@ -9,11 +9,13 @@ import { NEWS_FEED } from '../constants';
 
 interface FeedProps {
   newsData: NewsItem[];
+  title?: string;
   onNewsSelect: (id: string) => void;
   onSourceClick?: (name: string) => void;
+  storiesData?: any[];
 }
 
-const Feed: React.FC<FeedProps> = ({ newsData, onNewsSelect, onSourceClick }) => {
+const Feed: React.FC<FeedProps> = ({ newsData, title, onNewsSelect, onSourceClick, storiesData }) => {
   const [activeFilter, setActiveFilter] = useState<'latest' | 'popular'>('latest');
   const { t } = useLanguage();
 
@@ -30,13 +32,30 @@ const Feed: React.FC<FeedProps> = ({ newsData, onNewsSelect, onSourceClick }) =>
 
   return (
     <div className="flex flex-col gap-6 pb-4">
-      <StoryBar />
+      <StoryBar initialStories={storiesData} />
 
       <div className="px-1 mt-1 mb-2">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <h2 className="text-3xl font-bold text-gray-900 tracking-tight leading-none font-display">
-              {t('feed.title_prefix')} <span className="text-palette-tan font-medium opacity-60">{t('feed.title_suffix')}</span>
+          <div className="space-y-1 overflow-hidden">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight leading-none font-display whitespace-nowrap overflow-hidden text-ellipsis">
+              {title ? (
+                (() => {
+                  const words = title.split(' ');
+                  if (words.length <= 1) return title;
+                  const mid = Math.ceil(words.length / 2);
+                  const firstPart = words.slice(0, mid).join(' ');
+                  const secondPart = words.slice(mid).join(' ');
+                  return (
+                    <>
+                      {firstPart} <span className="text-palette-tan font-medium opacity-60 ml-1">{secondPart}</span>
+                    </>
+                  );
+                })()
+              ) : (
+                <>
+                  {t('feed.title_prefix')} <span className="text-palette-tan font-medium opacity-60 ml-1">{t('feed.title_suffix')}</span>
+                </>
+              )}
             </h2>
           </div>
 

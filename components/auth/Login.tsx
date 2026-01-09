@@ -99,8 +99,8 @@ const Login: React.FC<LoginProps> = ({ onSuccess, onClose }) => {
             <div className="w-14 h-14 bg-palette-red rounded-[3px] flex items-center justify-center shadow-xl shadow-palette-red/20 mb-4 transform -rotate-3">
               <span className="material-symbols-rounded text-white text-[32px]" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
             </div>
-            <h2 className="text-2xl font-[900] text-gray-900 tracking-tighter font-display">
-              Buzz<span className="text-palette-tan font-medium">Panel</span>
+            <h2 className="text-2xl font-[900] text-gray-900 tracking-tighter font-display uppercase">
+              Pateez<span className="text-palette-tan font-medium">Panel</span>
             </h2>
             <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mt-1">
               {isSignUp ? 'Hesap Oluştur' : 'Güvenli Giriş'}
@@ -112,8 +112,8 @@ const Login: React.FC<LoginProps> = ({ onSuccess, onClose }) => {
             <button
               onClick={() => setIsSignUp(false)}
               className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-wider rounded-[3px] transition-all duration-200 ${!isSignUp
-                  ? 'bg-white text-gray-900 shadow-[0_2px_10px_rgba(0,0,0,0.05)]'
-                  : 'text-gray-400 hover:text-gray-600'
+                ? 'bg-white text-gray-900 shadow-[0_2px_10px_rgba(0,0,0,0.05)]'
+                : 'text-gray-400 hover:text-gray-600'
                 }`}
             >
               Giriş Yap
@@ -121,8 +121,8 @@ const Login: React.FC<LoginProps> = ({ onSuccess, onClose }) => {
             <button
               onClick={() => setIsSignUp(true)}
               className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-wider rounded-[3px] transition-all duration-200 ${isSignUp
-                  ? 'bg-white text-palette-red shadow-[0_2px_10px_rgba(0,0,0,0.05)]'
-                  : 'text-gray-400 hover:text-gray-600'
+                ? 'bg-white text-palette-red shadow-[0_2px_10px_rgba(0,0,0,0.05)]'
+                : 'text-gray-400 hover:text-gray-600'
                 }`}
             >
               Üye Ol

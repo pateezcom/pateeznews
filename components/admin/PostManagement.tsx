@@ -517,12 +517,25 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
     const [selectedLanguage, setSelectedLanguage] = useState('tr');
     const [selectedParentId, setSelectedParentId] = useState<string>('');
     const [selectedSubId, setSelectedSubId] = useState<string>('');
+    const [selectedThirdId, setSelectedThirdId] = useState<string>('');
+    const [selectedFourthId, setSelectedFourthId] = useState<string>('');
     const [publishers, setPublishers] = useState<any[]>([]);
 
     const titleRef = useRef<HTMLInputElement>(null);
     const summaryRef = useRef<HTMLTextAreaElement>(null);
     const categoryRef = useRef<HTMLSelectElement>(null);
     const initialCategoryRef = useRef<string>('');
+
+    const treeCategories = useMemo(() => {
+        // Sadece Ana Kategori öğelerini döndürür (Ağaç görünümü kaldırıldı)
+        return categories.filter(c => {
+            if (c.type === 'header' || c.type === 'trends') return false;
+            // Ebeveyni olmayanlar veya ebeveyni bir header (başlık) olanlar ana kategoridir
+            if (!c.parent_id || c.parent_id === 'root') return true;
+            const parent = categories.find(p => p.id === c.parent_id);
+            return parent && parent.type === 'header';
+        }).map(parent => ({ id: parent.id, label: parent.label }));
+    }, [categories]);
 
     const isDirty = useMemo(() => {
         if (postId) return false;
@@ -971,8 +984,6 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
             },
         },
         Text: {
-            text: 'Buzz Haber',
-            fontFamily: FIE_TEXT_DEFAULT_FONT,
             fonts: FIE_TEXT_FONT_OPTIONS,
             fontSize: 120,
             onFontChange: (fontFamily: string, reRenderCanvas: () => void) => {
@@ -1032,48 +1043,51 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
 
     const fetchCategories = async (langCode: string) => {
         try {
-            const { data: menuData } = await supabase
-                .from('navigation_menus')
-                .select('id')
-                .eq('code', 'sidebar_main')
-                .single();
+            const { data: itemData } = await supabase
+                .from('navigation_items')
+                .select('*')
+                .eq('language_code', langCode)
+                .order('order_index', { ascending: true });
 
-            if (menuData) {
-                const { data: itemData } = await supabase
-                    .from('navigation_items')
-                    .select('*')
-                    .eq('menu_id', menuData.id)
-                    .eq('language_code', langCode)
-                    .order('order_index', { ascending: true });
-                setCategories(itemData || []);
+            setCategories(itemData || []);
 
-                if (itemData && itemData.length > 0) {
-                    // 1. Try to find the existing category
-                    let matchedItem = formData.category
-                        ? itemData.find(i => i.label === formData.category)
-                        : null;
+            if (itemData && itemData.length > 0) {
+                // 1. Try to find the existing category
+                let matchedItem = formData.category
+                    ? itemData.find(i => i.label === formData.category)
+                    : null;
 
-                    // 2. If no category set or not found, pick the first PARENT category (Default)
-                    if (!matchedItem) {
-                        matchedItem = itemData.find(i => !i.parent_id);
+                // 2. If no category set, try to pick a reasonable default
+                if (!matchedItem) {
+                    matchedItem = itemData.find(i => !i.parent_id && i.type !== 'header');
+                }
+
+                if (matchedItem) {
+                    const parentItem = itemData.find(i => i.id === matchedItem.parent_id);
+                    const grandParentItem = parentItem ? itemData.find(i => i.id === parentItem.parent_id) : null;
+
+                    if (grandParentItem && grandParentItem.id !== 'root' && grandParentItem.type !== 'header') {
+                        // Level 3 category matched
+                        setSelectedParentId(grandParentItem.id);
+                        setSelectedThirdId(parentItem!.id);
+                        setSelectedFourthId(matchedItem.id);
+                    } else if (parentItem && parentItem.id !== 'root' && parentItem.type !== 'header') {
+                        // Level 2 category matched
+                        setSelectedParentId(parentItem.id);
+                        setSelectedThirdId(matchedItem.id);
+                        setSelectedFourthId('');
+                    } else {
+                        // Level 1 category matched
+                        setSelectedParentId(matchedItem.id);
+                        setSelectedThirdId('');
+                        setSelectedFourthId('');
                     }
 
-                    if (matchedItem) {
-                        if (matchedItem.parent_id) {
-                            setSelectedParentId(matchedItem.parent_id);
-                            setSelectedSubId(matchedItem.id);
-                        } else {
-                            setSelectedParentId(matchedItem.id);
-                            setSelectedSubId('');
+                    if (formData.category !== matchedItem.label) {
+                        if (!postId && !initialCategoryRef.current) {
+                            initialCategoryRef.current = matchedItem.label;
                         }
-
-                        // Sync formData if needed (e.g. setting the default)
-                        if (formData.category !== matchedItem.label) {
-                            if (!postId && !initialCategoryRef.current) {
-                                initialCategoryRef.current = matchedItem.label;
-                            }
-                            setFormData(prev => ({ ...prev, category: matchedItem!.label }));
-                        }
+                        setFormData(prev => ({ ...prev, category: matchedItem!.label }));
                     }
                 }
             }
@@ -1083,18 +1097,34 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
     };
 
     const handleParentCategoryChange = (catId: string) => {
-        setSelectedParentId(catId);
-        setSelectedSubId('');
-        const cat = categories.find(c => c.id === catId);
-        if (cat) {
-            setFormData({ ...formData, category: cat.label });
-        } else {
+        const treeItem = treeCategories.find(c => c.id === catId);
+        setSelectedThirdId(''); // Her ana seçimde alt seçimi sıfırla
+        setSelectedFourthId(''); // Üçüncü seviye seçimi sıfırla
+
+        if (!treeItem) {
+            setSelectedParentId('');
+            setSelectedSubId('');
             setFormData({ ...formData, category: '' });
+            return;
         }
+
+        // Sadece Ana Kategori seçimi aktif (Ağaç yapısı kaldırıldığı için parentId kontrolüne gerek yok)
+        setSelectedParentId(treeItem.id);
+        setSelectedSubId('');
+        setFormData({ ...formData, category: treeItem.label });
     };
 
     const handleSubCategoryChange = (catId: string) => {
-        setSelectedSubId(catId);
+        setSelectedThirdId(catId);
+        setSelectedFourthId(''); // İkinci seviye değişince üçüncü seviyeyi sıfırla
+        const cat = categories.find(c => c.id === catId);
+        if (cat) {
+            setFormData({ ...formData, category: cat.label });
+        }
+    };
+
+    const handleSubSubCategoryChange = (catId: string) => {
+        setSelectedFourthId(catId);
         const cat = categories.find(c => c.id === catId);
         if (cat) {
             setFormData({ ...formData, category: cat.label });
@@ -2666,12 +2696,12 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                                 <div className="relative group">
                                     <select
                                         ref={categoryRef}
-                                        value={selectedParentId}
+                                        value={selectedSubId || selectedParentId}
                                         onChange={(e) => handleParentCategoryChange(e.target.value)}
                                         className="w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] p-3 text-sm font-bold text-palette-maroon outline-none appearance-none cursor-pointer focus:border-palette-red transition-all"
                                     >
                                         <option value="">{t('admin.post.select_cat')}</option>
-                                        {categories.filter(c => !c.parent_id).map(cat => (
+                                        {treeCategories.map(cat => (
                                             <option key={cat.id} value={cat.id}>{cat.label}</option>
                                         ))}
                                     </select>
@@ -2686,19 +2716,44 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                                 </label>
                                 <div className="relative group">
                                     <select
-                                        value={selectedSubId}
+                                        value={selectedThirdId}
                                         onChange={(e) => handleSubCategoryChange(e.target.value)}
-                                        disabled={!selectedParentId}
-                                        className={`w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] p-3 text-sm font-bold text-palette-maroon outline-none appearance-none cursor-pointer focus:border-palette-red transition-all ${!selectedParentId ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        disabled={!(selectedSubId || selectedParentId)}
+                                        className={`w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] p-3 text-sm font-bold text-palette-maroon outline-none appearance-none cursor-pointer focus:border-palette-red transition-all ${!(selectedSubId || selectedParentId) ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     >
                                         <option value="">{t('admin.post.select_sub_cat')}</option>
-                                        {categories.filter(c => c.parent_id === selectedParentId).map(cat => (
+                                        {categories.filter(c =>
+                                            c.parent_id === (selectedSubId || selectedParentId) &&
+                                            (c.type === 'category' || c.type === 'district')
+                                        ).map(cat => (
                                             <option key={cat.id} value={cat.id}>{cat.label}</option>
                                         ))}
                                     </select>
                                     <span className="material-symbols-rounded absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/40 pointer-events-none group-hover:text-palette-maroon transition-colors" style={{ fontSize: '16px' }}>expand_more</span>
                                 </div>
                             </div>
+
+                            {/* ALT KATEGORİNİN ALT KATEGORİSİ SEÇİMİ (3. Seviye) */}
+                            {selectedThirdId && categories.filter(c => c.parent_id === selectedThirdId).length > 0 && (
+                                <div className="space-y-1.5 animate-in slide-in-from-top-2 duration-300">
+                                    <label className="text-[11px] font-black text-palette-tan/60 ml-1 flex items-center gap-1.5">
+                                        <span className="material-symbols-rounded" style={{ fontSize: '12px' }}>subdirectory_arrow_right</span> {t('admin.post.sub_sub_cat')}
+                                    </label>
+                                    <div className="relative group">
+                                        <select
+                                            value={selectedFourthId}
+                                            onChange={(e) => handleSubSubCategoryChange(e.target.value)}
+                                            className="w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] p-3 text-sm font-bold text-palette-maroon outline-none appearance-none cursor-pointer focus:border-palette-red transition-all"
+                                        >
+                                            <option value="">{t('admin.post.select_sub_sub_cat')}</option>
+                                            {categories.filter(c => c.parent_id === selectedThirdId).map(cat => (
+                                                <option key={cat.id} value={cat.id}>{cat.label}</option>
+                                            ))}
+                                        </select>
+                                        <span className="material-symbols-rounded absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/40 pointer-events-none group-hover:text-palette-maroon transition-colors" style={{ fontSize: '16px' }}>expand_more</span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <div className="pt-2">
@@ -2709,34 +2764,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                         </div>
                     </div>
 
-                    {/* YAYINCI SEÇİMİ (Publisher Selection) */}
-                    <div className="bg-white p-6 rounded-[3px] border border-palette-tan/20 shadow-sm space-y-5">
-                        <h4 className="text-[13px] font-bold text-palette-tan ml-1 border-b border-palette-tan/15 pb-2 uppercase tracking-widest flex items-center justify-between">
-                            {t('admin.publisher_management')}
-                            <span className="material-symbols-rounded text-palette-tan/30" style={{ fontSize: '14px' }}>badge</span>
-                        </h4>
 
-                        <div className="space-y-4">
-                            <div className="space-y-1.5">
-                                <label className="text-[11px] font-black text-palette-tan/60 ml-1 flex items-center gap-1.5">
-                                    <span className="material-symbols-rounded" style={{ fontSize: '12px' }}>account_circle</span> {t('admin.select_publisher')}
-                                </label>
-                                <div className="relative group">
-                                    <select
-                                        value={formData.publisher_id}
-                                        onChange={(e) => setFormData({ ...formData, publisher_id: e.target.value })}
-                                        className="w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] p-3 text-sm font-bold text-palette-maroon outline-none appearance-none cursor-pointer focus:border-palette-red transition-all"
-                                    >
-                                        <option value="">{t('admin.select_publisher')}</option>
-                                        {publishers.map(pub => (
-                                            <option key={pub.id} value={pub.id}>{pub.full_name}</option>
-                                        ))}
-                                    </select>
-                                    <span className="material-symbols-rounded absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/40 pointer-events-none group-hover:text-palette-maroon transition-colors" style={{ fontSize: '16px' }}>expand_more</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
                     <div className="bg-white p-6 rounded-[3px] border border-palette-tan/20 shadow-sm space-y-5">
                         <div className="space-y-4">

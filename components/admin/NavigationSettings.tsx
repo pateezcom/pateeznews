@@ -300,7 +300,9 @@ const NavigationSettings: React.FC = () => {
           <div className={`w-9 h-9 rounded-[3px] flex items-center justify-center shadow-sm flex-shrink-0 ${item.type === 'dropdown' ? 'bg-orange-50 text-orange-600' :
             item.type === 'header' ? 'bg-palette-tan/5 text-palette-maroon' :
               item.type === 'category' ? 'bg-blue-50 text-blue-600' :
-                'bg-emerald-50 text-emerald-600'
+                item.type === 'district' ? 'bg-purple-50 text-purple-600' :
+                  item.type === 'trends' ? 'bg-palette-red text-white' :
+                    'bg-emerald-50 text-emerald-600'
             }`}>
             {item.icon ? (
               <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>{item.icon.toLowerCase()}</span>
@@ -316,7 +318,7 @@ const NavigationSettings: React.FC = () => {
             </div>
             <div className="flex items-center gap-2 mt-0.5">
               <span className="text-[10px] font-bold text-palette-tan/40 tracking-widest bg-palette-beige/30 px-1.5 py-0.5 rounded">{t(`nav_settings.type.${item.type}`)}</span>
-              {item.value && <span className="text-[9px] font-medium text-palette-tan/30 font-mono flex items-center gap-1 truncate max-w-[150px]"><span className="w-1 h-1 bg-palette-tan/30 rounded-[3px]"></span>{item.value}</span>}
+              {item.value && <span className="text-[9px] font-medium text-palette-tan/30 font-mono flex items-center gap-1 truncate max-w-[150px]"><span className="w-1 h-1 bg-palette-tan/30 rounded-[3px]"></span>{t(item.value)}</span>}
             </div>
           </div>
         </div>
@@ -496,7 +498,9 @@ const NavigationSettings: React.FC = () => {
                     <option value="link">{t('nav_settings.type.link')}</option>
                     <option value="dropdown">{t('nav_settings.type.dropdown')}</option>
                     <option value="category">{t('nav_settings.type.category')}</option>
+                    <option value="district">{t('nav_settings.type.district')}</option>
                     <option value="header">{t('nav_settings.type.header')}</option>
+                    <option value="trends">{t('nav_settings.type.trends') || 'Haftanın Trendleri'}</option>
                   </select>
                 </div>
                 <div className="space-y-1.5">
@@ -515,14 +519,34 @@ const NavigationSettings: React.FC = () => {
               <div className="space-y-1.5">
                 <label className="text-[11px] font-black text-palette-tan/50 ml-1">{t('nav_settings.form.value')}</label>
                 <div className="relative">
-                  <span className="material-symbols-rounded absolute left-4 top-1/2 -translate-y-1/2 text-palette-tan/30" style={{ fontSize: '16px' }}>settings</span>
-                  <input
-                    type="text"
-                    value={formData.value}
-                    onChange={e => setFormData({ ...formData, value: e.target.value })}
-                    placeholder={formData.type === 'link' ? '/sayfa-adi' : 'kategori-kodu'}
-                    className="w-full h-11 pl-11 pr-4 bg-palette-beige/30 border border-palette-tan/10 rounded-[3px] text-sm font-bold text-palette-maroon outline-none focus:bg-white focus:border-palette-tan focus:ring-4 focus:ring-palette-tan/5 transition-all"
-                  />
+                  {formData.type === 'trends' ? (
+                    <>
+                      <select
+                        value={formData.value}
+                        onChange={e => setFormData({ ...formData, value: e.target.value })}
+                        className="w-full h-11 px-4 bg-palette-beige/30 border border-palette-tan/10 rounded-[3px] text-sm font-bold text-palette-maroon outline-none focus:bg-white focus:border-palette-tan focus:ring-4 focus:ring-palette-tan/5 transition-all appearance-none cursor-pointer"
+                      >
+                        <option value="">{t('nav_settings.select_trend_type') || 'Trend Türü Seçin'}</option>
+                        <option value="weekly_trends">{t('nav_settings.trends.general') || 'Haftanın Genel Trendleri (Karma)'}</option>
+                        <option value="weekly_likes">{t('nav_settings.trends.likes') || 'Haftanın En Çok Beğenilenleri'}</option>
+                        <option value="weekly_comments">{t('nav_settings.trends.comments') || 'Haftanın En Çok Yorumlananları'}</option>
+                        <option value="weekly_shares">{t('nav_settings.trends.shares') || 'Haftanın En Çok Paylaşılanları'}</option>
+                        <option value="weekly_reads">{t('nav_settings.trends.reads') || 'Haftanın En Çok Okunanları'}</option>
+                      </select>
+                      <span className="material-symbols-rounded absolute right-4 top-1/2 -translate-y-1/2 text-palette-tan/30 pointer-events-none" style={{ fontSize: '14px' }}>expand_more</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="material-symbols-rounded absolute left-4 top-1/2 -translate-y-1/2 text-palette-tan/30" style={{ fontSize: '16px' }}>settings</span>
+                      <input
+                        type="text"
+                        value={formData.value}
+                        onChange={e => setFormData({ ...formData, value: e.target.value })}
+                        placeholder={formData.type === 'link' ? '/sayfa-adi' : 'kategori-kodu'}
+                        className="w-full h-11 pl-11 pr-4 bg-palette-beige/30 border border-palette-tan/10 rounded-[3px] text-sm font-bold text-palette-maroon outline-none focus:bg-white focus:border-palette-tan focus:ring-4 focus:ring-palette-tan/5 transition-all"
+                      />
+                    </>
+                  )}
                 </div>
               </div>
 

@@ -1,5 +1,4 @@
 
-
 export enum NewsType {
   VIDEO = 'VIDEO',
   AUDIO = 'AUDIO',
@@ -40,6 +39,7 @@ export interface NewsItem {
   dislikes?: number;
   comments: number;
   shares: number;
+  views: number;
   options?: PollOption[];
   quizDescription?: string;
   totalVotes?: number;
@@ -78,6 +78,12 @@ export interface NewsItem {
   items?: any[];
   sourceAvatar?: string;
   isPinned?: boolean;
+  // User specific interaction states (pre-fetched for speed)
+  userLiked?: boolean;
+  userSaved?: boolean;
+  userDisliked?: boolean;
+  publisherId?: string;
+  isFollowingPublisher?: boolean;
 }
 
 export interface StoryItem {
@@ -132,11 +138,43 @@ export interface NavigationItem {
   menu_id: string;
   parent_id: string | null;
   label: string;
-  type: 'link' | 'header' | 'dropdown' | 'category';
+  type: 'link' | 'header' | 'dropdown' | 'category' | 'trends' | 'district';
   value: string;
   icon: string;
   order_index: number;
   is_active: boolean;
   language_code?: string;
   children?: NavigationItem[]; // UI için hiyerarşi
+}
+
+// --- SITE SETTINGS ---
+export interface SiteSettings {
+  id: string;
+  language_code: string;
+  site_name: string;
+  timezone: string;
+  footer_about: string;
+  optional_url_button_name: string;
+  copyright_text: string;
+  logo_url: string;
+  footer_logo_url: string;
+  dark_logo_url: string;
+  email_logo_url: string;
+  favicon_url: string;
+  home_title?: string;
+  meta_description?: string;
+  meta_keywords?: string;
+  canonical_url?: string;
+  og_image_url?: string;
+  organization_legal_name?: string;
+  organization_phone?: string;
+  organization_address?: string;
+  twitter_username?: string;
+  fb_app_id?: string;
+  google_analytics_id?: string;
+  google_search_console_code?: string;
+  bing_verification_code?: string;
+  robots_txt?: string;
+  header_custom_codes?: string;
+  footer_custom_codes?: string;
 }

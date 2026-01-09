@@ -15,35 +15,54 @@ interface PublisherProfileProps {
 const PublisherProfile: React.FC<PublisherProfileProps> = ({ name, onBack, onNewsSelect, onEditClick }) => {
   const [activeTab, setActiveTab] = useState<'news' | 'popular' | 'about'>('news');
   const [isFollowing, setIsFollowing] = useState(false);
-  const [publisherData, setPublisherData] = useState<any>(null);
-  const [publisherNews, setPublisherNews] = useState<NewsItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [publisherData, setPublisherData] = useState<any>(() => {
+    try {
+      const cached = localStorage.getItem(`pateez_v2025_pub_profile_${name}`);
+      return cached ? JSON.parse(cached).data : null;
+    } catch (e) { return null; }
+  });
+  const [publisherNews, setPublisherNews] = useState<NewsItem[]>(() => {
+    try {
+      const cached = localStorage.getItem(`pateez_v2025_pub_profile_${name}`);
+      return cached ? JSON.parse(cached).news : [];
+    } catch (e) { return []; }
+  });
+  const [loading, setLoading] = useState(() => !localStorage.getItem(`pateez_v2025_pub_profile_${name}`));
 
   // Örn: Eğer giriş yapan kullanıcı bu yayıncı ise düzenleme butonunu göster
   const [isOwnProfile, setIsOwnProfile] = useState(false);
 
   useEffect(() => {
+    // 1. Instant load from cache
+    const cacheKey = `pateez_v2025_pub_profile_${name}`;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      const { data, news } = JSON.parse(cached);
+      setPublisherData(data);
+      setPublisherNews(news);
+      setLoading(false);
+    }
+
     const fetchData = async () => {
       try {
-        setLoading(true);
+        if (!cached) setLoading(true);
         // 1. Fetch current user to check own profile
         const { data: { user } } = await supabase.auth.getUser();
 
-        // 2. Fetch publisher profile by name (assuming name is shared as full_name or username)
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('*')
           .or(`full_name.eq."${name}",username.eq."${name}"`)
-          .single();
+          .maybeSingle();
 
         if (profileError) throw profileError;
 
         if (profile) {
-          setPublisherData({
+          const newData = {
             name: profile.full_name || profile.username,
             handle: `@${profile.username}`,
             category: profile.expertise || 'Gündem',
-            description: profile.about_me || 'Buzz Haber yayıncısı.',
+            description: profile.about_me || 'Haber Yayıncısı',
             avatar: profile.avatar_url || `https://picsum.photos/seed/${profile.id}/400`,
             cover: `https://picsum.photos/seed/${profile.id}cover/1600/600`,
             followers: '1.2M',
@@ -51,7 +70,8 @@ const PublisherProfile: React.FC<PublisherProfileProps> = ({ name, onBack, onNew
             postsCount: '14.2K',
             joinedDate: profile.created_at ? new Date(profile.created_at).toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' }) : 'Ekim 2021',
             verified: true
-          });
+          };
+          setPublisherData(newData);
 
           if (user && user.id === profile.id) {
             setIsOwnProfile(true);
@@ -75,7 +95,6 @@ const PublisherProfile: React.FC<PublisherProfileProps> = ({ name, onBack, onNew
               let extraData: any = {};
               if (homepageItem) {
                 cardType = homepageItem.type?.toUpperCase();
-                // Basic mapping (similar to App.tsx)
                 if (homepageItem.type === 'beforeafter') { cardType = 'BEFORE_AFTER'; extraData.beforeAfterData = homepageItem.beforeAfterData; }
                 else if (homepageItem.type === 'flipcard') { cardType = 'FLIP_CARD'; extraData.flipData = homepageItem.flipData; }
                 else if (homepageItem.type === 'review') { cardType = 'REVIEW'; extraData.reviewData = homepageItem.reviewData; }
@@ -101,6 +120,8 @@ const PublisherProfile: React.FC<PublisherProfileProps> = ({ name, onBack, onNew
               };
             });
             setPublisherNews(mappedNews);
+            // 2. Persist to cache
+            localStorage.setItem(cacheKey, JSON.stringify({ data: newData, news: mappedNews }));
           }
         }
       } catch (err) {
@@ -230,50 +251,45 @@ const PublisherProfile: React.FC<PublisherProfileProps> = ({ name, onBack, onNew
                 <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">İçerik</span>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-gray-50 text-gray-400 rounded-[5px]">
-                <Calendar size={14} />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-black text-gray-900 leading-none">{publisherData.joinedDate}</span>
-                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Katılım</span>
-              </div>
-            </div>
           </div>
         </div>
       </div>
 
-      {/* TABS & NEWS LIST */}
-      <div className="flex gap-2 border-b border-gray-100 px-6 md:px-10 bg-gray-50/50">
-        {[
-          { id: 'news', label: 'Tüm Haberler', icon: Grid },
-          { id: 'popular', label: 'Popüler', icon: TrendingUp },
-          { id: 'about', label: 'Hakkında', icon: Info },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
-            className={`flex items-center gap-2 px-5 py-4 text-[10px] font-black uppercase tracking-widest border-b-2 transition-all relative ${activeTab === tab.id
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-gray-400 hover:text-gray-600'
-              }`}
-          >
-            <tab.icon size={14} />
-            <span>{tab.label}</span>
-          </button>
-        ))}
+      {/* TABS */}
+      <div className="flex items-center gap-8 px-6 md:px-10 border-b border-gray-50">
+        <button
+          onClick={() => setActiveTab('news')}
+          className={`pb-4 text-[11px] font-black uppercase tracking-widest transition-all relative ${activeTab === 'news' ? 'text-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
+        >
+          Haberler
+          {activeTab === 'news' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-600 rounded-t-full" />}
+        </button>
+        <button
+          onClick={() => setActiveTab('popular')}
+          className={`pb-4 text-[11px] font-black uppercase tracking-widest transition-all relative ${activeTab === 'popular' ? 'text-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
+        >
+          Popüler
+          {activeTab === 'popular' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-600 rounded-t-full" />}
+        </button>
+        <button
+          onClick={() => setActiveTab('about')}
+          className={`pb-4 text-[11px] font-black uppercase tracking-widest transition-all relative ${activeTab === 'about' ? 'text-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
+        >
+          Hakkında
+          {activeTab === 'about' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-600 rounded-t-full" />}
+        </button>
       </div>
 
-      <div className="p-6 md:p-10 bg-gray-50/20">
+      {/* TAB CONTENT */}
+      <div className="p-6 md:p-10 bg-gray-50/50">
         {activeTab === 'news' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {publisherNews.map(news => (
+          <div className="grid grid-cols-1 gap-8">
+            {publisherNews.map((news) => (
               <NewsCard key={news.id} data={news} onClick={() => onNewsSelect(news.id)} />
             ))}
           </div>
         )}
       </div>
-
     </div>
   );
 };

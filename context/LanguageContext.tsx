@@ -35,7 +35,7 @@ const DEFAULT_LANG: Language = {
 const STATIC_TR: Record<string, string> = {
   "nav.home": "Ana Sayfa",
   "nav.agenda": "Gündem",
-  "nav.buzztv": "Video",
+  "nav.pateezvideotv": "Video",
   "nav.special": "Eğlence",
   "nav.search": "Haber ara...",
   "nav.login": "Giriş Yap",
@@ -55,7 +55,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // 1. Dili saniyeler içinde belirle (Sync)
   const getInitialLangCode = useCallback(() => {
-    const saved = localStorage.getItem('buzz_lang');
+    const saved = localStorage.getItem('pateez_lang');
     if (saved) return saved;
 
     const browserLang = navigator.language.split('-')[0];
@@ -114,7 +114,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const setLanguage = async (code: string) => {
     const lang = availableLanguages.find(l => l.code === code) || { ...DEFAULT_LANG, code };
     setLoading(true);
-    localStorage.setItem('buzz_lang', code);
+    localStorage.setItem('pateez_lang', code);
     try {
       await loadTranslations(lang as Language);
     } finally {

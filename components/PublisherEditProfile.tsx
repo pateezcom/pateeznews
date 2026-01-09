@@ -13,7 +13,7 @@ const PublisherEditProfile: React.FC<PublisherEditProfileProps> = ({ name, onBac
     handle: `@${name.toLowerCase().replace(' ', '')}`,
     category: 'Teknoloji',
     bio: `${name} medya grubu olarak, en güncel haberleri profesyonel bir bakış açısıyla derliyoruz.`,
-    website: 'buzz.com/tech-hub',
+    website: 'pateez.com/tech-hub',
     avatar: `https://picsum.photos/seed/${name}/400`,
     cover: `https://picsum.photos/seed/${name}cover/1600/600`
   });

@@ -163,7 +163,7 @@ const AudioCard: React.FC<AudioCardProps> = ({ data }) => {
   };
 
   return (
-    <div className="mt-1 space-y-3">
+    <div className="mt-1 space-y-3 overflow-hidden">
       <div className="px-1 mb-3">
         <p className="text-gray-600/80 text-[16px] leading-relaxed font-medium">{data.summary}</p>
       </div>
@@ -183,20 +183,20 @@ const AudioCard: React.FC<AudioCardProps> = ({ data }) => {
         />
 
         {/* MAIN CONTENT STACK - Vertical Layout */}
-        <div className="relative z-10 flex flex-col items-center gap-6">
+        <div className="relative z-10 flex flex-col items-start gap-6">
 
           {/* 1. Header & Text Info (En Üstte) */}
-          <div className="w-full flex flex-col items-center text-center space-y-2">
+          <div className="w-full flex flex-col items-start text-left space-y-2">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[5px] bg-white/10 border border-white/5 backdrop-blur-sm shadow-sm">
               <Headphones size={12} className="text-blue-300" />
-              <span className="text-[10px] font-bold text-blue-100 uppercase tracking-widest">BuzzCast Özel</span>
+              <span className="text-[10px] font-bold text-blue-100 uppercase tracking-widest">PateezCast Özel</span>
             </div>
             <h3 className="text-2xl font-black text-white leading-tight">{data.title}</h3>
             <p className="text-sm text-slate-400 font-medium">{data.author}</p>
           </div>
 
           {/* 2. Cover Art & Vinyl Animation (Ortada) */}
-          <div className="relative w-48 h-48 sm:w-56 sm:h-56 flex-shrink-0 my-2">
+          <div className="relative w-48 h-48 sm:w-56 sm:h-56 flex-shrink-0 my-2 ml-0">
 
             {/* Hidden YouTube Iframe */}
             {isYoutube && (
@@ -269,7 +269,7 @@ const AudioCard: React.FC<AudioCardProps> = ({ data }) => {
             </div>
 
             {/* Main Buttons */}
-            <div className="flex items-center justify-center gap-8">
+            <div className="flex items-center justify-start gap-8">
               <button onClick={() => skipAudio(-15)} className="text-slate-400 hover:text-white transition-colors p-3 hover:bg-white/5 rounded-[5px]">
                 <Rewind size={24} className="fill-current" />
               </button>
@@ -291,7 +291,7 @@ const AudioCard: React.FC<AudioCardProps> = ({ data }) => {
             </div>
 
             {/* Volume Control */}
-            <div className="flex items-center justify-center gap-3 pt-2">
+            <div className="flex items-center justify-start gap-3 pt-2">
               <button onClick={() => {
                 const newVol = volume === 0 ? 1 : 0;
                 setVolume(newVol);

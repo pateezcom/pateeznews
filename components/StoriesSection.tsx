@@ -1,145 +1,144 @@
 
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { StoryItem } from '../types';
-import { Zap, Clock, Eye, ChevronLeft, Play, Image as ImageIcon } from 'lucide-react';
-import { useLanguage } from '../context/LanguageContext';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { FreeMode, Mousewheel } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/free-mode';
+import { Play, Image as ImageIcon, Eye, ArrowLeft } from 'lucide-react';
+
+interface StoryItem {
+    id: string;
+    title: string;
+    mediaUrl: string;
+    mediaType: 'image' | 'video';
+    sourceName?: string;
+    viewCount?: number;
+}
 
 interface StoriesSectionProps {
-    onBack: () => void;
+    onBack?: () => void;
 }
 
 const StoriesSection: React.FC<StoriesSectionProps> = ({ onBack }) => {
-    const { t } = useLanguage();
     const [stories, setStories] = useState<StoryItem[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetchActiveStories();
+        const fetchStories = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('stories')
+                    .select('*')
+                    .eq('is_active', true)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                if (data) {
+                    const mapped: StoryItem[] = data.map(s => ({
+                        id: s.id,
+                        title: s.title,
+                        mediaUrl: s.media_url,
+                        mediaType: s.media_type,
+                        sourceName: s.source_name,
+                        viewCount: s.view_count || 0
+                    }));
+                    setStories(mapped);
+                }
+            } catch (err) {
+                console.error('Stories fetch error:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchStories();
     }, []);
 
-    const fetchActiveStories = async () => {
-        try {
-            setLoading(true);
-            const { data, error } = await supabase
-                .from('stories')
-                .select('*')
-                .eq('is_active', true)
-                .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
-                .order('created_at', { ascending: false });
+    if (loading) return (
+        <div className="flex gap-4 py-4 overflow-hidden">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+                <div key={i} className="min-w-[120px] h-[200px] bg-gray-100 rounded-[5px] animate-pulse"></div>
+            ))}
+        </div>
+    );
 
-            if (error) throw error;
-
-            const mappedStories: StoryItem[] = (data || []).map((item: any) => ({
-                id: item.id,
-                title: item.title,
-                mediaUrl: item.media_url,
-                mediaType: item.media_type,
-                sourceName: item.source_name,
-                publisherId: item.publisher_id,
-                createdAt: item.created_at,
-                expiresAt: item.expires_at,
-                isActive: item.is_active,
-                viewCount: item.view_count || 0
-            }));
-
-            setStories(mappedStories);
-        } catch (err) {
-            console.error("Stories fetch error:", err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    if (loading) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[400px]">
-                <div className="w-12 h-12 border-4 border-palette-beige border-t-palette-red rounded-[5px] animate-spin mb-4"></div>
-                <p className="text-[10px] font-black text-palette-tan/40 uppercase tracking-[0.2em]">{t('feed.status.loading') || 'Yükleniyor...'}</p>
-            </div>
-        );
-    }
+    if (stories.length === 0) return null;
 
     return (
-        <div className="animate-in fade-in duration-700">
-            <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-4">
+        <div className="relative py-6 bg-white border-b border-gray-100 mb-8 overflow-hidden rounded-[5px] shadow-sm">
+            {onBack && (
+                <div className="px-6 mb-4 flex items-center gap-4">
                     <button
                         onClick={onBack}
-                        className="w-10 h-10 rounded-[5px] bg-white shadow-sm border border-palette-beige flex items-center justify-center text-palette-tan hover:text-palette-red hover:border-palette-red transition-all active:scale-90"
+                        className="flex items-center gap-2 text-gray-400 hover:text-palette-red font-black text-[11px] uppercase tracking-widest transition-all group"
                     >
-                        <ChevronLeft size={20} />
+                        <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+                        <span>GERİ DÖN</span>
                     </button>
-                    <div>
-                        <h2 className="text-2xl font-black text-palette-maroon tracking-tighter leading-none mb-1">
-                            Buzz <span className="text-palette-red">Hikayeler</span>
-                        </h2>
-                        <p className="text-[10px] font-bold text-palette-tan/50 uppercase tracking-widest">Günün en önemli gelişmeleri 24 saatliğine burada.</p>
-                    </div>
+                    <h2 className="text-sm font-black text-gray-900 uppercase tracking-widest">Tüm Hikayeler</h2>
                 </div>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            )}
+            <Swiper
+                modules={[FreeMode, Mousewheel]}
+                spaceBetween={16}
+                slidesPerView="auto"
+                freeMode={true}
+                mousewheel={{ forceToAxis: true }}
+                className="px-6"
+            >
                 {stories.map((story) => (
-                    <div
-                        key={story.id}
-                        className="group relative aspect-[9/16] rounded-[5px] overflow-hidden cursor-pointer bg-palette-beige/20 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-palette-beige/50"
-                    >
-                        {/* Background Media */}
-                        <div className="absolute inset-0">
-                            {story.mediaType === 'video' ? (
-                                <video
-                                    src={story.mediaUrl}
-                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                                    muted
-                                    playsInline
-                                />
-                            ) : (
-                                <img
-                                    src={story.mediaUrl}
-                                    alt={story.title}
-                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                                />
-                            )}
-                            {/* Overlays */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30"></div>
-                        </div>
-
-                        {/* Story Info */}
-                        <div className="absolute inset-x-0 bottom-0 p-4">
-                            <div className="flex items-center gap-2 mb-2">
-                                <div className="w-1.5 h-1.5 rounded-[5px] bg-palette-red animate-pulse"></div>
-                                <span className="text-[9px] font-black text-white/70 uppercase tracking-widest truncate">
-                                    {story.sourceName || 'Buzz Haber'}
-                                </span>
+                    <SwiperSlide key={story.id} style={{ width: '130px' }}>
+                        <div className="relative group cursor-pointer h-[210px] rounded-[5px] overflow-hidden border border-gray-100 shadow-sm transition-all duration-500 hover:shadow-xl hover:border-palette-red/20 active:scale-95">
+                            {/* Media Background */}
+                            <div className="absolute inset-0">
+                                {story.mediaType === 'video' ? (
+                                    <video
+                                        src={story.mediaUrl}
+                                        className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                                        muted
+                                        playsInline
+                                    />
+                                ) : (
+                                    <img
+                                        src={story.mediaUrl}
+                                        className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 "
+                                        alt={story.title}
+                                    />
+                                )}
+                                {/* Overlays */}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30"></div>
                             </div>
-                            <h3 className="text-xs font-bold text-white leading-snug line-clamp-2 group-hover:text-palette-red transition-colors">
-                                {story.title}
-                            </h3>
-                        </div>
 
-                        {/* Top Badge */}
-                        <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-black/20 backdrop-blur-md px-2 py-1 rounded-[5px] border border-white/10">
-                            {story.mediaType === 'video' ? (
-                                <Play size={10} className="text-white fill-white" />
-                            ) : (
-                                <ImageIcon size={10} className="text-white" />
-                            )}
-                            <div className="flex items-center gap-1">
-                                <Eye size={10} className="text-white/70" />
-                                <span className="text-[9px] font-bold text-white">{(story.viewCount || 0).toLocaleString()}</span>
+                            {/* Story Info */}
+                            <div className="absolute inset-x-0 bottom-0 p-4">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <div className="w-1.5 h-1.5 rounded-[5px] bg-palette-red animate-pulse"></div>
+                                    <span className="text-[9px] font-black text-white/70 uppercase tracking-widest truncate">
+                                        {story.sourceName || 'Haber'}
+                                    </span>
+                                </div>
+                                <h3 className="text-xs font-bold text-white leading-snug line-clamp-2 group-hover:text-palette-red transition-colors">
+                                    {story.title}
+                                </h3>
+                            </div>
+
+                            {/* Top Badge */}
+                            <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-black/20 backdrop-blur-md px-2 py-1 rounded-[5px] border border-white/10">
+                                {story.mediaType === 'video' ? (
+                                    <Play size={10} className="text-white fill-white" />
+                                ) : (
+                                    <ImageIcon size={10} className="text-white" />
+                                )}
+                                <div className="flex items-center gap-1">
+                                    <Eye size={10} className="text-white/70" />
+                                    <span className="text-[9px] font-bold text-white">{(story.viewCount || 0).toLocaleString()}</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    </SwiperSlide>
                 ))}
-
-                {stories.length === 0 && (
-                    <div className="col-span-full py-20 text-center bg-white rounded-[5px] border border-dashed border-palette-beige">
-                        <Zap size={40} className="mx-auto mb-4 text-palette-tan/20" />
-                        <p className="text-[11px] font-black text-palette-tan/40 uppercase tracking-[0.2em]">{t('feed.empty')}</p>
-                    </div>
-                )}
-            </div>
+            </Swiper>
         </div>
     );
 };

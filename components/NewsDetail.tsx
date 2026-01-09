@@ -17,7 +17,8 @@ import {
   Link as LinkIcon,
   Home
 } from 'lucide-react';
-import { NewsItem, NewsType } from '../types';
+import { NewsItem, NewsType, NavigationItem } from '../types';
+import { useLanguage } from '../context/LanguageContext';
 
 // Kart bileşenleri
 import ReviewCard from './cards/ReviewCard';
@@ -35,10 +36,33 @@ import CommentSection from './CommentSection';
 interface NewsDetailProps {
   data: NewsItem;
   onBack: () => void;
+  navItems: NavigationItem[];
 }
 
-const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack }) => {
+const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack, navItems }) => {
   const [scrollProgress, setScrollProgress] = useState(0);
+  const { t } = useLanguage();
+
+  const getBreadcrumbs = () => {
+    const crumbs: { label: string; value: string }[] = [];
+    let currentCategory = data.category;
+
+    const findItem = (val: string) => navItems.find(item => item.value === val || item.label === val);
+
+    let item = findItem(currentCategory);
+    while (item) {
+      crumbs.unshift({ label: item.label, value: item.value });
+      if (item.parent_id && item.parent_id !== 'root') {
+        item = navItems.find(i => i.id === item?.parent_id);
+      } else {
+        item = undefined;
+      }
+    }
+
+    return crumbs;
+  };
+
+  const breadcrumbs = getBreadcrumbs();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -74,7 +98,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack }) => {
   };
 
   return (
-    <div className="animate-in bg-white rounded-[5px] border border-gray-200 shadow-sm relative min-h-screen mb-10">
+    <div className="animate-in bg-white rounded-[5px] border border-gray-200 shadow-sm relative min-h-screen mb-10 overflow-hidden max-w-full mt-2">
 
       {/* Reading Progress Bar */}
       <div className="fixed top-0 left-0 w-full h-1 z-[60] bg-gray-100/50 backdrop-blur-sm">
@@ -87,23 +111,30 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack }) => {
       {/* TOP HEADER - FULL WIDTH AREA */}
       <div className="px-6 md:px-10 pt-8 pb-6 border-b border-gray-50 bg-gray-50/30 rounded-t-[5px]">
         {/* Breadcrumbs */}
-        <nav className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-6">
+        <nav className="flex flex-wrap items-center gap-2 text-[10px] font-bold text-gray-400 capitalize tracking-widest mb-6">
           <button onClick={onBack} className="flex items-center gap-1.5 hover:text-blue-600 transition-colors">
             <Home size={12} />
             <span>Ana Sayfa</span>
           </button>
-          <ChevronRight size={10} />
-          <span className="text-blue-500">{data.category}</span>
+          {breadcrumbs.map((crumb, idx) => (
+            <React.Fragment key={idx}>
+              <ChevronRight size={10} />
+              <span className="hover:text-gray-600 transition-colors cursor-default">
+                {t(crumb.label).toLowerCase()}
+              </span>
+            </React.Fragment>
+          ))}
         </nav>
 
-        {/* Title & Summary - Full Width */}
-        <div className="w-full">
+        {/* Header Section */}
+        <div className="w-full mb-10 overflow-hidden max-w-full">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-[900] text-gray-900 leading-[1.05] tracking-tighter mb-6">
             {data.title}
           </h1>
-          <p className="text-xl md:text-2xl font-bold text-gray-500 leading-relaxed max-w-4xl">
-            {data.summary}
-          </p>
+          <div
+            dangerouslySetInnerHTML={{ __html: data.summary }}
+            className="rich-text-content text-xl md:text-2xl font-bold text-gray-500 leading-relaxed max-w-full"
+          />
         </div>
 
         {/* Meta Info Bar */}
@@ -166,21 +197,21 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack }) => {
         </aside>
 
         {/* MAIN BODY CONTENT */}
-        <article className="flex-1 px-6 md:px-12 pt-6 pb-8 max-w-[840px] mx-auto md:mx-0">
+        <article className="flex-1 px-6 md:px-12 pt-6 pb-8 max-w-[840px] md:mx-0 break-words overflow-hidden">
 
           {/* Main Media (Video, Poll, Gallery etc.) */}
-          <div className="mb-10">
+          <div className="mb-10 overflow-hidden max-w-full">
             {renderMedia()}
           </div>
 
           {/* Body Items Rendering */}
-          <div className="space-y-12">
+          <div className="space-y-12 overflow-hidden">
             {data.items && data.items.length > 0 ? (
               data.items.map((item: any) => {
                 switch (item.type) {
                   case 'text':
                     return (
-                      <div key={item.id} className="prose prose-lg max-w-none text-gray-800">
+                      <div key={item.id} className="rich-text-content prose prose-lg max-w-full text-gray-800">
                         {item.title && <h3 className="text-2xl font-black text-gray-900 mb-4">{item.title}</h3>}
                         <div dangerouslySetInnerHTML={{ __html: item.description }} className="leading-[1.85] font-medium text-gray-700" />
                         {item.source && <p className="text-xs text-gray-400 mt-2 italic flex items-center gap-1"><LinkIcon size={12} /> Kaynak: {item.source}</p>}
@@ -188,12 +219,25 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack }) => {
                     );
                   case 'image':
                     return (
-                      <div key={item.id} className="space-y-3">
-                        {item.title && <h3 className="text-2xl font-black text-gray-900">{item.title}</h3>}
-                        <div className="rounded-[5px] overflow-hidden border border-gray-100 shadow-md">
-                          <img src={item.mediaUrl} className="w-full h-auto object-cover" alt={item.title} />
+                      <div key={item.id} className="space-y-4 max-w-full overflow-hidden">
+                        {item.title && <h3 className="text-2xl font-black text-gray-900 break-normal">{item.title}</h3>}
+                        <div className="relative w-full bg-gray-50 rounded-[5px] overflow-hidden border border-gray-100 shadow-lg flex items-center justify-center max-h-[600px]">
+                          <div
+                            className="absolute inset-0 bg-center bg-no-repeat bg-cover blur-2xl opacity-10 scale-110"
+                            style={{ backgroundImage: `url(${item.mediaUrl})` }}
+                          />
+                          <img
+                            src={item.mediaUrl}
+                            alt={item.title || "Haber görseli"}
+                            className="relative z-10 w-full h-auto max-h-[600px] object-contain"
+                          />
                         </div>
-                        {item.description && <p className="text-sm text-gray-500 font-medium italic text-center px-4">{item.description}</p>}
+                        {item.description && (
+                          <div
+                            dangerouslySetInnerHTML={{ __html: item.description }}
+                            className="rich-text-content text-sm text-gray-500 font-medium italic text-left px-0 leading-relaxed"
+                          />
+                        )}
                       </div>
                     );
                   case 'paragraph':
@@ -218,10 +262,24 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack }) => {
                       <GalleryCard data={{ ...data, mediaList: item.mediaUrls } as any} />
                     </div>;
                   case 'poll':
-                    return <div key={item.id} className="space-y-4">
-                      {item.title && <h3 className="text-2xl font-black text-gray-900">{item.title}</h3>}
-                      <PollCard data={{ ...data, title: item.title, summary: item.description, options: item.options, isImagePoll: item.isImagePoll, pollColumns: item.pollColumns } as any} />
-                    </div>;
+                    return (
+                      <div key={item.id} className="space-y-6 pt-12 border-t-2 border-palette-beige/30 mt-16 relative">
+                        {/* News End Indicator / Poll Start */}
+                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-white px-4 py-1 flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-palette-red" />
+                          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-palette-tan">HABER SONU</span>
+                          <div className="w-2 h-2 rounded-full bg-palette-red" />
+                        </div>
+
+                        {item.title && (
+                          <h3 className="text-3xl md:text-4xl font-[1000] text-gray-900 leading-tight tracking-tighter">
+                            {item.title}
+                            {(!item.title.trim().endsWith('?') && !item.title.trim().endsWith('!')) ? '?' : ''}
+                          </h3>
+                        )}
+                        <PollCard data={{ ...data, title: item.title, summary: item.description, options: item.options, isImagePoll: item.isImagePoll, pollColumns: item.pollColumns } as any} />
+                      </div>
+                    );
                   case 'vs':
                     return <div key={item.id} className="space-y-4">
                       {item.title && <h3 className="text-2xl font-black text-gray-900">{item.title}</h3>}
@@ -263,18 +321,17 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack }) => {
                 }
               })
             ) : (
-              <div className="prose prose-lg max-w-none text-gray-800 space-y-8">
-                <p className="text-xl leading-[1.85] font-medium text-gray-700">
-                  {data.content || "Bu haber için içerik bulunamadı."}
-                </p>
-              </div>
+              <div
+                className="rich-text-content prose prose-lg max-w-full text-gray-800"
+                dangerouslySetInnerHTML={{ __html: data.content || "Bu haber için içerik bulunamadı." }}
+              />
             )}
           </div>
 
           {/* Tags */}
           <div className="mt-16 flex flex-wrap gap-2 pb-10 border-b border-gray-100">
             <span className="w-full text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Konu Başlıkları:</span>
-            {['Teknoloji', 'Gündem', 'BuzzÖzel', 'Analiz', 'Trend'].map(tag => (
+            {['Teknoloji', 'Gündem', 'PateezÖzel', 'Analiz', 'Trend'].map(tag => (
               <button key={tag} className="px-4 py-2 bg-gray-100 hover:bg-blue-600 hover:text-white text-gray-600 rounded-[5px] text-xs font-bold transition-all">
                 #{tag}
               </button>

@@ -1,16 +1,17 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { NavigationItem } from '../types';
+import { NavigationItem, SiteSettings } from '../types';
 
 interface NavbarProps {
   onHomeClick?: () => void;
   onProfileClick?: () => void;
   isLoggedIn?: boolean;
   navItems?: NavigationItem[];
+  siteSettings?: SiteSettings | null;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ onHomeClick, onProfileClick, isLoggedIn, navItems = [] }) => {
+const Navbar: React.FC<NavbarProps> = ({ onHomeClick, onProfileClick, isLoggedIn, navItems = [], siteSettings }) => {
   const { currentLang, availableLanguages, setLanguage, t } = useLanguage();
   const [showLangMenu, setShowLangMenu] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -33,22 +34,45 @@ const Navbar: React.FC<NavbarProps> = ({ onHomeClick, onProfileClick, isLoggedIn
 
   return (
     <header className="fixed top-0 left-0 w-full z-[100]">
-      <div className="h-[72px] bg-white/80 backdrop-blur-2xl border-b border-palette-beige/20 shadow-sm relative z-[101]">
+      <div className="h-[64px] bg-white/80 backdrop-blur-2xl border-b border-palette-beige/20 shadow-sm relative z-[101]">
         <div className="max-w-[1280px] mx-auto h-full flex items-center px-4">
 
           {/* LOGO */}
           <div
             onClick={onHomeClick}
-            className="flex items-center gap-3 cursor-pointer group select-none z-20 flex-shrink-0 lg:w-[260px]"
+            className="flex items-center gap-3 cursor-pointer group select-none z-20 flex-shrink-0 lg:w-[260px] pl-4"
           >
-            <div className="w-9 h-9 bg-palette-red rounded-[5px] flex items-center justify-center shadow-lg shadow-palette-red/10 group-hover:scale-105 transition-all duration-500">
-              <span className="material-symbols-rounded text-white" style={{ fontSize: '22px', fontVariationSettings: "'FILL' 1, 'wght' 600" }}>bolt</span>
-            </div>
-            <div className="flex flex-col justify-center">
-              <h1 className="text-xl font-bold tracking-tight text-gray-900 leading-none font-display">
-                BUZZ<span className="text-palette-tan font-medium">HABER</span>
-              </h1>
-            </div>
+            {siteSettings?.logo_url ? (
+              <div className="h-[42px] transition-transform duration-500 group-hover:scale-105">
+                <img
+                  src={siteSettings.logo_url}
+                  alt={siteSettings?.site_name || "Site Logo"}
+                  className="h-full w-auto object-contain"
+                />
+              </div>
+            ) : (
+              <div className="w-[42px] h-[42px] bg-palette-red rounded-[5px] flex items-center justify-center shadow-lg shadow-palette-red/10 group-hover:scale-105 transition-all duration-500">
+                <span className="material-symbols-rounded text-white" style={{ fontSize: '26px', fontVariationSettings: "'FILL' 1, 'wght' 600" }}>bolt</span>
+              </div>
+            )}
+            {!siteSettings?.logo_url && (
+              <div className="flex flex-col justify-center">
+                <h1 className="text-xl font-bold tracking-tight text-gray-900 leading-none font-display">
+                  {siteSettings?.site_name ? (
+                    <>
+                      {siteSettings.site_name.split(' ')[0].toUpperCase()}
+                      {siteSettings.site_name.split(' ').slice(1).length > 0 && (
+                        <span className="text-palette-tan font-medium">
+                          {siteSettings.site_name.split(' ').slice(1).join(' ').toUpperCase()}
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <>PATEEZ<span className="text-palette-tan font-medium">NEWS</span></>
+                  )}
+                </h1>
+              </div>
+            )}
           </div>
 
           {/* NAV */}
@@ -144,7 +168,7 @@ const Navbar: React.FC<NavbarProps> = ({ onHomeClick, onProfileClick, isLoggedIn
 
       {/* SEARCH BAR */}
       <div
-        className={`absolute top-[72px] left-0 w-full bg-white border-b border-palette-beige shadow-2xl transition-all duration-75 ease-linear overflow-hidden z-[100] ${isSearchOpen ? 'max-h-[80px] opacity-100 py-3.5' : 'max-h-0 opacity-0 py-0'
+        className={`absolute top-[64px] left-0 w-full bg-white border-b border-palette-beige shadow-2xl transition-all duration-75 ease-linear overflow-hidden z-[100] ${isSearchOpen ? 'max-h-[80px] opacity-100 py-3.5' : 'max-h-0 opacity-0 py-0'
           }`}
       >
         <div className="max-w-[1280px] mx-auto px-4">

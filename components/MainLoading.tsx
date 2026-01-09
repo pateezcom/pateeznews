@@ -1,52 +1,110 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { supabase } from '../lib/supabase';
+import { useLanguage } from '../context/LanguageContext';
+import { SiteSettings } from '../types';
 
 const MainLoading: React.FC = () => {
+    const { currentLang } = useLanguage();
+
+    // Performance Cache Engine
+    const getImmediateCache = () => {
+        try {
+            const langCode = localStorage.getItem('pateez_lang') || 'tr';
+            const cacheKey = `pateez_v2025_settings_${langCode}_default`;
+            const cached = localStorage.getItem(cacheKey);
+            return cached ? JSON.parse(cached).data : null;
+        } catch (e) { return null; }
+    };
+
+    const [settings, setSettings] = useState<SiteSettings | null>(getImmediateCache);
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('site_settings')
+                    .select('*')
+                    .eq('language_code', currentLang.code)
+                    .maybeSingle();
+
+                if (!error && data) {
+                    setSettings(data);
+                    if (data.home_title || data.site_name) {
+                        document.title = data.home_title || data.site_name;
+                    }
+                }
+            } catch (e) {
+                console.error("MainLoading error:", e);
+            }
+        };
+
+        fetchSettings();
+    }, [currentLang.code]);
+
+    const logoUrl = settings?.logo_url;
+    const siteName = settings?.site_name || '';
+
     return (
-        <div className="fixed inset-0 z-[1000] bg-palette-beige flex flex-col items-center justify-center">
-            {/* 2025 Premium Background Elements */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-palette-red/5 rounded-[5px] blur-[120px] animate-pulse"></div>
-                <div className="absolute bottom-[-10%] left-[-5%] w-[40%] h-[40%] bg-palette-tan/5 rounded-[5px] blur-[120px] animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="fixed inset-0 z-[1000] bg-[#fcfcfb] flex flex-col items-center justify-center">
+            {/* High-End Background */}
+            <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute top-[-10%] right-[-10%] w-1/2 h-1/2 bg-palette-red/[0.01] rounded-full blur-[120px]"></div>
+                <div className="absolute bottom-[-10%] left-[-10%] w-1/2 h-1/2 bg-[#182540]/[0.01] rounded-full blur-[120px]"></div>
             </div>
 
-            <div className="relative flex flex-col items-center">
-                {/* Logo Animation */}
-                <div className="relative scale-150 mb-12">
-                    <div className="w-16 h-16 bg-palette-red rounded-[5px] flex items-center justify-center shadow-2xl shadow-palette-red/30 animate-bounce-subtle">
-                        <span className="material-symbols-rounded text-white" style={{ fontSize: '36px', fontVariationSettings: "'FILL' 1, 'wght' 600" }}>bolt</span>
+            <div className="relative flex flex-col items-center w-full max-w-[220px]">
+
+                {/* 🎯 LOGO AREA - Optimized for high-definition clarity */}
+                <div className="h-16 flex items-center justify-center mb-10 overflow-visible">
+                    {logoUrl ? (
+                        <div className="animate-reveal-instant">
+                            <img
+                                src={logoUrl}
+                                alt={siteName}
+                                className="h-10 md:h-11 w-auto object-contain transition-all duration-300"
+                                style={{
+                                    imageRendering: 'auto', // Browser handles antialiasing for smoothness
+                                    transform: 'translateZ(0) scale(1.0)',
+                                    backfaceVisibility: 'hidden',
+                                    WebkitFontSmoothing: 'antialiased',
+                                    // Remove sharp rendering filters that cause "jagged" (kırık) edges
+                                }}
+                            />
+                        </div>
+                    ) : settings ? (
+                        <div className="animate-reveal-instant">
+                            <span className="text-xl font-[900] tracking-tighter text-[#182540] uppercase">
+                                {siteName}
+                            </span>
+                        </div>
+                    ) : (
+                        <div className="h-10" />
+                    )}
+                </div>
+
+                {/* Micro Loader */}
+                <div className="w-full space-y-5">
+                    <div className="w-full h-[1.5px] bg-[#182540]/[0.02] relative overflow-hidden rounded-full">
+                        <div className="absolute inset-0 bg-palette-red/30 w-full animate-fast-shimmer"></div>
                     </div>
                 </div>
-
-                {/* Text Branding */}
-                <div className="flex flex-col items-center gap-2">
-                    <h1 className="text-2xl font-black tracking-tighter text-gray-900 flex items-center gap-0.5">
-                        BUZZ<span className="text-palette-tan/40 font-bold">HABER</span>
-                    </h1>
-                    <div className="flex items-center gap-1.5">
-                        <div className="w-1.5 h-1.5 bg-palette-red rounded-[5px] animate-ping"></div>
-                        <span className="text-[10px] font-black text-palette-tan/40 uppercase tracking-[0.3em] font-display">BAĞLANILIYOR</span>
-                    </div>
-                </div>
-
-                {/* Performance Optimized Loading Bar */}
-                <div className="mt-12 w-48 h-[3px] bg-palette-tan/5 rounded-[5px] overflow-hidden relative">
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-palette-red to-transparent w-full animate-shimmer"></div>
-                </div>
-            </div>
-
-            {/* Bottom Info */}
-            <div className="absolute bottom-12 flex flex-col items-center gap-1">
-                <span className="text-[9px] font-black text-palette-tan/20 uppercase tracking-[0.2em]">2025 Buzz Media Group</span>
             </div>
 
             <style>{`
-                @keyframes shimmer {
+                @keyframes reveal-instant {
+                    0% { opacity: 0; transform: translateY(2px); }
+                    100% { opacity: 1; transform: translateY(0); }
+                }
+                @keyframes fast-shimmer {
                     0% { transform: translateX(-100%); }
                     100% { transform: translateX(100%); }
                 }
-                .animate-shimmer {
-                    animation: shimmer 1.5s infinite linear;
+                .animate-reveal-instant {
+                    animation: reveal-instant 0.5s ease-out forwards;
+                }
+                .animate-fast-shimmer {
+                    animation: fast-shimmer 2s infinite linear;
                 }
             `}</style>
         </div>

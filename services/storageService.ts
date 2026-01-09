@@ -26,7 +26,7 @@ export const storageService = {
         }
     },
 
-    async uploadFile(file: File, customPath?: string, type?: 'image' | 'video' | 'audio' | 'file'): Promise<MediaItem | null> {
+    async uploadFile(file: File, customPath?: string, type?: 'image' | 'video' | 'audio' | 'file' | 'logo', lang?: string, customFilename?: string): Promise<MediaItem | null> {
         try {
             const formData = new FormData();
             formData.append('file', file);
@@ -35,6 +35,12 @@ export const storageService = {
             }
             if (type) {
                 formData.append('type', type);
+            }
+            if (lang) {
+                formData.append('lang', lang);
+            }
+            if (customFilename) {
+                formData.append('customFilename', customFilename);
             }
 
             const controller = new AbortController();
