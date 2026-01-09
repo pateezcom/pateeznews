@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { BarChart3, TrendingUp, CheckCircle2, Users, HelpCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { CheckCircle2, Users } from 'lucide-react';
 import { NewsItem } from '../../types';
 import AnimatedNumber from '../ui/AnimatedNumber';
 
@@ -11,21 +11,6 @@ interface PollCardProps {
 const PollCard: React.FC<PollCardProps> = ({ data }) => {
   const [hasVoted, setHasVoted] = useState(false);
   const [votedOption, setVotedOption] = useState<string | null>(null);
-  const [imageRatio, setImageRatio] = useState<'vertical' | 'horizontal'>('horizontal');
-
-  useEffect(() => {
-    if (data.thumbnail) {
-      const img = new Image();
-      img.onload = () => {
-        if (img.height > img.width) {
-          setImageRatio('vertical');
-        } else {
-          setImageRatio('horizontal');
-        }
-      };
-      img.src = data.thumbnail;
-    }
-  }, [data.thumbnail]);
 
   const handleVote = (id: string) => {
     if (hasVoted) return;
@@ -38,188 +23,219 @@ const PollCard: React.FC<PollCardProps> = ({ data }) => {
 
   return (
     <div className="mt-1 space-y-4 overflow-hidden">
-      {/* CREATIVE POLL HEADER AREA */}
-      <div className="px-1 mb-6 mt-4">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="relative">
-            <div className="w-12 h-12 rounded-xl bg-palette-red flex items-center justify-center text-white shadow-xl rotate-3">
-              <BarChart3 size={24} />
-            </div>
-            {/* Live Indicator */}
-            <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 border-4 border-white rounded-full animate-pulse shadow-sm" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[10px] font-black text-palette-red uppercase tracking-[0.3em] leading-none mb-1">Pateez Özel Anket</span>
-            <div className="h-1 w-12 bg-palette-red/20 rounded-full" />
-          </div>
-        </div>
-
-        {/* SUBTITLE (SUMMARY) */}
-        <div
-          className="rich-text-content text-gray-900 text-[20px] md:text-[24px] leading-tight font-[1000] italic border-l-4 border-palette-red pl-6 py-2 transition-all duration-500 hover:border-palette-maroon"
-          dangerouslySetInnerHTML={{ __html: data.summary }}
-        />
+      {/* SUMMARY - Creative Style */}
+      <div className="px-1 mb-2">
+        <p className="text-palette-maroon/60 text-[15px] leading-relaxed">
+          <span className="text-palette-red font-black text-[11px] uppercase tracking-widest mr-2">Sizin İçin</span>
+          <span className="font-[500] italic" dangerouslySetInnerHTML={{ __html: data.summary }} />
+        </p>
       </div>
 
-      {/* MAIN IMAGE CONTAINER */}
-      <div className="relative rounded-[5px] overflow-hidden shadow-lg group border border-palette-beige/50 bg-black/5 flex items-center justify-center min-h-[200px]">
-        <div
-          className="absolute inset-0 bg-center bg-no-repeat bg-cover blur-2xl opacity-30 scale-110"
-          style={{ backgroundImage: `url(${data.thumbnail})` }}
-        />
-        <img
-          src={data.thumbnail}
-          alt={data.title}
-          className="w-auto h-auto max-w-full max-h-[400px] object-contain transition-transform duration-1000 group-hover:scale-[1.05] relative z-10"
-        />
-        <div className="absolute inset-0 z-20 bg-gradient-to-t from-palette-maroon/40 to-transparent" />
-        <div className="absolute bottom-4 left-4 z-30 flex items-center gap-2">
-          <div className="bg-palette-red p-1.5 rounded-[5px] text-white shadow-lg animate-bounce-subtle">
-            <BarChart3 size={18} />
-          </div>
-          <span className="text-white text-[10px] font-black uppercase tracking-widest bg-palette-maroon/30 px-2 py-1 rounded-[5px]">{data.category}</span>
-        </div>
-      </div>
+      {/* MAIN POLL CONTAINER */}
+      <div className="relative bg-gradient-to-br from-palette-beige/10 via-white to-palette-beige/5 rounded-[5px] border border-palette-beige/40 overflow-hidden shadow-sm">
 
-      <div className="bg-white p-6 md:p-8 rounded-2xl border-2 border-palette-beige/30 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] overflow-hidden relative group/card hover:border-palette-red/20 transition-all duration-500 mt-6 text-left">
-        {/* Abstract Background Element */}
-        <div className="absolute -top-10 -right-10 w-48 h-48 bg-palette-red/5 rounded-full blur-[60px] pointer-events-none group-hover/card:bg-palette-red/10 transition-all duration-1000" />
+        {/* IMAGE SECTION */}
+        {data.thumbnail && (
+          <div className="relative w-full overflow-hidden group/image">
+            <img
+              src={data.thumbnail}
+              alt={data.title}
+              className="w-full h-auto object-contain transition-transform duration-[2s] group-hover/image:scale-[1.02]"
+            />
+            {/* Gradient Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent pointer-events-none" />
 
-        {/* POLL TITLE AREA INSIDE CARD */}
-        {(data as any).blockTitle && (
-          <div className="pb-8 mb-6 px-1 text-left relative z-10 border-b border-gray-50">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="flex items-center gap-1.5 px-3 py-1 bg-palette-maroon text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg shadow-palette-maroon/20">
-                <HelpCircle size={12} strokeWidth={3} />
-                KATILIMINIZI BEKLİYORUZ
-              </span>
+            {/* Category Badge - Bottom Right */}
+            <div className="absolute bottom-4 right-4 z-20 flex items-center gap-2">
+              <div className="flex items-center gap-1.5 bg-palette-red px-3 py-1.5 rounded-[3px] shadow-lg">
+                <span className="material-symbols-rounded text-white" style={{ fontSize: '14px', fontVariationSettings: "'FILL' 1" }}>
+                  poll
+                </span>
+                <span className="text-[10px] font-black text-white uppercase tracking-widest">Anket</span>
+              </div>
             </div>
-            <h3 className="text-[26px] md:text-[30px] font-[1000] text-palette-maroon tracking-tighter leading-[1.1] drop-shadow-sm">
-              {(data as any).blockTitle}
-              {(!String((data as any).blockTitle).trim().endsWith('?') && !String((data as any).blockTitle).trim().endsWith('!')) ? '?' : ''}
-            </h3>
-            <div className="w-20 h-[5px] bg-palette-red mt-5 rounded-full" />
+
+            {/* Live Indicator - Top Left */}
+            <div className="absolute top-4 left-4 z-20">
+              <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-[3px] border border-white/10">
+                <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
+                <span className="text-[9px] font-black text-white uppercase tracking-widest">Canlı</span>
+              </div>
+            </div>
           </div>
         )}
 
-        <div className={`grid ${columnClass} gap-4 relative z-10`}>
-          {data.options?.map((option) => {
-            const isSelected = votedOption === option.id;
-            const displayTotalVotes = hasVoted ? (data.totalVotes || 0) + 1 : (data.totalVotes || 0);
-            const currentOptionVotes = (isSelected && hasVoted) ? (option.votes || 0) + 1 : (option.votes || 0);
-            const percentage = displayTotalVotes > 0 ? Math.round((currentOptionVotes / displayTotalVotes) * 100) : 0;
+        {/* POLL QUESTION TITLE */}
+        {(data as any).blockTitle && (
+          <div className="px-6 pt-6 pb-4">
+            <h3 className="text-[20px] md:text-[24px] font-[900] text-palette-maroon tracking-tight leading-snug">
+              {(data as any).blockTitle}
+              {(!String((data as any).blockTitle).trim().endsWith('?') && !String((data as any).blockTitle).trim().endsWith('!')) ? '?' : ''}
+            </h3>
+          </div>
+        )}
 
-            if (isImage) {
+        {/* OPTIONS GRID */}
+        <div className={`px-6 pb-6 ${(data as any).blockTitle ? 'pt-0' : 'pt-6'}`}>
+          <div className={`grid ${columnClass} gap-3`}>
+            {data.options?.map((option, index) => {
+              const isSelected = votedOption === option.id;
+              const displayTotalVotes = hasVoted ? (data.totalVotes || 0) + 1 : (data.totalVotes || 0);
+              const currentOptionVotes = (isSelected && hasVoted) ? (option.votes || 0) + 1 : (option.votes || 0);
+              const percentage = displayTotalVotes > 0 ? Math.round((currentOptionVotes / displayTotalVotes) * 100) : 0;
+
+              if (isImage) {
+                return (
+                  <button
+                    key={option.id}
+                    disabled={hasVoted}
+                    onClick={() => handleVote(option.id)}
+                    className={`group relative flex flex-col rounded-[5px] overflow-hidden transition-all duration-500 bg-palette-beige/5 ${hasVoted
+                      ? isSelected
+                        ? 'ring-2 ring-palette-maroon shadow-xl z-10'
+                        : 'opacity-40 grayscale-[50%] scale-[0.98]'
+                      : 'hover:shadow-xl hover:scale-[1.02] active:scale-[0.99]'
+                      }`}
+                  >
+                    {/* Image Container - Fixed Height with Blurred Background */}
+                    <div className="relative w-full h-[240px] overflow-hidden">
+                      {/* Blurred Background Fill */}
+                      <div
+                        className="absolute inset-0 bg-center bg-cover blur-2xl opacity-50 scale-110"
+                        style={{ backgroundImage: `url(${option.image})` }}
+                      />
+                      {/* Main Image - Object Contain */}
+                      <img
+                        src={option.image}
+                        alt={option.text}
+                        className={`relative z-10 w-full h-full object-contain transition-transform duration-700 ${!hasVoted ? 'group-hover:scale-105' : ''}`}
+                      />
+
+                      {/* Hover Overlay - Before Vote */}
+                      {!hasVoted && (
+                        <div className="absolute inset-0 z-20 bg-gradient-to-t from-palette-maroon/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
+                          <span className="text-white text-[10px] font-black uppercase tracking-widest">Oy Ver</span>
+                        </div>
+                      )}
+
+                      {/* Result Overlay - After Vote */}
+                      {hasVoted && (
+                        <div className={`absolute inset-0 z-20 flex flex-col items-center justify-center transition-all duration-500 ${isSelected ? 'bg-palette-maroon/70' : 'bg-black/50'}`}>
+                          {/* Percentage */}
+                          <div className="text-white text-5xl font-[1000] italic tracking-tighter drop-shadow-lg animate-in zoom-in duration-500">
+                            <AnimatedNumber value={percentage} suffix="" />%
+                          </div>
+                          {/* Vote Count */}
+                          <div className="text-white/80 text-[11px] font-bold mt-1 animate-in fade-in slide-in-from-bottom-2 duration-700">
+                            {currentOptionVotes} oy
+                          </div>
+                          {/* Selected Check */}
+                          {isSelected && (
+                            <div className="absolute top-3 right-3 w-8 h-8 bg-white text-palette-maroon rounded-full flex items-center justify-center shadow-lg animate-in zoom-in duration-300">
+                              <CheckCircle2 size={20} strokeWidth={3} />
+                            </div>
+                          )}
+                          {/* Progress Bar Inside */}
+                          <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-white/20">
+                            <div
+                              className={`h-full transition-all duration-[1500ms] ease-out ${isSelected ? 'bg-white' : 'bg-white/50'}`}
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Option Label */}
+                    <div className={`px-4 py-3 transition-colors duration-300 ${hasVoted && isSelected ? 'bg-palette-maroon/5' : 'bg-white'}`}>
+                      <span className={`text-[13px] font-[800] text-left block line-clamp-1 ${isSelected && hasVoted ? 'text-palette-maroon' : 'text-palette-maroon/70'}`}>
+                        {option.text}
+                      </span>
+                    </div>
+                  </button>
+                );
+              }
+
+              // TEXT OPTIONS
               return (
                 <button
                   key={option.id}
                   disabled={hasVoted}
                   onClick={() => handleVote(option.id)}
-                  className={`relative group flex flex-col rounded-xl overflow-hidden transition-all duration-700 border ${hasVoted
+                  className={`group relative w-full rounded-[5px] transition-all duration-400 bg-white border overflow-hidden ${hasVoted
                     ? isSelected
-                      ? 'opacity-100 scale-[1.03] z-20 shadow-2xl border-palette-red'
-                      : 'opacity-40 grayscale-[0.5] scale-[0.97] border-palette-beige/50'
-                    : 'hover:scale-[1.02] hover:shadow-xl border-palette-beige/80 hover:border-palette-red/30'
+                      ? 'border-palette-maroon/50 shadow-sm'
+                      : 'border-palette-beige/30 opacity-60'
+                    : 'border-palette-beige/50 hover:border-palette-tan hover:bg-palette-beige/[0.03] active:scale-[0.99]'
                     }`}
                 >
-                  <div className="relative aspect-[4/5] overflow-hidden bg-gray-50">
-                    <img
-                      src={option.image}
-                      alt={option.text}
-                      className={`w-full h-full object-cover transition-transform duration-1000 ${!hasVoted ? 'group-hover:scale-110' : ''} ${isSelected && hasVoted ? 'scale-105' : ''}`}
+                  {/* Progress Bar Background */}
+                  {hasVoted && (
+                    <div
+                      className={`absolute left-0 top-0 bottom-0 transition-all duration-[1200ms] ease-out ${isSelected ? 'bg-palette-maroon/10' : 'bg-palette-beige/40'}`}
+                      style={{ width: `${percentage}%` }}
                     />
+                  )}
+
+                  {/* Content */}
+                  <div className="relative px-5 py-4 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3.5">
+                      {/* Radio Circle */}
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-300 ${isSelected && hasVoted
+                        ? 'border-palette-maroon bg-palette-maroon'
+                        : hasVoted
+                          ? 'border-palette-beige/50'
+                          : 'border-palette-beige group-hover:border-palette-tan'
+                        }`}>
+                        {isSelected && hasVoted && (
+                          <div className="w-2 h-2 bg-white rounded-full animate-in zoom-in duration-200" />
+                        )}
+                      </div>
+
+                      {/* Option Text */}
+                      <span className={`text-[15px] font-[700] tracking-tight transition-colors ${isSelected && hasVoted ? 'text-palette-maroon' : 'text-palette-maroon/70'
+                        }`}>
+                        {option.text}
+                      </span>
+                    </div>
+
+                    {/* Percentage, Votes & Check */}
                     {hasVoted && (
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none flex flex-col justify-end p-4">
-                        <div className={`flex flex-col items-start ${isSelected ? 'text-white' : 'text-white/70'}`}>
-                          <span className="text-4xl font-[1000] italic tracking-tighter leading-none mb-1">
-                            <AnimatedNumber value={percentage} />
+                      <div className="flex items-center gap-3 flex-shrink-0">
+                        <div className="text-right">
+                          <span className={`text-[14px] font-[900] tabular-nums block ${isSelected ? 'text-palette-maroon' : 'text-palette-tan/60'}`}>
+                            <AnimatedNumber value={percentage} suffix="%" />
                           </span>
-                          <span className="text-[10px] font-black uppercase tracking-widest bg-white/20 backdrop-blur-md px-2 py-0.5 rounded-[2px]">
-                            <AnimatedNumber value={currentOptionVotes} suffix=" OY" />
+                          <span className="text-[10px] font-[600] text-palette-tan/50">
+                            {currentOptionVotes} oy
                           </span>
                         </div>
+                        {isSelected && (
+                          <CheckCircle2 size={18} className="text-palette-maroon animate-in zoom-in duration-300" />
+                        )}
                       </div>
                     )}
-                    {isSelected && hasVoted && (
-                      <div className="absolute top-3 right-3 bg-white text-palette-red p-1.5 rounded-full shadow-lg animate-in zoom-in duration-500 scale-110">
-                        <CheckCircle2 size={16} strokeWidth={3} />
-                      </div>
-                    )}
-                  </div>
-                  <div className={`p-4 text-left transition-all duration-500 ${isSelected && hasVoted ? 'bg-palette-red text-white' : 'bg-white text-palette-maroon'}`}>
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-[14px] font-[1000] capitalize tracking-tight leading-tight line-clamp-2 flex-1">
-                        {option.text}
-                      </p>
-                      {isSelected && hasVoted && <CheckCircle2 size={16} className="text-white shrink-0" />}
-                    </div>
                   </div>
                 </button>
               );
-            }
-
-            return (
-              <button
-                key={option.id}
-                disabled={hasVoted}
-                onClick={() => handleVote(option.id)}
-                className={`group relative flex flex-col w-full rounded-xl overflow-hidden transition-all duration-700 border-2 ${hasVoted
-                  ? isSelected
-                    ? 'border-palette-red shadow-lg bg-palette-red/5'
-                    : 'border-palette-beige/30 opacity-50 grayscale-[0.3]'
-                  : 'border-palette-beige hover:border-palette-red/30 hover:bg-palette-red/[0.02]'
-                  }`}
-              >
-                {hasVoted && (
-                  <div
-                    className={`absolute left-0 top-0 bottom-0 transition-all duration-[1500ms] cubic-bezier(0.16, 1, 0.3, 1) ${isSelected ? 'bg-palette-red/10' : 'bg-palette-beige/20'}`}
-                    style={{ width: `${percentage}%` }}
-                  />
-                )}
-                <div className="relative px-6 py-5 flex justify-between items-center gap-4">
-                  <span className={`text-[16px] font-[1000] tracking-tight transition-colors duration-500 ${isSelected && hasVoted ? 'text-palette-red' : 'text-palette-maroon'}`}>
-                    {option.text}
-                  </span>
-                  {hasVoted && (
-                    <div className="flex items-center gap-4 animate-in slide-in-from-right duration-700">
-                      <div className="flex flex-col items-end">
-                        <span className={`text-2xl font-[1000] italic leading-none ${isSelected ? 'text-palette-red' : 'text-palette-maroon/40'}`}>
-                          <AnimatedNumber value={percentage} />
-                        </span>
-                        <span className="text-[9px] font-black text-palette-maroon/30 uppercase mt-1 tracking-widest">
-                          <AnimatedNumber value={currentOptionVotes} suffix=" oy" />
-                        </span>
-                      </div>
-                      {isSelected && (
-                        <div className="text-palette-red animate-in zoom-in duration-500">
-                          <CheckCircle2 size={20} strokeWidth={3} />
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </button>
-            );
-          })}
+            })}
+          </div>
         </div>
 
-        <div className="mt-10 pt-8 border-t border-palette-beige/50 flex flex-col md:flex-row justify-between items-center gap-6 relative z-10">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-palette-beige/30 text-palette-tan flex items-center justify-center border border-palette-tan/10 shadow-inner">
-              <Users size={20} />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-[14px] font-[1000] text-palette-maroon tracking-tight">
-                <AnimatedNumber value={hasVoted ? (data.totalVotes || 0) + 1 : (data.totalVotes || 0)} />
-              </span>
-              <span className="text-[9px] font-black text-palette-tan uppercase tracking-widest opacity-60">Toplam Katılım</span>
-            </div>
+        {/* FOOTER - Minimal Stats */}
+        <div className="px-6 py-4 bg-palette-beige/[0.04] border-t border-palette-beige/20 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-palette-tan/50">
+            <Users size={14} />
+            <span className="text-[11px] font-[800] tracking-wide">
+              <AnimatedNumber value={hasVoted ? (data.totalVotes || 0) + 1 : (data.totalVotes || 0)} suffix="" /> katılımcı
+            </span>
           </div>
-
-          <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-100 shadow-sm shadow-emerald-500/5">
-            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
-            SONUÇLAR CANLI
-          </div>
+          {hasVoted && (
+            <div className="flex items-center gap-1.5 text-emerald-600 animate-in fade-in slide-in-from-right-2 duration-500">
+              <CheckCircle2 size={14} />
+              <span className="text-[10px] font-black uppercase tracking-widest">Oy verildi</span>
+            </div>
+          )}
         </div>
       </div>
     </div>
