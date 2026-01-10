@@ -3102,7 +3102,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                                     type="datetime-local"
                                     value={formData.publishAt}
                                     onChange={(e) => setFormData({ ...formData, publishAt: e.target.value })}
-                                    className="w-full bg-palette-beige/10 border border-palette-tan/20 rounded-[3px] p-3 text-sm font-bold text-palette-maroon outline-none"
+                                    className="w-full bg-palette-beige/10 border border-palette-tan/20 rounded-[3px] p-3 text-sm font-bold text-palette-maroon outline-none cursor-pointer"
                                 />
                             </div>
 
