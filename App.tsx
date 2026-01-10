@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { supabase } from './lib/supabase';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
@@ -12,7 +12,7 @@ import CategoriesList from './components/CategoriesList';
 import { NewsItem, NavigationItem, SiteSettings } from './types';
 import { useLanguage } from './context/LanguageContext';
 import MainLoading from './components/MainLoading';
-import { isUUID } from './utils/helpers';
+import { isUUID, slugify } from './utils/helpers';
 
 // Lazy Components
 const AdminDashboard = React.lazy(() => import('./components/admin/AdminDashboard'));
@@ -33,8 +33,38 @@ const CACHE_CONFIG = {
   }
 };
 
+const ADMIN_TAB_LABEL_KEYS: Record<string, string> = {
+  overview: 'admin.sidebar.overview',
+  posts: 'admin.sidebar.posts',
+  news_list: 'admin.sidebar.news_list',
+  stories: 'admin.sidebar.stories',
+  users: 'admin.sidebar.users',
+  publishers: 'admin.sidebar.publishers',
+  navigation: 'admin.sidebar.navigation',
+  roles: 'admin.sidebar.roles',
+  settings: 'admin.sidebar.settings',
+  languages: 'admin.sidebar.languages',
+  my_profile: 'admin.header.my_account'
+};
+
+const ADMIN_TAB_LABEL_FALLBACKS: Record<string, string> = {
+  'admin.sidebar.overview': 'Genel Bakış',
+  'admin.sidebar.posts': 'Haber Ekle',
+  'admin.sidebar.news_list': 'Haberler',
+  'admin.sidebar.stories': 'Hikayeler',
+  'admin.sidebar.users': 'Kullanıcılar',
+  'admin.sidebar.publishers': 'Yayıncılar',
+  'admin.sidebar.navigation': 'Menü & Kategori',
+  'admin.sidebar.roles': 'Roller & İzinler',
+  'admin.sidebar.settings': 'Ayarlar',
+  'admin.sidebar.languages': 'Dil Ayarları',
+  'admin.header.my_account': 'Hesabım'
+};
+
 const App: React.FC = () => {
   const { currentLang, t } = useLanguage();
+  const defaultFaviconHrefRef = useRef<string | null>(null);
+  const defaultDocumentTitleRef = useRef<string | null>(null);
 
   // --- PERSISTENCE UTILS ---
   const saveCache = useCallback((key: string, data: any) => {
@@ -49,6 +79,79 @@ const App: React.FC = () => {
       return cached ? JSON.parse(cached).data : null;
     } catch (e) { return null; }
   }, [currentLang.code]);
+
+  const getAdminTabLabel = useCallback((tabId: string) => {
+    const key = ADMIN_TAB_LABEL_KEYS[tabId];
+    if (!key) return tabId.replace(/_/g, ' ');
+    const translated = t(key);
+    if (translated && translated !== key) return translated;
+    const fallback = ADMIN_TAB_LABEL_FALLBACKS[key];
+    if (fallback) return fallback;
+    return tabId.replace(/_/g, ' ');
+  }, [t]);
+
+  const getAdminTabSlug = useCallback((tabId: string) => {
+    const slug = slugify(getAdminTabLabel(tabId));
+    if (slug) return slug;
+    return slugify(tabId.replace(/_/g, ' ')) || tabId;
+  }, [getAdminTabLabel]);
+
+  const adminTabSlugMap = useMemo(() => {
+    const map = new Map<string, string>();
+    Object.keys(ADMIN_TAB_LABEL_KEYS).forEach((tabId) => {
+      const slug = getAdminTabSlug(tabId);
+      if (slug) map.set(slug, tabId);
+      map.set(tabId, tabId);
+      map.set(tabId.replace(/_/g, '-'), tabId);
+      const fallbackSlug = slugify(tabId.replace(/_/g, ' '));
+      if (fallbackSlug) map.set(fallbackSlug, tabId);
+    });
+    return map;
+  }, [getAdminTabSlug]);
+
+  const parseAdminPath = useCallback((pathname: string) => {
+    const segments = pathname.split('/').filter(Boolean);
+    if (segments[0] !== 'admin') return null;
+    if (!segments[1]) return { tab: 'overview', userId: null };
+
+    const tabSegment = decodeURIComponent(segments[1]);
+    const normalizedTab = slugify(tabSegment);
+    const tabId = adminTabSlugMap.get(tabSegment) || adminTabSlugMap.get(normalizedTab);
+
+    if (!tabId) return { tab: 'overview', userId: null };
+
+    const userId = segments[2] ? decodeURIComponent(segments[2]) : null;
+    if (tabId === 'news_list' && userId) return { tab: 'edit_post', userId };
+    if (tabId === 'publishers' && userId) return { tab: 'edit_publisher', userId };
+    if (tabId === 'users' && userId) return { tab: 'edit_user', userId };
+    return { tab: tabId, userId: null };
+  }, [adminTabSlugMap]);
+
+  const buildAdminPath = useCallback((tab: string, userId?: string | null) => {
+    const safeTab = tab || 'overview';
+    const safeId = userId ? encodeURIComponent(userId) : '';
+
+    if (safeTab === 'edit_post') {
+      const listSlug = getAdminTabSlug('news_list');
+      return safeId ? `/admin/${listSlug}/${safeId}` : `/admin/${listSlug}`;
+    }
+    if (safeTab === 'edit_publisher') {
+      const baseSlug = getAdminTabSlug('publishers');
+      return safeId ? `/admin/${baseSlug}/${safeId}` : `/admin/${baseSlug}`;
+    }
+    if (safeTab === 'edit_user') {
+      const baseSlug = getAdminTabSlug('users');
+      return safeId ? `/admin/${baseSlug}/${safeId}` : `/admin/${baseSlug}`;
+    }
+
+    const slug = getAdminTabSlug(safeTab);
+    return `/admin/${slug}`;
+  }, [getAdminTabSlug]);
+
+  const updateAdminUrl = useCallback((tab: string, userId?: string | null) => {
+    const path = buildAdminPath(tab, userId);
+    if (window.location.pathname !== path) window.history.pushState(null, '', path);
+  }, [buildAdminPath]);
 
   // --- UI STATES ---
   const [view, setView] = useState<ViewType>(() => {
@@ -70,7 +173,7 @@ const App: React.FC = () => {
     return localStorage.getItem(`${CACHE_CONFIG.PREFIX}${CACHE_CONFIG.KEYS.LAST_CAT}`);
   });
 
-  const [adminTab, setAdminTab] = useState<string | null>(null);
+  const [adminTab, setAdminTab] = useState<string>('overview');
   const [adminUserId, setAdminUserId] = useState<string | null>(null);
   const [session, setSession] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -313,7 +416,14 @@ const App: React.FC = () => {
   useEffect(() => {
     const handlePopState = () => {
       const segments = window.location.pathname.split('/').filter(Boolean);
-      if (segments[0] === 'haber' && segments[1]) {
+      if (segments[0] === 'admin') {
+        const parsed = parseAdminPath(window.location.pathname);
+        setView('admin');
+        if (parsed) {
+          setAdminTab(parsed.tab);
+          setAdminUserId(parsed.userId);
+        }
+      } else if (segments[0] === 'haber' && segments[1]) {
         setSelectedNewsId(segments[1]);
         setView('detail');
       } else if (segments[0] === 'kategori' && segments[1]) {
@@ -321,8 +431,6 @@ const App: React.FC = () => {
         setSelectedCategory(cat);
         setView('feed');
         fetchNews(cat);
-      } else if (segments[0] === 'admin') {
-        setView('admin');
       } else if (segments[0] === 'giris') {
         setView('login');
       } else {
@@ -338,25 +446,92 @@ const App: React.FC = () => {
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [fetchNews]);
+  }, [fetchNews, parseAdminPath]);
 
   useEffect(() => { init(); }, [currentLang.code]);
+
+  useEffect(() => {
+    const parsed = parseAdminPath(window.location.pathname);
+    if (!parsed) return;
+    setView('admin');
+    setAdminTab(parsed.tab);
+    setAdminUserId(parsed.userId);
+  }, [parseAdminPath]);
+
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const updated = (event as CustomEvent<SiteSettings>).detail;
+      if (!updated || !updated.language_code) return;
+
+      try {
+        localStorage.setItem(
+          `${CACHE_CONFIG.PREFIX}${CACHE_CONFIG.KEYS.SETTINGS}_${updated.language_code}`,
+          JSON.stringify({ data: updated, ts: Date.now() })
+        );
+      } catch (e) { }
+
+      if (updated.language_code === currentLang.code) {
+        setSiteSettings(updated);
+      }
+    };
+
+    window.addEventListener('buzz:site_settings_updated', handler);
+    return () => window.removeEventListener('buzz:site_settings_updated', handler);
+  }, [currentLang.code]);
+
+  useEffect(() => {
+    const iconLink = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+    if (defaultFaviconHrefRef.current === null) {
+      defaultFaviconHrefRef.current = iconLink?.getAttribute('href') || '';
+    }
+
+    const nextHref = (siteSettings?.favicon_url || '').trim() || (defaultFaviconHrefRef.current || '');
+    if (!nextHref) return;
+
+    const ensureIconLink = (rel: string) => {
+      let el = document.querySelector<HTMLLinkElement>(`link[rel="${rel}"]`);
+      if (!el) {
+        el = document.createElement('link');
+        el.setAttribute('rel', rel);
+        document.head.appendChild(el);
+      }
+      el.setAttribute('href', nextHref);
+    };
+
+    ensureIconLink('icon');
+    ensureIconLink('shortcut icon');
+  }, [siteSettings?.favicon_url]);
 
   // --- SEO & TAB TITLE ENGINE ---
   useEffect(() => {
     if (!isAppReady) return;
 
-    let title = siteSettings?.home_title || siteSettings?.site_name || 'Pateez News';
+    if (defaultDocumentTitleRef.current === null) {
+      defaultDocumentTitleRef.current = document.title;
+    }
+
+    const siteName = (siteSettings?.site_name || '').trim();
+    const homeTitle = (siteSettings?.home_title || '').trim();
+
+    let title = homeTitle || siteName || (defaultDocumentTitleRef.current || document.title);
     let description = siteSettings?.meta_description || '';
     let keywords = siteSettings?.meta_keywords || '';
 
-    if (view === 'detail' && selectedNewsId) {
+    let ogImage = (siteSettings?.og_image_url || '').trim();
+
+    if (view === 'admin') {
+      const adminSection = getAdminTabLabel(adminTab || 'overview');
+      title = siteName ? `${adminSection} | ${siteName}` : adminSection;
+      const script = document.getElementById('news-structured-data');
+      if (script) script.remove();
+    } else if (view === 'detail' && selectedNewsId) {
       const news = newsItems.find(n => n.id === selectedNewsId);
       if (news) {
         // Priority: SEO Title > Title
-        title = news.seoTitle || `${news.title} | ${siteSettings?.site_name || 'Haber'}`;
+        title = news.seoTitle || (siteName ? `${news.title} | ${siteName}` : news.title);
         description = news.seoDescription || news.summary || description;
         keywords = news.keywords || keywords;
+        ogImage = (news.thumbnail || news.mediaUrl || ogImage || '').trim();
 
         // 🚀 GENERATIVE ENGINE OPTIMIZATION (GEO) - JSON-LD
         const jsonLd: any = {
@@ -376,7 +551,7 @@ const App: React.FC = () => {
               }],
               "publisher": {
                 "@type": "Organization",
-                "name": siteSettings?.site_name || "Pateez News",
+                "name": siteName || window.location.hostname,
                 "logo": {
                   "@type": "ImageObject",
                   "url": siteSettings?.logo_url || ""
@@ -416,7 +591,7 @@ const App: React.FC = () => {
     } else if (selectedCategory) {
       const navItem = navigationItems.find(i => i.value === selectedCategory || i.label === selectedCategory);
       if (navItem) {
-        title = `${t(navItem.label)} | ${siteSettings?.site_name || 'Pateez'}`;
+        title = siteName ? `${t(navItem.label)} | ${siteName}` : t(navItem.label);
       }
       // Remove detail specific schema if not on detail view
       const script = document.getElementById('news-structured-data');
@@ -430,15 +605,19 @@ const App: React.FC = () => {
     document.title = title;
 
     // Meta Update (Pure JS for 0-dependency SEO)
-    const updateMeta = (name: string, content: string, attr: 'name' | 'property' = 'name') => {
-      if (!content) return;
-      let el = document.querySelector(`meta[${attr}="${name}"]`);
+    const updateMeta = (name: string, content: string | null | undefined, attr: 'name' | 'property' = 'name') => {
+      const normalized = typeof content === 'string' ? content.trim() : '';
+      let el = document.querySelector<HTMLMetaElement>(`meta[${attr}="${name}"]`);
+      if (!normalized) {
+        if (el) el.remove();
+        return;
+      }
       if (!el) {
         el = document.createElement('meta');
         el.setAttribute(attr, name);
         document.head.appendChild(el);
       }
-      el.setAttribute('content', content);
+      el.setAttribute('content', normalized);
     };
 
     updateMeta('description', description);
@@ -447,6 +626,7 @@ const App: React.FC = () => {
     updateMeta('og:description', description, 'property');
     updateMeta('og:url', window.location.href, 'property');
     updateMeta('og:type', view === 'detail' ? 'article' : 'website', 'property');
+    updateMeta('og:image', ogImage, 'property');
     updateMeta('robots', siteSettings?.robots_txt || 'index, follow');
 
     // Canonical Link Update
@@ -459,7 +639,7 @@ const App: React.FC = () => {
       document.head.appendChild(canonical);
     }
     canonical.setAttribute('href', view === 'detail' ? currentUrl : (siteSettings?.canonical_url || currentUrl));
-  }, [view, selectedNewsId, selectedCategory, siteSettings, newsItems, navigationItems, isAppReady, t]);
+  }, [view, adminTab, selectedNewsId, selectedCategory, siteSettings, newsItems, navigationItems, isAppReady, t, getAdminTabLabel]);
 
   // --- NAVIGATION & ROUTING ---
   const updateUrl = (newView: ViewType, category?: string | null, newsId?: string | null) => {
@@ -477,11 +657,18 @@ const App: React.FC = () => {
       }
     }
     else if (newView === 'detail' && newsId) path = `/haber/${newsId}`;
-    else if (newView === 'admin') path = '/admin';
+    else if (newView === 'admin') path = buildAdminPath(adminTab, adminUserId);
     else if (newView === 'login') path = '/giris';
 
     if (window.location.pathname !== path) window.history.pushState(null, '', path);
   };
+
+  const handleAdminTabChange = useCallback((tab: string, userId?: string) => {
+    const normalizedUserId = userId ? userId : null;
+    setAdminTab(tab);
+    setAdminUserId(normalizedUserId);
+    updateAdminUrl(tab, normalizedUserId);
+  }, [updateAdminUrl]);
 
   const handleCategorySelect = (category: string | null) => {
     let next: string | null = category;
@@ -543,7 +730,15 @@ const App: React.FC = () => {
             updateUrl('feed', lastCat);
             fetchNews(lastCat);
           }}
-          onProfileClick={() => { setView(session ? 'admin' : 'login'); updateUrl(session ? 'admin' : 'login'); }}
+          onProfileClick={() => {
+            if (session) {
+              setView('admin');
+              updateAdminUrl(adminTab, adminUserId);
+            } else {
+              setView('login');
+              updateUrl('login');
+            }
+          }}
           isLoggedIn={!!session}
           navItems={navigationItems}
           siteSettings={siteSettings}
@@ -568,7 +763,18 @@ const App: React.FC = () => {
                 navItems={navigationItems}
               />
             ) : view === 'admin' ? (
-              <React.Suspense fallback={<MainLoading />}><AdminDashboard initialTab={adminTab || 'overview'} initialUserId={adminUserId || undefined} onLogout={() => setView('feed')} /></React.Suspense>
+              <React.Suspense fallback={<MainLoading />}>
+                <AdminDashboard
+                  initialTab={adminTab || 'overview'}
+                  initialUserId={adminUserId || undefined}
+                  onTabChange={handleAdminTabChange}
+                  siteSettings={siteSettings}
+                  onLogout={() => {
+                    setView('feed');
+                    updateUrl('feed', selectedCategory);
+                  }}
+                />
+              </React.Suspense>
             ) : view === 'login' ? (
               <React.Suspense fallback={<MainLoading />}><Login onBack={() => setView('feed')} /></React.Suspense>
             ) : null}

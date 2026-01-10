@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../../lib/supabase';
 import { NEWS_FEED } from '../../constants';
+import type { SiteSettings } from '../../types';
 const LanguageSettings = React.lazy(() => import('./LanguageSettings'));
 const RoleSettings = React.lazy(() => import('./RoleSettings'));
 const UserManagement = React.lazy(() => import('./UserManagement'));
@@ -20,9 +21,10 @@ interface AdminDashboardProps {
   initialTab?: string;
   initialUserId?: string;
   onTabChange?: (tab: string, userId?: string) => void;
+  siteSettings?: SiteSettings | null;
 }
 
-const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 'overview', initialUserId = null, onTabChange }) => {
+const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 'overview', initialUserId = null, onTabChange, siteSettings }) => {
   const { t, currentLang, setLanguage, availableLanguages } = useLanguage();
   const [stats, setStats] = useState({
     posts: 0,
@@ -45,6 +47,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<{ tab: string, userId?: string } | null>(null);
   const [postsKey, setPostsKey] = useState(0);
+
+  const brandName = (siteSettings?.site_name || '').trim();
+  const [brandFirst, brandRest] = useMemo(() => {
+    if (!brandName) return ['Admin', 'Panel'];
+    const parts = brandName.split(' ').filter(Boolean);
+    if (parts.length <= 1) return [brandName, ''];
+    return [parts[0], parts.slice(1).join(' ')];
+  }, [brandName]);
 
   const menuItems = useMemo(() => [
     { id: 'overview', label: t('admin.sidebar.overview'), icon: 'dashboard', perm: 'view_overview', group: t('admin.management') },
@@ -276,11 +286,22 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
       <aside className={`bg-white border-r border-palette-tan/20 fixed h-full z-40 flex flex-col transition-all duration-500 ease-in-out ${isSidebarOpen ? 'w-[260px]' : 'w-[88px]'} shadow-[10px_0_60px_rgba(24,37,64,0.03)]`}>
         <div className="h-20 flex items-center px-6 border-b border-palette-tan/20">
           <div className="flex items-center gap-4 overflow-hidden whitespace-nowrap">
-            <div className="w-10 h-10 bg-palette-red rounded-[5px] flex-shrink-0 flex items-center justify-center text-white shadow-lg shadow-palette-red/20">
-              <span className="material-symbols-rounded text-[22px] font-bold">bolt</span>
+            <div
+              className={`w-10 h-10 rounded-[5px] flex-shrink-0 flex items-center justify-center ${siteSettings?.favicon_url ? '' : 'bg-palette-red text-white shadow-lg shadow-palette-red/20'}`}
+            >
+              {siteSettings?.favicon_url ? (
+                <img
+                  src={siteSettings.favicon_url}
+                  alt={brandName || 'Logo'}
+                  className="w-10 h-10 object-contain"
+                />
+              ) : (
+                <span className="material-symbols-rounded text-[22px] font-bold">bolt</span>
+              )}
             </div>
             <span className={`text-[22px] font-bold text-palette-maroon tracking-tight transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0'}`}>
-              Pateez<span className="text-palette-tan font-medium">Panel</span>
+              {brandFirst}
+              {brandRest ? <span className="text-palette-tan font-medium"> {brandRest}</span> : null}
             </span>
           </div>
         </div>
@@ -404,7 +425,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
                         <img src="https://picsum.photos/seed/admin/200" className="w-full h-full object-cover rounded-[5px] shadow-md" alt="Admin" />
                       </div>
                       <div>
-                        <h4 className="text-base font-bold text-palette-maroon">Pateez Admin</h4>
+                        <h4 className="text-base font-bold text-palette-maroon">{brandName ? `${brandName} Admin` : 'Admin'}</h4>
                         <p className="text-[13px] text-palette-tan font-bold">{userRole}</p>
                       </div>
                     </div>

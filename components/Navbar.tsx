@@ -37,24 +37,24 @@ const Navbar: React.FC<NavbarProps> = ({ onHomeClick, onProfileClick, isLoggedIn
       <div className="h-[64px] bg-white/80 backdrop-blur-2xl border-b border-palette-beige/20 shadow-sm relative z-[101]">
         <div className="max-w-[1280px] mx-auto h-full flex items-center px-4">
 
-          {/* LOGO */}
-          <div
-            onClick={onHomeClick}
-            className="flex items-center gap-3 cursor-pointer group select-none z-20 flex-shrink-0 lg:w-[260px] pl-4"
-          >
-            {siteSettings?.logo_url ? (
-              <div className="h-[42px] transition-transform duration-500 group-hover:scale-105">
-                <img
-                  src={siteSettings.logo_url}
-                  alt={siteSettings?.site_name || "Site Logo"}
-                  className="h-full w-auto object-contain"
-                />
-              </div>
-            ) : (
-              <div className="w-[42px] h-[42px] bg-palette-red rounded-[5px] flex items-center justify-center shadow-lg shadow-palette-red/10 group-hover:scale-105 transition-all duration-500">
-                <span className="material-symbols-rounded text-white" style={{ fontSize: '26px', fontVariationSettings: "'FILL' 1, 'wght' 600" }}>bolt</span>
-              </div>
-            )}
+	          {/* LOGO */}
+	          <div
+	            onClick={onHomeClick}
+	            className="flex items-center gap-3 cursor-pointer group select-none z-20 flex-shrink-0 lg:w-[260px] pl-5"
+	          >
+	            {siteSettings?.logo_url ? (
+	              <div className="h-[42px] transition-opacity duration-200 group-hover:opacity-95">
+	                <img
+	                  src={siteSettings.logo_url}
+	                  alt={siteSettings?.site_name || "Site Logo"}
+	                  className="h-full w-auto object-contain select-none"
+	                />
+	              </div>
+	            ) : (
+	              <div className="w-[42px] h-[42px] bg-palette-red rounded-[5px] flex items-center justify-center shadow-lg shadow-palette-red/10 group-hover:scale-105 transition-all duration-500">
+	                <span className="material-symbols-rounded text-white" style={{ fontSize: '26px', fontVariationSettings: "'FILL' 1, 'wght' 600" }}>bolt</span>
+	              </div>
+	            )}
             {!siteSettings?.logo_url && (
               <div className="flex flex-col justify-center">
                 <h1 className="text-xl font-bold tracking-tight text-gray-900 leading-none font-display">

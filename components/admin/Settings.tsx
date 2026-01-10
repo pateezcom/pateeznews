@@ -159,6 +159,17 @@ const Settings: React.FC<SettingsProps> = () => {
                 }, { onConflict: 'language_code' });
 
             if (error) throw error;
+            const { data: savedSettings, error: fetchError } = await supabase
+                .from('site_settings')
+                .select('*')
+                .eq('language_code', settingsLanguage)
+                .maybeSingle();
+            if (fetchError) throw fetchError;
+
+            if (savedSettings && typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('buzz:site_settings_updated', { detail: savedSettings }));
+            }
+
             showToast('Ayarlar başarıyla kaydedildi.', 'success');
         } catch (err: any) {
             console.error('Error saving settings:', err);

@@ -529,8 +529,11 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
     const summaryRef = useRef<HTMLTextAreaElement>(null);
     const categoryRef = useRef<HTMLSelectElement>(null);
     const initialCategoryRef = useRef<string>('');
+    const initialSelectedLanguageRef = useRef<string>(selectedLanguage);
+    const initialDetailTabRef = useRef<typeof activeDetailTab>(activeDetailTab);
     const initialFormDataRef = useRef<typeof formData | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
+    const initDirtyTimerRef = useRef<number | null>(null);
 
     const treeCategories = useMemo(() => {
         // Sadece Ana Kategori öğelerini döndürür (Ağaç görünümü kaldırıldı)
@@ -557,62 +560,98 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
             return desc.trim();
         };
 
-        const areItemsEqual = () => {
-            if (formData.items.length !== initial.items.length) return false;
+        const deepEqual = (a: any, b: any): boolean => {
+            if (a === b) return true;
+            if (Number.isNaN(a) && Number.isNaN(b)) return true;
+            if (typeof a !== typeof b) return false;
+            if (a == null || b == null) return a === b;
 
-            for (let i = 0; i < formData.items.length; i++) {
-                const current = formData.items[i];
-                const orig = initial.items[i];
-
-                // Temel alanları karşılaştır
-                if (
-                    (current.title || '').trim() !== (orig.title || '').trim() ||
-                    normalizeDescription(current.description) !== normalizeDescription(orig.description) ||
-                    (current.mediaUrl || '') !== (orig.mediaUrl || '') ||
-                    current.type !== orig.type
-                ) {
-                    return false;
+            if (Array.isArray(a)) {
+                if (!Array.isArray(b)) return false;
+                if (a.length !== b.length) return false;
+                for (let i = 0; i < a.length; i++) {
+                    if (!deepEqual(a[i], b[i])) return false;
                 }
-
-                // Poll options karşılaştırması
-                if (current.options && orig.options) {
-                    if (current.options.length !== orig.options.length) return false;
-                    for (let j = 0; j < current.options.length; j++) {
-                        if (
-                            (current.options[j].text || '') !== (orig.options[j].text || '') ||
-                            (current.options[j].image || '') !== (orig.options[j].image || '')
-                        ) {
-                            return false;
-                        }
-                    }
-                }
+                return true;
             }
-            return true;
+
+            if (typeof a === 'object') {
+                if (Array.isArray(b)) return false;
+                const keysA = Object.keys(a);
+                const keysB = Object.keys(b);
+                if (keysA.length !== keysB.length) return false;
+                for (const key of keysA) {
+                    if (!Object.prototype.hasOwnProperty.call(b, key)) return false;
+                    if (!deepEqual(a[key], b[key])) return false;
+                }
+                return true;
+            }
+
+            return false;
+        };
+
+        const normalizeForCompare = <T,>(value: T): T => {
+            try {
+                return JSON.parse(JSON.stringify(value));
+            } catch {
+                return value;
+            }
+        };
+
+        const normalizeItemForCompare = (item: any) => {
+            const clean = normalizeForCompare(item);
+            if (clean && typeof clean === 'object' && typeof (clean as any).description === 'string') {
+                (clean as any).description = normalizeDescription((clean as any).description);
+            }
+            return clean;
+        };
+
+        const areItemsEqual = () => {
+            const currentItems = (formData.items || []).map(normalizeItemForCompare);
+            const initialItems = (initial.items || []).map(normalizeItemForCompare);
+            return deepEqual(currentItems, initialItems);
+        };
+
+        const areFaqEqual = () => {
+            const currentFaq = normalizeForCompare(formData.faqData || []);
+            const initialFaq = normalizeForCompare(initial.faqData || []);
+            return deepEqual(currentFaq, initialFaq);
         };
 
         // Tüm alanları karşılaştır
         const hasChanges = (
+            selectedLanguage !== initialSelectedLanguageRef.current ||
+            activeDetailTab !== initialDetailTabRef.current ||
             formData.title.trim() !== initial.title.trim() ||
             formData.summary.trim() !== initial.summary.trim() ||
             formData.category !== initial.category ||
             formData.thumbnail !== initial.thumbnail ||
+            formData.thumbnailAlt !== initial.thumbnailAlt ||
             formData.seoTitle !== initial.seoTitle ||
             formData.seoDescription !== initial.seoDescription ||
             formData.keywords !== initial.keywords ||
             formData.slug !== initial.slug ||
             formData.factChecked !== initial.factChecked ||
+            formData.schemaType !== initial.schemaType ||
             formData.isPinned !== initial.isPinned ||
             formData.publishAt !== initial.publishAt ||
             formData.publisher_id !== initial.publisher_id ||
+            !areFaqEqual() ||
             !areItemsEqual()
         );
 
         return hasChanges;
-    }, [formData, isInitialized]);
+    }, [formData, isInitialized, selectedLanguage, activeDetailTab]);
 
     useEffect(() => {
         if (onDirtyChange) onDirtyChange(isDirty);
     }, [isDirty, onDirtyChange]);
+
+    useEffect(() => {
+        return () => {
+            if (onDirtyChange) onDirtyChange(false);
+        };
+    }, [onDirtyChange]);
 
     useEffect(() => {
         const fetchUserAndPublishers = async () => {
@@ -653,6 +692,8 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
 
                     if (error) throw error;
                     if (data) {
+                        const loadedLanguage = data.language_code || 'tr';
+                        const postType = data.type === 'contents' ? 'TABLE OF CONTENTS' : (data.type as any || 'article');
                         const loadedData = {
                             id: data.id,
                             title: data.title || '',
@@ -675,10 +716,10 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                         setFormData(loadedData);
                         // Düzenleme modu için başlangıç verilerini kaydet
                         initialFormDataRef.current = JSON.parse(JSON.stringify(loadedData));
-                        setIsInitialized(true);
+                        initialSelectedLanguageRef.current = loadedLanguage;
+                        initialDetailTabRef.current = postType;
 
-                        setSelectedLanguage(data.language_code || 'tr');
-                        const postType = data.type === 'contents' ? 'TABLE OF CONTENTS' : (data.type as any || 'article');
+                        setSelectedLanguage(loadedLanguage);
                         setActiveDetailTab(postType);
 
                         // Set parent and sub category if possible
@@ -727,7 +768,18 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                         createdAt: Date.now(),
                         orderNumber: 1
                     };
-                    setFormData(prev => ({ ...prev, items: [newItem] }));
+                    setFormData(prev => {
+                        const nextItems = [newItem];
+                        if (
+                            postId &&
+                            initialFormDataRef.current &&
+                            (initialFormDataRef.current.items?.length || 0) === (prev.items?.length || 0) &&
+                            (prev.items?.length || 0) === 0
+                        ) {
+                            initialFormDataRef.current.items = JSON.parse(JSON.stringify(nextItems));
+                        }
+                        return { ...prev, items: nextItems };
+                    });
                 }
             }
         } else if (activeDetailTab === 'poll') {
@@ -747,7 +799,18 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                     isImagePoll: true,
                     pollColumns: 2
                 };
-                setFormData(prev => ({ ...prev, items: [pollItem] }));
+                setFormData(prev => {
+                    const nextItems = [pollItem];
+                    if (
+                        postId &&
+                        initialFormDataRef.current &&
+                        (initialFormDataRef.current.items?.length || 0) === (prev.items?.length || 0) &&
+                        (prev.items?.length || 0) === 0
+                    ) {
+                        initialFormDataRef.current.items = JSON.parse(JSON.stringify(nextItems));
+                    }
+                    return { ...prev, items: nextItems };
+                });
             }
         } else if (activeDetailTab === 'video') {
             const hasVideo = formData.items.some(item => item.type === 'video');
@@ -762,7 +825,18 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                     createdAt: Date.now(),
                     orderNumber: 1
                 };
-                setFormData(prev => ({ ...prev, items: [videoItem] }));
+                setFormData(prev => {
+                    const nextItems = [videoItem];
+                    if (
+                        postId &&
+                        initialFormDataRef.current &&
+                        (initialFormDataRef.current.items?.length || 0) === (prev.items?.length || 0) &&
+                        (prev.items?.length || 0) === 0
+                    ) {
+                        initialFormDataRef.current.items = JSON.parse(JSON.stringify(nextItems));
+                    }
+                    return { ...prev, items: nextItems };
+                });
             }
         } else if (activeDetailTab === 'quiz') {
             const hasQuiz = formData.items.some(item => item.type === 'quiz' as any);
@@ -798,7 +872,18 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                         allowMultiple: false
                     }
                 };
-                setFormData(prev => ({ ...prev, items: [quizItem] }));
+                setFormData(prev => {
+                    const nextItems = [quizItem];
+                    if (
+                        postId &&
+                        initialFormDataRef.current &&
+                        (initialFormDataRef.current.items?.length || 0) === (prev.items?.length || 0) &&
+                        (prev.items?.length || 0) === 0
+                    ) {
+                        initialFormDataRef.current.items = JSON.parse(JSON.stringify(nextItems));
+                    }
+                    return { ...prev, items: nextItems };
+                });
             }
         } else if (activeDetailTab === 'paragraph') {
             const hasQuote = formData.items.some(item => item.type === 'quote');
@@ -811,20 +896,47 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                     orderNumber: 1,
                     showOnHomepage: true
                 };
-                setFormData(prev => ({ ...prev, items: [quoteItem] }));
+                setFormData(prev => {
+                    const nextItems = [quoteItem];
+                    if (
+                        postId &&
+                        initialFormDataRef.current &&
+                        (initialFormDataRef.current.items?.length || 0) === (prev.items?.length || 0) &&
+                        (prev.items?.length || 0) === 0
+                    ) {
+                        initialFormDataRef.current.items = JSON.parse(JSON.stringify(nextItems));
+                    }
+                    return { ...prev, items: nextItems };
+                });
             }
         }
     }, [activeDetailTab]);
 
-    // Ekleme modu için başlangıç durumunu kaydet (varsayılan itemlar oluşturulduktan sonra)
+    // İlk açılışta (yeni + düzenleme) otomatik doldurulan alanlar için snapshot'ı stabilize et
     useEffect(() => {
-        // Sadece yeni haber ekleme modunda ve henüz initialize edilmemişse
-        if (!postId && !isInitialized && formData.items.length > 0) {
-            // Başlangıç değerlerini hemen kaydet (closure problemi önlenir)
-            initialFormDataRef.current = JSON.parse(JSON.stringify(formData));
+        if (isInitialized) return;
+
+        const ready = postId ? !!formData.id : formData.items.length > 0;
+        if (!ready) return;
+
+        // Her otomatik güncellemede başlangıç snapshot'ını güncelle ve debounce ile kilitle
+        initialFormDataRef.current = JSON.parse(JSON.stringify(formData));
+        initialSelectedLanguageRef.current = selectedLanguage;
+        initialDetailTabRef.current = activeDetailTab;
+
+        if (initDirtyTimerRef.current) window.clearTimeout(initDirtyTimerRef.current);
+        initDirtyTimerRef.current = window.setTimeout(() => {
             setIsInitialized(true);
-        }
-    }, [postId, isInitialized, formData]);
+            initDirtyTimerRef.current = null;
+        }, 120);
+
+        return () => {
+            if (initDirtyTimerRef.current) {
+                window.clearTimeout(initDirtyTimerRef.current);
+                initDirtyTimerRef.current = null;
+            }
+        };
+    }, [postId, formData, selectedLanguage, activeDetailTab, isInitialized]);
 
     const handleEditorSave = React.useCallback(async (editedImageObject: any) => {
         if (editorSaveInFlightRef.current) return;
@@ -1148,10 +1260,16 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                     }
 
                     if (formData.category !== matchedItem.label) {
+                        const nextCategoryLabel = matchedItem.label;
                         if (!postId && !initialCategoryRef.current) {
-                            initialCategoryRef.current = matchedItem.label;
+                            initialCategoryRef.current = nextCategoryLabel;
                         }
-                        setFormData(prev => ({ ...prev, category: matchedItem!.label }));
+                        setFormData(prev => {
+                            if (initialFormDataRef.current && initialFormDataRef.current.category === prev.category) {
+                                initialFormDataRef.current.category = nextCategoryLabel;
+                            }
+                            return { ...prev, category: nextCategoryLabel };
+                        });
                     }
                 }
             }
@@ -1899,30 +2017,41 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                 ...(formData.id ? {} : { likes_count: 0, shares_count: 0, comments_count: 0 }) // This was missing from the provided snippet, adding it back for correctness
             };
 
-            if (formData.id) {
-                // Update
-                const { error } = await supabase
-                    .from('posts')
-                    .update(postData)
-                    .eq('id', formData.id);
-                if (error) throw error;
-                showToast(t('admin.post.save_success') || 'Haber başarıyla güncellendi', 'success');
-            } else {
-                // Insert
-                const { data, error } = await supabase
-                    .from('posts')
-                    .insert([postData])
+	            if (formData.id) {
+	                // Update
+	                const { error } = await supabase
+	                    .from('posts')
+	                    .update(postData)
+	                    .eq('id', formData.id);
+	                if (error) throw error;
+	                showToast(t('admin.post.save_success') || 'Haber başarıyla güncellendi', 'success');
+	                // Kaydedildiyse artık dirty değil
+	                initialFormDataRef.current = JSON.parse(JSON.stringify(formData));
+	                initialSelectedLanguageRef.current = selectedLanguage;
+	                initialDetailTabRef.current = activeDetailTab;
+	            } else {
+	                // Insert
+	                const { data, error } = await supabase
+	                    .from('posts')
+	                    .insert([postData])
                     .select()
                     .single();
                 if (error) throw error;
                 if (data) {
-                    showToast(t('admin.post.save_success') || 'Haber başarıyla kaydedildi', 'success');
-                    // Reset page if it was a new post
-                    if (!postId) {
-                        setFormData({
-                            id: '',
-                            title: '',
-                            summary: '',
+	                    showToast(t('admin.post.save_success') || 'Haber başarıyla kaydedildi', 'success');
+	                    // Reset page if it was a new post
+	                    if (!postId) {
+	                        // Yeni ekleme ekranını sıfırlarken dirty snapshot'ını da sıfırla
+	                        setIsInitialized(false);
+	                        initialFormDataRef.current = null;
+	                        if (initDirtyTimerRef.current) {
+	                            window.clearTimeout(initDirtyTimerRef.current);
+	                            initDirtyTimerRef.current = null;
+	                        }
+	                        setFormData({
+	                            id: '',
+	                            title: '',
+	                            summary: '',
                             category: '',
                             thumbnail: '',
                             thumbnailAlt: '',
