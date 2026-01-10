@@ -9,6 +9,7 @@ export interface PostItem {
     description: string;
     mediaUrl?: string;
     mediaUrls?: string[]; // Multiple images for slider
+    altTexts?: string[]; // Alt texts for multiple images
     source?: string;
     showOnHomepage?: boolean;
     createdAt?: number;
@@ -46,6 +47,8 @@ export interface PostItem {
     }[];
     isImagePoll?: boolean;
     pollColumns?: 2 | 3;
+    altText?: string;
+    faqData?: { q: string; a: string }[];
     quizData?: {
         quizType: 'personality' | 'trivia' | 'checklist';
         results: {

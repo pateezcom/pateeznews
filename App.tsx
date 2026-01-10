@@ -184,7 +184,14 @@ const App: React.FC = () => {
             userSaved: userSaves.includes(item.id),
             publisherId: item.publisher_id,
             ...extraData,
-            type: cardType as any
+            type: cardType as any,
+            // 🚀 Advanced SEO Mapping
+            seoTitle: item.seo_title,
+            seoDescription: item.seo_description,
+            keywords: item.keywords,
+            slug: item.slug,
+            factChecked: item.fact_checked,
+            schemaType: item.schema_type
           };
         });
 
@@ -244,7 +251,14 @@ const App: React.FC = () => {
           isPinned: item.is_pinned || false,
           publisherId: item.publisher_id,
           ...extraData,
-          type: cardType as any
+          type: cardType as any,
+          // 🚀 Advanced SEO Mapping
+          seoTitle: item.seo_title,
+          seoDescription: item.seo_description,
+          keywords: item.keywords,
+          slug: item.slug,
+          factChecked: item.fact_checked,
+          schemaType: item.schema_type
         };
 
         setNewsItems(prev => {
@@ -339,17 +353,78 @@ const App: React.FC = () => {
     if (view === 'detail' && selectedNewsId) {
       const news = newsItems.find(n => n.id === selectedNewsId);
       if (news) {
-        title = `${news.title} | ${siteSettings?.site_name || 'Haber'}`;
-        description = news.summary || description;
+        // Priority: SEO Title > Title
+        title = news.seoTitle || `${news.title} | ${siteSettings?.site_name || 'Haber'}`;
+        description = news.seoDescription || news.summary || description;
+        keywords = news.keywords || keywords;
+
+        // 🚀 GENERATIVE ENGINE OPTIMIZATION (GEO) - JSON-LD
+        const jsonLd: any = {
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": news.schemaType || "NewsArticle",
+              "headline": news.seoTitle || news.title,
+              "description": news.seoDescription || news.summary,
+              "image": [news.thumbnail || news.mediaUrl],
+              "datePublished": news.timestamp,
+              "dateModified": news.timestamp,
+              "author": [{
+                "@type": "Person",
+                "name": news.author,
+                "url": window.location.origin
+              }],
+              "publisher": {
+                "@type": "Organization",
+                "name": siteSettings?.site_name || "Pateez News",
+                "logo": {
+                  "@type": "ImageObject",
+                  "url": siteSettings?.logo_url || ""
+                }
+              },
+              "mainEntityOfPage": {
+                "@type": "WebPage",
+                "@id": window.location.href
+              }
+            }
+          ]
+        };
+
+        if (news.faqData && news.faqData.length > 0) {
+          jsonLd["@graph"].push({
+            "@type": "FAQPage",
+            "mainEntity": news.faqData.map(item => ({
+              "@type": "Question",
+              "name": item.q,
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": item.a
+              }
+            }))
+          });
+        }
+
+        let script = document.getElementById('news-structured-data');
+        if (!script) {
+          script = document.createElement('script');
+          script.id = 'news-structured-data';
+          script.setAttribute('type', 'application/ld+json');
+          document.head.appendChild(script);
+        }
+        script.textContent = JSON.stringify(jsonLd);
       }
     } else if (selectedCategory) {
       const navItem = navigationItems.find(i => i.value === selectedCategory || i.label === selectedCategory);
       if (navItem) {
         title = `${t(navItem.label)} | ${siteSettings?.site_name || 'Pateez'}`;
       }
+      // Remove detail specific schema if not on detail view
+      const script = document.getElementById('news-structured-data');
+      if (script) script.remove();
     } else {
-      // Home Page: SiteSettings içinde home_title varsa onu kullan, yoksa site_name kullan
       title = siteSettings?.home_title || siteSettings?.site_name || title;
+      const script = document.getElementById('news-structured-data');
+      if (script) script.remove();
     }
 
     document.title = title;
@@ -370,18 +445,20 @@ const App: React.FC = () => {
     updateMeta('keywords', keywords);
     updateMeta('og:title', title, 'property');
     updateMeta('og:description', description, 'property');
+    updateMeta('og:url', window.location.href, 'property');
+    updateMeta('og:type', view === 'detail' ? 'article' : 'website', 'property');
     updateMeta('robots', siteSettings?.robots_txt || 'index, follow');
 
     // Canonical Link Update
     let canonical = document.querySelector('link[rel="canonical"]');
-    if (siteSettings?.canonical_url) {
-      if (!canonical) {
-        canonical = document.createElement('link');
-        canonical.setAttribute('rel', 'canonical');
-        document.head.appendChild(canonical);
-      }
-      canonical.setAttribute('href', siteSettings.canonical_url);
+    const currentUrl = window.location.origin + window.location.pathname;
+
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.setAttribute('rel', 'canonical');
+      document.head.appendChild(canonical);
     }
+    canonical.setAttribute('href', view === 'detail' ? currentUrl : (siteSettings?.canonical_url || currentUrl));
   }, [view, selectedNewsId, selectedCategory, siteSettings, newsItems, navigationItems, isAppReady, t]);
 
   // --- NAVIGATION & ROUTING ---

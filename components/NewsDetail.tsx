@@ -90,12 +90,25 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack, navItems }) => {
         <div className="rounded-[5px] overflow-hidden border border-gray-100 shadow-xl mt-4 mb-8">
           <img
             src={data.thumbnail}
+            alt={data.seoTitle || data.title}
+            title={data.seoTitle || data.title}
             className="w-full h-auto object-cover max-h-[600px]"
           />
         </div>
       );
     }
   };
+
+  // 🚀 Dynamic Reading Time Engine
+  const calculateReadingTime = () => {
+    const wordsPerMinute = 200;
+    const itemContent = data.items?.map(i => (i.title || '') + ' ' + (i.description || '')).join(' ') || '';
+    const totalContent = (data.title || '') + ' ' + (data.summary || '') + ' ' + (data.content || '') + ' ' + itemContent;
+    const words = totalContent.trim().split(/\s+/).length;
+    return Math.max(1, Math.ceil(words / wordsPerMinute));
+  };
+
+  const readingTime = calculateReadingTime();
 
   return (
     <div className="animate-in bg-white rounded-[5px] border border-gray-200 shadow-sm relative min-h-screen mb-10 overflow-hidden max-w-full mt-2">
@@ -150,7 +163,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack, navItems }) => {
               </div>
               <div className="flex items-center gap-3 text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">
                 <span className="flex items-center gap-1"><Calendar size={12} /> {data.timestamp}</span>
-                <span className="flex items-center gap-1"><Clock size={12} /> 5 Dakika Okuma</span>
+                <span className="flex items-center gap-1"><Clock size={12} /> {readingTime} Dakika Okuma</span>
               </div>
             </div>
           </div>
@@ -228,7 +241,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack, navItems }) => {
                           />
                           <img
                             src={item.mediaUrl}
-                            alt={item.title || "Haber görseli"}
+                            alt={item.altText || item.title || "Haber görseli"}
                             className="relative z-10 w-full h-auto max-h-[600px] object-contain"
                           />
                         </div>
@@ -328,15 +341,46 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack, navItems }) => {
             )}
           </div>
 
-          {/* Tags */}
-          <div className="mt-16 flex flex-wrap gap-2 pb-10 border-b border-gray-100">
-            <span className="w-full text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Konu Başlıkları:</span>
-            {['Teknoloji', 'Gündem', 'PateezÖzel', 'Analiz', 'Trend'].map(tag => (
-              <button key={tag} className="px-4 py-2 bg-gray-100 hover:bg-blue-600 hover:text-white text-gray-600 rounded-[5px] text-xs font-bold transition-all">
-                #{tag}
-              </button>
-            ))}
-          </div>
+          {/* FAQ Section */}
+          {data.faqData && data.faqData.length > 0 && (
+            <div className="mt-16 pt-10 border-t border-gray-100 space-y-8">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-50 rounded-[5px] flex items-center justify-center text-blue-600">
+                  <CheckCircle2 size={24} />
+                </div>
+                <h3 className="text-2xl font-black text-gray-900 uppercase tracking-tighter">Sıkça Sorulan Sorular</h3>
+              </div>
+              <div className="grid gap-4">
+                {data.faqData.map((faq, idx) => (
+                  <div key={idx} className="bg-gray-50/50 rounded-[10px] border border-gray-100/50 p-6 transition-all hover:bg-white hover:shadow-xl hover:shadow-blue-500/5 group">
+                    <div className="flex gap-4">
+                      <div className="shrink-0 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-black shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform">
+                        ?
+                      </div>
+                      <div className="space-y-3">
+                        <h4 className="text-lg font-black text-gray-900 leading-tight">{faq.q}</h4>
+                        <p className="text-gray-600 leading-relaxed font-medium">{faq.a}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Keywords/Tags */}
+          {data.keywords && (
+            <div className="flex flex-wrap gap-2 mt-12 pb-6 border-b border-gray-50">
+              {data.keywords.split(',').map((tag, idx) => (
+                <button
+                  key={idx}
+                  className="px-4 py-2 bg-gray-100 text-gray-500 text-[10px] font-black uppercase tracking-widest rounded-[5px] hover:bg-gray-200 transition-all"
+                >
+                  #{tag.trim()}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Interactive Footer Actions */}
           <div className="mt-12 flex items-center justify-between">

@@ -206,6 +206,19 @@ const PostSliderImageItem: React.FC<PostSliderImageItemProps> = ({
                                             <p className="text-[9px] font-bold text-palette-tan/60 truncate px-1 text-center bg-palette-beige/10 py-0.5 rounded-[2px]" title={fileName}>
                                                 {fileName}
                                             </p>
+                                            <input
+                                                type="text"
+                                                value={(item.altTexts || [])[i] || ''}
+                                                onChange={(e) => {
+                                                    const newAltTexts = [...(item.altTexts || [])];
+                                                    // Fill with empty strings if array is too short
+                                                    while (newAltTexts.length <= i) newAltTexts.push('');
+                                                    newAltTexts[i] = e.target.value;
+                                                    onUpdate(item.id, 'altTexts', newAltTexts);
+                                                }}
+                                                className="text-[10px] bg-white border border-palette-tan/20 rounded-[2px] px-1 py-0.5 outline-none focus:border-palette-red transition-all"
+                                                placeholder="Alt Text"
+                                            />
                                         </div>
                                     );
                                 })}

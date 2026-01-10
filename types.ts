@@ -35,6 +35,7 @@ export interface NewsItem {
   mediaUrl: string;
   mediaList?: string[];
   thumbnail: string;
+  thumbnailAlt?: string;
   likes: number;
   dislikes?: number;
   comments: number;
@@ -84,6 +85,14 @@ export interface NewsItem {
   userDisliked?: boolean;
   publisherId?: string;
   isFollowingPublisher?: boolean;
+  // SEO & AI Properties
+  seoTitle?: string;
+  seoDescription?: string;
+  keywords?: string;
+  slug?: string;
+  factChecked?: boolean;
+  schemaType?: string;
+  faqData?: { q: string; a: string }[];
 }
 
 export interface StoryItem {

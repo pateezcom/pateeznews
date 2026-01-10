@@ -482,6 +482,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
         summary: '',
         category: '',
         thumbnail: '',
+        thumbnailAlt: '',
         seoTitle: '',
         seoDescription: '',
         keywords: '',
@@ -491,8 +492,11 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
         publishAt: '',
         publisher_id: '',
         isPinned: false,
+        faqData: [] as { q: string, a: string }[],
         items: [] as PostItem[]
     });
+
+    const [validationErrors, setValidationErrors] = useState<{ title?: string; summary?: string }>({});
 
     const [showBlockNumbers, setShowBlockNumbers] = useState(true);
     const [activeSort, setActiveSort] = useState<'asc' | 'desc' | null>('asc');
@@ -655,6 +659,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                             summary: data.summary || '',
                             category: data.category || '',
                             thumbnail: data.thumbnail_url || '',
+                            thumbnailAlt: data.thumbnail_alt || '',
                             seoTitle: data.seo_title || '',
                             seoDescription: data.seo_description || '',
                             keywords: data.keywords || '',
@@ -664,7 +669,8 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                             publishAt: data.published_at || '',
                             publisher_id: data.publisher_id || '',
                             isPinned: data.is_pinned || false,
-                            items: data.items || []
+                            faqData: data.faq_data || (data.items || []).find((i: any) => i.type === 'faq')?.faqData || [] as { q: string, a: string }[],
+                            items: (data.items || []).filter((i: any) => i.type !== 'faq') as PostItem[]
                         };
                         setFormData(loadedData);
                         // Düzenleme modu için başlangıç verilerini kaydet
@@ -1758,9 +1764,18 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
 
     const handleTitleChange = (val: string) => {
         const slug = val.toLowerCase()
-            .replace(/ /g, '-')
-            .replace(/[^\w-]+/g, '')
+            .replace(/ğ/g, 'g')
+            .replace(/ü/g, 'u')
+            .replace(/ş/g, 's')
+            .replace(/ı/g, 'i')
+            .replace(/ö/g, 'o')
+            .replace(/ç/g, 'c')
+            .replace(/[^a-z0-9\s-]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .trim()
             .slice(0, 50);
+        setValidationErrors(prev => ({ ...prev, title: undefined }));
         setFormData({
             ...formData,
             title: val,
@@ -1771,6 +1786,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
     };
 
     const handleSummaryChange = (val: string) => {
+        setValidationErrors(prev => ({ ...prev, summary: undefined }));
         setFormData({
             ...formData,
             summary: val,
@@ -1804,16 +1820,26 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
     };
 
     const handleSave = async (status: 'published' | 'draft') => {
-        if (!formData.title) {
-            showToast(t('admin.post.title_required') || 'Başlık zorunludur', 'error');
-            titleRef.current?.focus();
+        const errors: { title?: string; summary?: string } = {};
+        if (!formData.title.trim()) {
+            errors.title = t('admin.post.title_required') || 'Bu alan zorunludur';
+        }
+        if (!formData.summary.trim()) {
+            errors.summary = t('admin.post.summary_required') || 'Bu alan zorunludur';
+        }
+
+        if (Object.keys(errors).length > 0) {
+            setValidationErrors(errors);
+            if (errors.title) {
+                titleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                titleRef.current?.focus();
+            } else if (errors.summary) {
+                summaryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                summaryRef.current?.focus();
+            }
             return;
         }
-        if (!formData.summary) {
-            showToast(t('admin.post.summary_required') || 'Özet (Spot) zorunludur', 'error');
-            summaryRef.current?.focus();
-            return;
-        }
+
         if (!formData.category) {
             showToast(t('admin.post.category_required') || 'Kategori seçimi zorunludur', 'error');
             categoryRef.current?.focus();
@@ -1828,30 +1854,49 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
             }
 
             const slug = formData.slug || formData.title.toLowerCase()
-                .replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's').replace(/ı/g, 'i').replace(/ö/g, 'o').replace(/ç/g, 'c')
+                .replace(/ğ/g, 'g')
+                .replace(/ü/g, 'u')
+                .replace(/ş/g, 's')
+                .replace(/ı/g, 'i')
+                .replace(/ö/g, 'o')
+                .replace(/ç/g, 'c')
                 .replace(/[^a-z0-9\s-]/g, '')
                 .replace(/\s+/g, '-')
+                .replace(/-+/g, '-')
                 .trim();
 
-            const postData = {
+            const finalItems = [...formData.items];
+            if (formData.faqData && formData.faqData.length > 0) {
+                finalItems.push({
+                    id: 'faq-schema-block',
+                    type: 'faq',
+                    title: 'FAQ',
+                    description: '',
+                    faqData: formData.faqData
+                } as any);
+            }
+
+            const postData: any = {
                 title: formData.title,
                 summary: formData.summary,
                 category: formData.category,
-                type: activeDetailTab,
                 thumbnail_url: formData.thumbnail,
-                items: formData.items,
-                slug: slug,
+                thumbnail_alt: formData.thumbnailAlt,
                 seo_title: formData.seoTitle,
                 seo_description: formData.seoDescription,
                 keywords: formData.keywords,
-                status: status,
-                publisher_id: formData.publisher_id || user.id,
-                language_code: selectedLanguage,
-                is_pinned: formData.isPinned,
+                slug: slug,
+                fact_checked: formData.factChecked,
+                schema_type: formData.schemaType,
+                items: finalItems,
                 published_at: status === 'published' ? (formData.publishAt || new Date().toISOString()) : null,
-                updated_at: new Date().toISOString(),
-                // Default counts for new posts
-                ...(formData.id ? {} : { likes_count: 0, shares_count: 0, comments_count: 0 })
+                status: status,
+                language_code: selectedLanguage,
+                publisher_id: formData.publisher_id || user?.id,
+                is_pinned: formData.isPinned,
+                type: activeDetailTab, // This was missing from the provided snippet, adding it back for correctness
+                updated_at: new Date().toISOString(), // This was missing from the provided snippet, adding it back for correctness
+                ...(formData.id ? {} : { likes_count: 0, shares_count: 0, comments_count: 0 }) // This was missing from the provided snippet, adding it back for correctness
             };
 
             if (formData.id) {
@@ -1880,6 +1925,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                             summary: '',
                             category: '',
                             thumbnail: '',
+                            thumbnailAlt: '',
                             seoTitle: '',
                             seoDescription: '',
                             keywords: '',
@@ -1889,6 +1935,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                             publishAt: '',
                             publisher_id: '',
                             isPinned: false,
+                            faqData: [] as { q: string, a: string }[],
                             items: [
                                 activeDetailTab === 'paragraph' ? {
                                     id: Math.random().toString(36).substr(2, 9),
@@ -2027,8 +2074,13 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                                         value={formData.title}
                                         onChange={(e) => handleTitleChange(e.target.value)}
                                         placeholder={t('nav_settings.form.label') + "..."}
-                                        className="w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] p-3.5 text-[18px] font-bold text-palette-maroon focus:border-palette-red outline-none transition-all"
+                                        className={`w-full bg-palette-beige/5 border ${validationErrors.title ? 'border-palette-red/50 bg-palette-red/5' : 'border-palette-tan/20'} rounded-[3px] p-3.5 text-[18px] font-bold text-palette-maroon focus:border-palette-red outline-none transition-all`}
                                     />
+                                    {validationErrors.title && (
+                                        <p className="text-[11px] font-black text-palette-red ml-1 animate-in slide-in-from-top-1 duration-200">
+                                            {validationErrors.title}
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div className="space-y-1.5">
@@ -2039,8 +2091,13 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                                         value={formData.summary}
                                         onChange={(e) => handleSummaryChange(e.target.value)}
                                         placeholder={t('admin.post.summary_placeholder')}
-                                        className="w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] p-3.5 text-base font-medium text-palette-maroon focus:border-palette-red outline-none transition-all resize-none"
+                                        className={`w-full bg-palette-beige/5 border ${validationErrors.summary ? 'border-palette-red/50 bg-palette-red/5' : 'border-palette-tan/20'} rounded-[3px] p-3.5 text-base font-medium text-palette-maroon focus:border-palette-red outline-none transition-all resize-none`}
                                     />
+                                    {validationErrors.summary && (
+                                        <p className="text-[11px] font-black text-palette-red ml-1 animate-in slide-in-from-top-1 duration-200">
+                                            {validationErrors.summary}
+                                        </p>
+                                    )}
                                 </div>
                             </div>
 
@@ -2128,9 +2185,67 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                                     </div>
                                 </div>
                             </div>
+                            <div className="space-y-3 pt-4 border-t border-palette-tan/10">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-[12px] font-bold text-palette-tan/60 flex items-center gap-2">
+                                        <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>quiz</span> {t('admin.post.faq_title')}
+                                    </label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, faqData: [...formData.faqData, { q: '', a: '' }] })}
+                                        className="text-[11px] font-black text-palette-maroon hover:bg-palette-maroon/5 px-2 py-1 rounded transition-colors flex items-center gap-1"
+                                    >
+                                        <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>add</span> {t('admin.post.faq_add_btn')}
+                                    </button>
+                                </div>
+                                <div className="space-y-4">
+                                    {formData.faqData.map((faq, idx) => (
+                                        <div key={idx} className="p-3 bg-palette-beige/5 border border-palette-tan/10 rounded-[3px] space-y-3 relative group/faq">
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData({ ...formData, faqData: formData.faqData.filter((_, i) => i !== idx) })}
+                                                className="absolute -top-2 -right-2 w-6 h-6 bg-white border border-palette-tan/20 text-palette-tan/40 hover:text-palette-red hover:border-palette-red rounded-full flex items-center justify-center shadow-sm opacity-0 group-hover/faq:opacity-100 transition-all z-10"
+                                            >
+                                                <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>close</span>
+                                            </button>
+                                            <div className="space-y-1">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="text-[10px] font-black text-palette-tan/40 uppercase">#{idx + 1} {t('admin.post.faq_question')}</span>
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    value={faq.q}
+                                                    onChange={(e) => {
+                                                        const newFaq = [...formData.faqData];
+                                                        newFaq[idx].q = e.target.value;
+                                                        setFormData({ ...formData, faqData: newFaq });
+                                                    }}
+                                                    placeholder={t('admin.post.faq_question') + "..."}
+                                                    className="w-full bg-white border border-palette-tan/20 rounded-[3px] px-3 py-1.5 text-sm font-bold text-palette-maroon outline-none"
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="text-[10px] font-black text-palette-tan/40 uppercase">{t('admin.post.faq_answer')}</span>
+                                                </div>
+                                                <textarea
+                                                    value={faq.a}
+                                                    onChange={(e) => {
+                                                        const newFaq = [...formData.faqData];
+                                                        newFaq[idx].a = e.target.value;
+                                                        setFormData({ ...formData, faqData: newFaq });
+                                                    }}
+                                                    rows={2}
+                                                    placeholder={t('admin.post.faq_answer') + "..."}
+                                                    className="w-full bg-white border border-palette-tan/20 rounded-[3px] px-3 py-1.5 text-sm font-medium text-palette-tan focus:border-palette-red outline-none transition-all resize-none"
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     </div>
-
                     {/* ITEM LIST CONTROLS */}
                     {activeDetailTab !== 'quiz' && (
                         <div className="flex justify-center items-center py-4">
@@ -2718,6 +2833,20 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                                 )}
                             </div>
                         </div>
+                        {formData.thumbnail && (
+                            <div className="space-y-1.5 animate-in slide-in-from-top-2 duration-300">
+                                <label className="text-[11px] font-black text-palette-tan/60 ml-1 flex items-center gap-1.5 uppercase">
+                                    <span className="material-symbols-rounded normal-case" style={{ fontSize: '12px' }}>language</span> {t('admin.post.image_alt')}
+                                </label>
+                                <input
+                                    type="text"
+                                    value={formData.thumbnailAlt}
+                                    onChange={(e) => setFormData({ ...formData, thumbnailAlt: e.target.value })}
+                                    className="w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] p-2 text-xs font-bold text-palette-maroon outline-none focus:border-palette-red transition-all"
+                                    placeholder={t('admin.post.image_alt')}
+                                />
+                            </div>
+                        )}
                     </div>
 
                     <div className="bg-white p-6 rounded-[3px] border border-palette-tan/20 shadow-sm space-y-5">
@@ -2870,7 +2999,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                         </div>
                     </div>
                 </div>
-            </div >
+            </div>
 
             {/* MEDIA MANAGER MODAL */}
             {
@@ -3373,12 +3502,12 @@ const MediaManagerModal: React.FC<{
                         </button>
                     </div>
                 </div>
-            </div>
-            {/* HIDDEN FONT LOADER - Ensures browser loads fonts before Filerobot needs them */}
-            <div className="fie-font-preload" style={{ visibility: 'hidden', position: 'absolute', top: -1000, height: 0, overflow: 'hidden' }}>
-                {FIE_TEXT_FONTS.map((font) => (
-                    <span key={font} style={{ fontFamily: font }}> {font} </span>
-                ))}
+                {/* HIDDEN FONT LOADER - Ensures browser loads fonts before Filerobot needs them */}
+                <div className="fie-font-preload" style={{ visibility: 'hidden', position: 'absolute', top: -1000, height: 0, overflow: 'hidden' }}>
+                    {FIE_TEXT_FONTS.map((font) => (
+                        <span key={font} style={{ fontFamily: font }}> {font} </span>
+                    ))}
+                </div>
             </div>
         </div>
     );

@@ -192,16 +192,16 @@ const Settings: React.FC<SettingsProps> = () => {
     };
 
     const inputClasses = "w-full h-11 px-4 bg-white border border-palette-tan/15 rounded-[5px] text-[14px] font-bold text-palette-maroon outline-none focus:border-palette-red focus:ring-4 focus:ring-palette-red/5 transition-all placeholder:text-palette-tan/20 disabled:opacity-50";
-    const labelClasses = "text-[12px] font-black text-palette-tan/60 uppercase tracking-widest mb-2 block";
+    const labelClasses = "text-[12px] font-black text-palette-tan/60 uppercase tracking-widest block";
     const selectClasses = "w-full h-11 px-4 bg-white border border-palette-tan/15 rounded-[5px] text-[14px] font-bold text-palette-maroon appearance-none outline-none focus:border-palette-red transition-all cursor-pointer disabled:opacity-50";
 
     return (
         <div className="animate-in fade-in duration-700 pb-20 space-y-8">
 
             {/* LANGUAGE SELECTOR */}
-            <div className="max-w-xs">
+            <div className="max-w-xs flex flex-col gap-2">
                 <label className={labelClasses}>Ayarlar Dili</label>
-                <div className="relative">
+                <div className="relative w-full">
                     <select
                         value={settingsLanguage}
                         onChange={(e) => setSettingsLanguage(e.target.value)}
@@ -250,12 +250,12 @@ const Settings: React.FC<SettingsProps> = () => {
                                 <p className="text-[13px] font-black text-palette-tan/40 uppercase tracking-widest">Veriler Yükleniyor...</p>
                             </div>
                         ) : (
-                            <div className="space-y-6 max-w-5xl">
+                            <div className="space-y-6">
 
                                 {activeTab === 'genel' && (
                                     <>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <div className="space-y-2">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                                            <div className="flex flex-col gap-2">
                                                 <label className={labelClasses}>Site Adı</label>
                                                 <input
                                                     type="text"
@@ -265,9 +265,9 @@ const Settings: React.FC<SettingsProps> = () => {
                                                 />
                                             </div>
 
-                                            <div className="space-y-2">
+                                            <div className="flex flex-col gap-2">
                                                 <label className={labelClasses}>Zaman Dilimi</label>
-                                                <div className="relative">
+                                                <div className="relative w-full">
                                                     <select
                                                         className={selectClasses}
                                                         value={formData.timezone}
@@ -282,7 +282,7 @@ const Settings: React.FC<SettingsProps> = () => {
                                                 </div>
                                             </div>
 
-                                            <div className="space-y-2 md:col-span-2">
+                                            <div className="flex flex-col gap-2 md:col-span-2">
                                                 <label className={labelClasses}>Altbilgi Hakkında Bölümü</label>
                                                 <textarea
                                                     rows={4}
@@ -293,7 +293,7 @@ const Settings: React.FC<SettingsProps> = () => {
                                                 />
                                             </div>
 
-                                            <div className="space-y-2">
+                                            <div className="flex flex-col gap-2">
                                                 <label className={labelClasses}>Gönderi İsteğe Bağlı URL Düğmesi Adı</label>
                                                 <input
                                                     type="text"
@@ -304,7 +304,7 @@ const Settings: React.FC<SettingsProps> = () => {
                                                 />
                                             </div>
 
-                                            <div className="space-y-2">
+                                            <div className="flex flex-col gap-2">
                                                 <label className={labelClasses}>Telif Hakkı</label>
                                                 <input
                                                     type="text"
@@ -330,8 +330,8 @@ const Settings: React.FC<SettingsProps> = () => {
                                 )}
 
                                 {activeTab === 'seo' && (
-                                    <div className="grid grid-cols-1 gap-6">
-                                        <div className="space-y-2">
+                                    <div className="grid grid-cols-1 gap-6 items-start">
+                                        <div className="flex flex-col gap-2">
                                             <label className={labelClasses}>Ana Sayfa Başlığı (SEO Title)</label>
                                             <input
                                                 type="text"
@@ -353,8 +353,8 @@ const Settings: React.FC<SettingsProps> = () => {
                                             />
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <div className="space-y-2">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                                            <div className="flex flex-col gap-2">
                                                 <label className={labelClasses}>Anahtar Kelimeler (Meta Keywords)</label>
                                                 <input
                                                     type="text"
@@ -364,7 +364,7 @@ const Settings: React.FC<SettingsProps> = () => {
                                                     placeholder="haber, sondakika, gündem"
                                                 />
                                             </div>
-                                            <div className="space-y-2">
+                                            <div className="flex flex-col gap-2">
                                                 <label className={labelClasses}>Canonical URL</label>
                                                 <input
                                                     type="text"
@@ -527,7 +527,7 @@ const Settings: React.FC<SettingsProps> = () => {
                         <button
                             onClick={handleSave}
                             disabled={loading || saving}
-                            className="flex items-center gap-3 px-10 h-12 bg-palette-red text-white rounded-[5px] text-[14px] font-black tracking-widest hover:bg-palette-maroon transition-all shadow-lg shadow-palette-red/10 active:scale-95 uppercase disabled:opacity-50"
+                            className="flex items-center gap-2 px-6 h-10 bg-palette-red text-white rounded-[5px] text-[13px] font-black tracking-widest hover:bg-palette-maroon transition-all shadow-lg shadow-palette-red/10 active:scale-95 uppercase disabled:opacity-50"
                         >
                             {saving ? (
                                 <span className="material-symbols-rounded animate-spin" style={{ fontSize: '20px' }}>progress_activity</span>

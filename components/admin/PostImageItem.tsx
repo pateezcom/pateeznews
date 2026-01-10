@@ -216,7 +216,19 @@ const PostImageItem: React.FC<PostImageItemProps> = ({
                         </div>
 
                         {showOptions && (
-                            <div className="animate-in slide-in-from-top-2 duration-300 w-full">
+                            <div className="animate-in slide-in-from-top-2 duration-300 w-full space-y-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-[13px] font-black text-palette-tan ml-1 flex items-center gap-1.5">
+                                        <span className="material-symbols-rounded normal-case" style={{ fontSize: '16px' }}>language</span> {t('admin.post.image_alt')}
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={item.altText || ''}
+                                        onChange={(e) => onUpdate(item.id, 'altText', e.target.value)}
+                                        className="w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] px-4 py-2 text-sm font-bold text-palette-maroon outline-none focus:border-palette-red transition-all"
+                                        placeholder={t('admin.post.image_alt')}
+                                    />
+                                </div>
                                 <div className="space-y-1.5">
                                     <label className="text-[13px] font-black text-palette-tan ml-1 flex items-center gap-1.5">
                                         <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>settings</span> {t('admin.post.image_source')}
