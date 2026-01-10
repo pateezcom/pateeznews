@@ -74,7 +74,7 @@ const Sidebar: React.FC<SidebarProps> = ({ items, activeCategory, onCategoryItem
   };
 
   return (
-    <div className="w-[300px] h-full flex flex-col border-r border-palette-beige/20 overflow-y-auto no-scrollbar py-8 gap-10">
+    <div className="w-[300px] h-full flex flex-col border-r border-palette-beige/20 overflow-y-auto overflow-x-hidden no-scrollbar py-8 gap-10">
 
       {/* 1. ANA KATEGORİ SECTION */}
       <div className="px-3">
@@ -88,19 +88,16 @@ const Sidebar: React.FC<SidebarProps> = ({ items, activeCategory, onCategoryItem
               <button
                 key={item.id}
                 onClick={() => onCategoryItemClick?.(item.value || item.label)}
-                className={`w-full flex items-center justify-between py-2.5 px-3 rounded-[5px] transition-all group ${isActive ? 'text-palette-red' : 'text-gray-600 hover:bg-palette-beige/10'}`}
+                className={`w-full relative flex items-center py-2.5 px-3 rounded-[5px] transition-all group ${isActive ? 'text-palette-red bg-palette-beige/5' : 'text-gray-600 hover:bg-palette-beige/10'}`}
               >
                 <div className="flex items-center gap-3">
-                  <div className={`transition-colors ${isActive ? 'text-palette-red' : ''}`}>
-                    {renderIcon(item.icon || 'grid_view', 20, iconColor, isActive)}
+                  <div className={`transition-all duration-500 ${isActive ? 'text-emerald-500 scale-110' : 'text-gray-400'}`}>
+                    {renderIcon(isActive ? 'where_to_vote' : (item.icon || 'grid_view'), 20, isActive ? undefined : iconColor, isActive)}
                   </div>
                   <span className={`text-[14px] font-bold tracking-tight ${isActive ? 'text-gray-900 font-black' : ''}`}>
                     {t(item.label)}
                   </span>
                 </div>
-                {isActive && (
-                  <span className="material-symbols-rounded text-palette-red animate-in zoom-in-50 duration-300" style={{ fontSize: '18px', fontWeight: '800' }}>location_on</span>
-                )}
               </button>
             );
           })}
@@ -123,10 +120,10 @@ const Sidebar: React.FC<SidebarProps> = ({ items, activeCategory, onCategoryItem
                     <button
                       key={child.id}
                       onClick={() => onCategoryItemClick?.(child.value || child.label)}
-                      className={`w-full flex items-center gap-3 py-2 px-3 rounded-[5px] transition-all group ${isActive ? 'text-palette-red' : 'text-gray-600 hover:bg-palette-beige/10'}`}
+                      className={`w-full flex items-center gap-3 py-2 px-3 rounded-[5px] transition-all group ${isActive ? 'text-palette-red bg-palette-beige/5' : 'text-gray-600 hover:bg-palette-beige/10'}`}
                     >
-                      <div className={`transition-colors ${isActive ? 'text-palette-red' : ''}`}>
-                        {renderIcon(child.icon || 'location_on', 18, iconColor, isActive)}
+                      <div className={`transition-all duration-500 ${isActive ? 'text-emerald-500 scale-110' : ''}`}>
+                        {renderIcon(isActive ? 'where_to_vote' : (child.icon || 'location_on'), 18, isActive ? undefined : iconColor, isActive)}
                       </div>
                       <span className={`text-[13px] font-bold tracking-tight ${isActive ? 'text-gray-900 font-black' : ''}`}>
                         {t(child.label)}

@@ -525,6 +525,8 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
     const summaryRef = useRef<HTMLTextAreaElement>(null);
     const categoryRef = useRef<HTMLSelectElement>(null);
     const initialCategoryRef = useRef<string>('');
+    const initialFormDataRef = useRef<typeof formData | null>(null);
+    const [isInitialized, setIsInitialized] = useState(false);
 
     const treeCategories = useMemo(() => {
         // Sadece Ana Kategori öğelerini döndürür (Ağaç görünümü kaldırıldı)
@@ -538,30 +540,71 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
     }, [categories]);
 
     const isDirty = useMemo(() => {
-        if (postId) return false;
+        // Henüz başlangıç verileri yüklenmediyse dirty sayma
+        if (!isInitialized || !initialFormDataRef.current) return false;
 
-        // Varsayılan olarak eklenen boş içeriği kontrol et
-        const hasActiveItems = formData.items.length > 1 || (formData.items.length === 1 && (
-            (formData.items[0].title && formData.items[0].title.trim() !== '') ||
-            (formData.items[0].description && formData.items[0].description !== '' && formData.items[0].description !== '<p><br></p>') ||
-            (formData.items[0].mediaUrl && formData.items[0].mediaUrl !== '')
-        ));
+        const initial = initialFormDataRef.current;
 
-        return (
-            formData.title.trim() !== '' ||
-            formData.summary.trim() !== '' ||
-            (formData.category !== '' && formData.category !== initialCategoryRef.current) ||
-            formData.thumbnail !== '' ||
-            formData.seoTitle !== '' ||
-            formData.seoDescription !== '' ||
-            formData.keywords !== '' ||
-            formData.slug !== '' ||
-            hasActiveItems ||
-            formData.factChecked !== false ||
-            formData.isPinned !== false ||
-            formData.publishAt !== ''
+        // Items karşılaştırması için yardımcı fonksiyon
+        const normalizeDescription = (desc: string | undefined) => {
+            if (!desc) return '';
+            // Boş quill içeriğini normalize et
+            if (desc === '<p><br></p>' || desc === '<p></p>') return '';
+            return desc.trim();
+        };
+
+        const areItemsEqual = () => {
+            if (formData.items.length !== initial.items.length) return false;
+
+            for (let i = 0; i < formData.items.length; i++) {
+                const current = formData.items[i];
+                const orig = initial.items[i];
+
+                // Temel alanları karşılaştır
+                if (
+                    (current.title || '').trim() !== (orig.title || '').trim() ||
+                    normalizeDescription(current.description) !== normalizeDescription(orig.description) ||
+                    (current.mediaUrl || '') !== (orig.mediaUrl || '') ||
+                    current.type !== orig.type
+                ) {
+                    return false;
+                }
+
+                // Poll options karşılaştırması
+                if (current.options && orig.options) {
+                    if (current.options.length !== orig.options.length) return false;
+                    for (let j = 0; j < current.options.length; j++) {
+                        if (
+                            (current.options[j].text || '') !== (orig.options[j].text || '') ||
+                            (current.options[j].image || '') !== (orig.options[j].image || '')
+                        ) {
+                            return false;
+                        }
+                    }
+                }
+            }
+            return true;
+        };
+
+        // Tüm alanları karşılaştır
+        const hasChanges = (
+            formData.title.trim() !== initial.title.trim() ||
+            formData.summary.trim() !== initial.summary.trim() ||
+            formData.category !== initial.category ||
+            formData.thumbnail !== initial.thumbnail ||
+            formData.seoTitle !== initial.seoTitle ||
+            formData.seoDescription !== initial.seoDescription ||
+            formData.keywords !== initial.keywords ||
+            formData.slug !== initial.slug ||
+            formData.factChecked !== initial.factChecked ||
+            formData.isPinned !== initial.isPinned ||
+            formData.publishAt !== initial.publishAt ||
+            formData.publisher_id !== initial.publisher_id ||
+            !areItemsEqual()
         );
-    }, [formData, postId]);
+
+        return hasChanges;
+    }, [formData, isInitialized]);
 
     useEffect(() => {
         if (onDirtyChange) onDirtyChange(isDirty);
@@ -606,7 +649,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
 
                     if (error) throw error;
                     if (data) {
-                        setFormData({
+                        const loadedData = {
                             id: data.id,
                             title: data.title || '',
                             summary: data.summary || '',
@@ -622,7 +665,12 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                             publisher_id: data.publisher_id || '',
                             isPinned: data.is_pinned || false,
                             items: data.items || []
-                        });
+                        };
+                        setFormData(loadedData);
+                        // Düzenleme modu için başlangıç verilerini kaydet
+                        initialFormDataRef.current = JSON.parse(JSON.stringify(loadedData));
+                        setIsInitialized(true);
+
                         setSelectedLanguage(data.language_code || 'tr');
                         const postType = data.type === 'contents' ? 'TABLE OF CONTENTS' : (data.type as any || 'article');
                         setActiveDetailTab(postType);
@@ -761,6 +809,16 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
             }
         }
     }, [activeDetailTab]);
+
+    // Ekleme modu için başlangıç durumunu kaydet (varsayılan itemlar oluşturulduktan sonra)
+    useEffect(() => {
+        // Sadece yeni haber ekleme modunda ve henüz initialize edilmemişse
+        if (!postId && !isInitialized && formData.items.length > 0) {
+            // Başlangıç değerlerini hemen kaydet (closure problemi önlenir)
+            initialFormDataRef.current = JSON.parse(JSON.stringify(formData));
+            setIsInitialized(true);
+        }
+    }, [postId, isInitialized, formData]);
 
     const handleEditorSave = React.useCallback(async (editedImageObject: any) => {
         if (editorSaveInFlightRef.current) return;
@@ -2812,169 +2870,175 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                         </div>
                     </div>
                 </div>
-            </div>
+            </div >
 
             {/* MEDIA MANAGER MODAL */}
-            {showFileManager && (
-                <MediaManagerModal
-                    onClose={() => setShowFileManager(false)}
-                    onSelect={(src) => {
-                        if (activeMediaTarget === 'thumbnail') {
-                            setFormData({ ...formData, thumbnail: src });
-                        } else if (activeMediaTarget) {
-                            // Find target item to check type
-                            const targetItem = formData.items.find(i => i.id === activeMediaTarget);
-                            if (targetItem?.type === 'slider') {
-                                const currentUrls = targetItem.mediaUrls || [];
-                                handleUpdateItem(activeMediaTarget, 'mediaUrls', [...currentUrls, src] as any);
-                            } else if (targetItem?.type === 'flipcard' && activeMediaSubTarget) {
-                                const currentFlipData = targetItem.flipData || {
-                                    frontImage: '',
-                                    backImage: '',
-                                    frontTitle: '',
-                                    backTitle: '',
-                                    backDescription: ''
-                                };
-                                handleUpdateItem(activeMediaTarget, 'flipData', {
-                                    ...currentFlipData,
-                                    [activeMediaSubTarget]: src
-                                } as any);
-                            } else if (targetItem?.type === 'beforeafter' && activeMediaSubTarget) {
-                                const currentData = targetItem.beforeAfterData || {
-                                    beforeImage: '',
-                                    afterImage: '',
-                                    beforeLabel: t('common.before'),
-                                    afterLabel: t('common.after')
-                                };
-                                handleUpdateItem(activeMediaTarget, 'beforeAfterData', {
-                                    ...currentData,
-                                    [activeMediaSubTarget]: src
-                                } as any);
-                            } else if (targetItem?.type === 'poll' || targetItem?.type === 'vs') {
-                                if (activeMediaSubTarget === 'options' && activeMediaOptionTarget) {
-                                    const currentOptions = targetItem.options || [];
-                                    handleUpdateItem(activeMediaTarget, 'options', currentOptions.map(o =>
-                                        o.id === activeMediaOptionTarget ? { ...o, image: src } : o
-                                    ) as any);
+            {
+                showFileManager && (
+                    <MediaManagerModal
+                        onClose={() => setShowFileManager(false)}
+                        onSelect={(src) => {
+                            if (activeMediaTarget === 'thumbnail') {
+                                setFormData({ ...formData, thumbnail: src });
+                            } else if (activeMediaTarget) {
+                                // Find target item to check type
+                                const targetItem = formData.items.find(i => i.id === activeMediaTarget);
+                                if (targetItem?.type === 'slider') {
+                                    const currentUrls = targetItem.mediaUrls || [];
+                                    handleUpdateItem(activeMediaTarget, 'mediaUrls', [...currentUrls, src] as any);
+                                } else if (targetItem?.type === 'flipcard' && activeMediaSubTarget) {
+                                    const currentFlipData = targetItem.flipData || {
+                                        frontImage: '',
+                                        backImage: '',
+                                        frontTitle: '',
+                                        backTitle: '',
+                                        backDescription: ''
+                                    };
+                                    handleUpdateItem(activeMediaTarget, 'flipData', {
+                                        ...currentFlipData,
+                                        [activeMediaSubTarget]: src
+                                    } as any);
+                                } else if (targetItem?.type === 'beforeafter' && activeMediaSubTarget) {
+                                    const currentData = targetItem.beforeAfterData || {
+                                        beforeImage: '',
+                                        afterImage: '',
+                                        beforeLabel: t('common.before'),
+                                        afterLabel: t('common.after')
+                                    };
+                                    handleUpdateItem(activeMediaTarget, 'beforeAfterData', {
+                                        ...currentData,
+                                        [activeMediaSubTarget]: src
+                                    } as any);
+                                } else if (targetItem?.type === 'poll' || targetItem?.type === 'vs') {
+                                    if (activeMediaSubTarget === 'options' && activeMediaOptionTarget) {
+                                        const currentOptions = targetItem.options || [];
+                                        handleUpdateItem(activeMediaTarget, 'options', currentOptions.map(o =>
+                                            o.id === activeMediaOptionTarget ? { ...o, image: src } : o
+                                        ) as any);
+                                    } else {
+                                        handleUpdateItem(activeMediaTarget, 'mediaUrl', src);
+                                    }
                                 } else {
                                     handleUpdateItem(activeMediaTarget, 'mediaUrl', src);
                                 }
-                            } else {
-                                handleUpdateItem(activeMediaTarget, 'mediaUrl', src);
                             }
-                        }
-                        setShowFileManager(false);
-                        setUrlError(null);
-                    }}
-                    localFiles={localFiles}
-                    setLocalFiles={setLocalFiles}
-                    type={activeMediaType}
-                />
-            )}
+                            setShowFileManager(false);
+                            setUrlError(null);
+                        }}
+                        localFiles={localFiles}
+                        setLocalFiles={setLocalFiles}
+                        type={activeMediaType}
+                    />
+                )
+            }
 
             {/* URL MODE MODAL */}
-            {isUrlMode && (
-                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsUrlMode(false)} />
-                    <div className="bg-white w-full max-w-sm rounded-[3px] overflow-hidden shadow-2xl relative p-8 animate-in zoom-in duration-300 border border-palette-tan/20">
-                        <div className="text-center space-y-5">
-                            <div className="flex flex-col items-center gap-2">
-                                <div className="p-3 bg-palette-beige/20 rounded-full">
-                                    <span className="material-symbols-rounded text-palette-maroon" style={{ fontSize: '24px' }}>public</span>
+            {
+                isUrlMode && (
+                    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsUrlMode(false)} />
+                        <div className="bg-white w-full max-w-sm rounded-[3px] overflow-hidden shadow-2xl relative p-8 animate-in zoom-in duration-300 border border-palette-tan/20">
+                            <div className="text-center space-y-5">
+                                <div className="flex flex-col items-center gap-2">
+                                    <div className="p-3 bg-palette-beige/20 rounded-full">
+                                        <span className="material-symbols-rounded text-palette-maroon" style={{ fontSize: '24px' }}>public</span>
+                                    </div>
+                                    <h3 className="text-lg font-black text-palette-maroon tracking-tight uppercase">
+                                        {activeMediaType === 'video' ? t('admin.post.url_title_video') : activeMediaType === 'audio' ? t('admin.post.url_title_audio') : t('admin.post.url_title_image')}
+                                    </h3>
+                                    <p className="text-[11px] font-bold text-palette-tan/50 leading-relaxed max-w-[250px] mx-auto">
+                                        {activeMediaType === 'video'
+                                            ? t('admin.post.url_desc_video')
+                                            : activeMediaType === 'audio'
+                                                ? t('admin.post.url_desc_audio')
+                                                : t('admin.post.url_desc_image')
+                                        }
+                                    </p>
                                 </div>
-                                <h3 className="text-lg font-black text-palette-maroon tracking-tight uppercase">
-                                    {activeMediaType === 'video' ? t('admin.post.url_title_video') : activeMediaType === 'audio' ? t('admin.post.url_title_audio') : t('admin.post.url_title_image')}
-                                </h3>
-                                <p className="text-[11px] font-bold text-palette-tan/50 leading-relaxed max-w-[250px] mx-auto">
-                                    {activeMediaType === 'video'
-                                        ? t('admin.post.url_desc_video')
-                                        : activeMediaType === 'audio'
-                                            ? t('admin.post.url_desc_audio')
-                                            : t('admin.post.url_desc_image')
-                                    }
-                                </p>
-                            </div>
 
-                            <div className="space-y-3">
-                                <input
-                                    autoFocus
-                                    type="url"
-                                    value={tempUrl}
-                                    onChange={(e) => setTempUrl(e.target.value)}
-                                    placeholder={activeMediaType === 'video' ? "https://youtube.com/watch?v=..." : activeMediaType === 'audio' ? "https://music.youtube.com/..." : "https://example.com/image.jpg"}
-                                    className="w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] px-3 py-2.5 text-sm font-bold text-palette-maroon outline-none focus:border-palette-maroon transition-all placeholder:text-palette-tan/20"
-                                    onKeyDown={(e) => e.key === 'Enter' && handleUrlSubmit()}
-                                />
-                                {urlError && <p className="text-xs font-bold text-red-500 animate-pulse">{urlError}</p>}
-                            </div>
+                                <div className="space-y-3">
+                                    <input
+                                        autoFocus
+                                        type="url"
+                                        value={tempUrl}
+                                        onChange={(e) => setTempUrl(e.target.value)}
+                                        placeholder={activeMediaType === 'video' ? "https://youtube.com/watch?v=..." : activeMediaType === 'audio' ? "https://music.youtube.com/..." : "https://example.com/image.jpg"}
+                                        className="w-full bg-palette-beige/5 border border-palette-tan/20 rounded-[3px] px-3 py-2.5 text-sm font-bold text-palette-maroon outline-none focus:border-palette-maroon transition-all placeholder:text-palette-tan/20"
+                                        onKeyDown={(e) => e.key === 'Enter' && handleUrlSubmit()}
+                                    />
+                                    {urlError && <p className="text-xs font-bold text-red-500 animate-pulse">{urlError}</p>}
+                                </div>
 
-                            <div className="flex gap-2 pt-2">
-                                <button
-                                    onClick={handleUrlSubmit}
-                                    disabled={validatingUrl}
-                                    className="flex-1 py-2.5 bg-palette-maroon text-white font-black text-[11px] tracking-widest rounded-[3px] hover:bg-palette-red transition-all shadow-md active:scale-95"
-                                >
-                                    {validatingUrl ? t('admin.post.processing') + '...' : (activeMediaType === 'video' ? t('admin.post.get_video') : activeMediaType === 'audio' ? t('admin.post.get_audio') : t('admin.post.get_image'))}
-                                </button>
-                                <button onClick={() => setIsUrlMode(false)} className="px-5 py-2.5 bg-palette-beige/20 text-palette-tan font-black text-[11px] tracking-widest rounded-[3px] hover:bg-palette-beige/40 transition-all">
-                                    {t('common.cancel')}
-                                </button>
+                                <div className="flex gap-2 pt-2">
+                                    <button
+                                        onClick={handleUrlSubmit}
+                                        disabled={validatingUrl}
+                                        className="flex-1 py-2.5 bg-palette-maroon text-white font-black text-[11px] tracking-widest rounded-[3px] hover:bg-palette-red transition-all shadow-md active:scale-95"
+                                    >
+                                        {validatingUrl ? t('admin.post.processing') + '...' : (activeMediaType === 'video' ? t('admin.post.get_video') : activeMediaType === 'audio' ? t('admin.post.get_audio') : t('admin.post.get_image'))}
+                                    </button>
+                                    <button onClick={() => setIsUrlMode(false)} className="px-5 py-2.5 bg-palette-beige/20 text-palette-tan font-black text-[11px] tracking-widest rounded-[3px] hover:bg-palette-beige/40 transition-all">
+                                        {t('common.cancel')}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
-            {showImageEditor && (
-                <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 animate-in fade-in duration-500">
-                    <div
-                        className="absolute inset-0 bg-palette-maroon/80 backdrop-blur-sm"
-                        onClick={() => {
-                            if (isEditorSaving) return;
-                            setShowImageEditor(false);
-                        }}
-                    />
+            {
+                showImageEditor && (
+                    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 animate-in fade-in duration-500">
+                        <div
+                            className="absolute inset-0 bg-palette-maroon/80 backdrop-blur-sm"
+                            onClick={() => {
+                                if (isEditorSaving) return;
+                                setShowImageEditor(false);
+                            }}
+                        />
 
-                    <div className="bg-white w-full max-w-7xl h-[85vh] rounded-[3px] overflow-hidden shadow-2xl relative flex flex-col border border-palette-tan/20 animate-in zoom-in-95 duration-300">
-                        {isEditorSaving && (
-                            <div className="absolute inset-0 z-[99999] flex items-center justify-center bg-white/60">
-                                <div className="flex items-center gap-2 px-4 py-2 rounded-[3px] bg-white shadow-md border border-palette-tan/20">
-                                    <span className="material-symbols-rounded animate-spin text-palette-maroon" style={{ fontSize: '18px' }}>progress_activity</span>
-                                    <span className="text-[11px] font-black tracking-widest text-palette-maroon uppercase">{t('common.processing')}</span>
+                        <div className="bg-white w-full max-w-7xl h-[85vh] rounded-[3px] overflow-hidden shadow-2xl relative flex flex-col border border-palette-tan/20 animate-in zoom-in-95 duration-300">
+                            {isEditorSaving && (
+                                <div className="absolute inset-0 z-[99999] flex items-center justify-center bg-white/60">
+                                    <div className="flex items-center gap-2 px-4 py-2 rounded-[3px] bg-white shadow-md border border-palette-tan/20">
+                                        <span className="material-symbols-rounded animate-spin text-palette-maroon" style={{ fontSize: '18px' }}>progress_activity</span>
+                                        <span className="text-[11px] font-black tracking-widest text-palette-maroon uppercase">{t('common.processing')}</span>
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-                        {/* 
+                            )}
+                            {/* 
                             StyleSheetManager reintroduced with aggressive filtering to fix "Unknown prop" errors.
                             The filter ensures only valid HTML attributes are passed to the DOM.
                         */}
-                        <StyleSheetManager shouldForwardProp={shouldForwardProp}>
-                            <FilerobotEditor
-                                {...editorConfig}
-                                source={activeMediaTarget === 'thumbnail' ? formData.thumbnail : (() => {
-                                    const item = formData.items.find(i => i.id === activeMediaTarget);
-                                    if (item?.type === 'flipcard' && activeMediaSubTarget) {
-                                        return (item.flipData as any)?.[activeMediaSubTarget] || '';
-                                    }
-                                    if (item?.type === 'beforeafter' && activeMediaSubTarget) {
-                                        return (item.beforeAfterData as any)?.[activeMediaSubTarget] || '';
-                                    }
-                                    if (item?.type === 'poll') {
-                                        if (activeMediaSubTarget === 'options' && activeMediaOptionTarget) {
-                                            return item.options?.find(o => o.id === activeMediaOptionTarget)?.image || '';
+                            <StyleSheetManager shouldForwardProp={shouldForwardProp}>
+                                <FilerobotEditor
+                                    {...editorConfig}
+                                    source={activeMediaTarget === 'thumbnail' ? formData.thumbnail : (() => {
+                                        const item = formData.items.find(i => i.id === activeMediaTarget);
+                                        if (item?.type === 'flipcard' && activeMediaSubTarget) {
+                                            return (item.flipData as any)?.[activeMediaSubTarget] || '';
                                         }
-                                        return item.mediaUrl || '';
-                                    }
-                                    return item?.mediaUrl || '';
-                                })()}
-                                onSave={handleEditorSave}
-                                onClose={handleEditorClose}
-                            />
-                        </StyleSheetManager>
+                                        if (item?.type === 'beforeafter' && activeMediaSubTarget) {
+                                            return (item.beforeAfterData as any)?.[activeMediaSubTarget] || '';
+                                        }
+                                        if (item?.type === 'poll') {
+                                            if (activeMediaSubTarget === 'options' && activeMediaOptionTarget) {
+                                                return item.options?.find(o => o.id === activeMediaOptionTarget)?.image || '';
+                                            }
+                                            return item.mediaUrl || '';
+                                        }
+                                        return item?.mediaUrl || '';
+                                    })()}
+                                    onSave={handleEditorSave}
+                                    onClose={handleEditorClose}
+                                />
+                            </StyleSheetManager>
+                        </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 };
 
