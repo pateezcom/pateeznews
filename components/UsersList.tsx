@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { CheckCircle2, ArrowLeft, Users, TrendingUp, Search, Plus, UserPlus } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
-interface Publisher {
+interface User {
   id: string;
   name: string;
   category: string;
@@ -15,18 +15,18 @@ interface Publisher {
   description: string;
 }
 
-interface PublishersListProps {
+interface UsersListProps {
   onBack: () => void;
-  onPublisherSelect?: (name: string) => void;
+  onUserSelect?: (name: string) => void;
 }
 
-const PublishersList: React.FC<PublishersListProps> = ({ onBack, onPublisherSelect }) => {
-  const [publishers, setPublishers] = useState<Publisher[]>([]);
+const UsersList: React.FC<UsersListProps> = ({ onBack, onUserSelect }) => {
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    const fetchPublishers = async () => {
+    const fetchUsers = async () => {
       try {
         const { data, error } = await supabase
           .from('profiles')
@@ -37,30 +37,30 @@ const PublishersList: React.FC<PublishersListProps> = ({ onBack, onPublisherSele
         if (error) throw error;
 
         if (data) {
-          const mapped: Publisher[] = data.map(p => ({
+          const mapped: User[] = data.map(p => ({
             id: p.id,
-            name: p.full_name || p.username || 'Anonim Yayıncı',
+            name: p.full_name || p.username || 'Anonim Kullanıcı',
             category: p.expertise || 'Gündem',
             avatar: p.avatar_url || `https://picsum.photos/seed/${p.id}/100`,
             cover: `https://picsum.photos/seed/${p.id}cover/800/200`,
-            followers: '1.2M', // This could be dynamic if we had a follows table
-            posts: '1.4K', // This could be dynamic with a count query
+            followers: '1.2M',
+            posts: '1.4K',
             verified: true,
-            description: p.about_me || 'Haber Yayıncısı'
+            description: p.about_me || 'Haber Yazarı'
           }));
-          setPublishers(mapped);
+          setUsers(mapped);
         }
       } catch (err) {
-        console.error('Error fetching publishers:', err);
+        console.error('Error fetching users:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPublishers();
+    fetchUsers();
   }, []);
 
-  const filteredPublishers = publishers.filter(p =>
+  const filteredUsers = users.filter(p =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -84,7 +84,7 @@ const PublishersList: React.FC<PublishersListProps> = ({ onBack, onPublisherSele
             <Search size={20} className="text-gray-400" />
             <input
               type="text"
-              placeholder="Doğrulanmış yayıncıları ara..."
+              placeholder="Kullanıcıları ara..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="bg-transparent border-none outline-none text-sm w-full text-gray-700 font-semibold placeholder:text-gray-400"
@@ -97,9 +97,9 @@ const PublishersList: React.FC<PublishersListProps> = ({ onBack, onPublisherSele
             <Plus size={12} strokeWidth={3} />
             Keşfet
           </div>
-          <h1 className="text-5xl font-[900] text-gray-900 tracking-tight mb-4">Tüm Yayıncılar</h1>
+          <h1 className="text-5xl font-[900] text-gray-900 tracking-tight mb-4">Tüm Kullanıcılar</h1>
           <p className="text-gray-500 text-xl font-medium leading-relaxed">
-            Haber ekosistemimizin kalbinde yer alan, her biri kendi alanında uzman ve doğrulanmış yayıncıları keşfedin.
+            Haber ekosistemimizin kalbinde yer alan, her biri kendi alanında uzman ve doğrulanmış profilleri keşfedin.
           </p>
         </div>
       </div>
@@ -112,10 +112,10 @@ const PublishersList: React.FC<PublishersListProps> = ({ onBack, onPublisherSele
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredPublishers.map((pub) => (
+            {filteredUsers.map((pub) => (
               <div
                 key={pub.id}
-                onClick={() => onPublisherSelect?.(pub.name)}
+                onClick={() => onUserSelect?.(pub.name)}
                 className="group bg-white rounded-[5px] border border-gray-200 shadow-sm hover:shadow-2xl hover:border-blue-200 transition-all duration-500 overflow-hidden flex flex-col cursor-pointer"
               >
                 {/* Card Cover */}
@@ -185,14 +185,14 @@ const PublishersList: React.FC<PublishersListProps> = ({ onBack, onPublisherSele
       <div className="p-12 bg-gray-50/50 border-t border-gray-100">
         <div className="max-w-2xl mx-auto text-center">
           <div className="w-16 h-16 bg-blue-600 rounded-[5px] flex items-center justify-center text-white shadow-xl shadow-blue-200 mx-auto mb-6 transform -rotate-6">
-            <TrendingUp size={32} />
+            <Users size={32} />
           </div>
-          <h4 className="text-2xl font-black text-gray-900 mb-4 tracking-tight">Yayıncı Olmak İster misiniz?</h4>
+          <h4 className="text-2xl font-black text-gray-900 mb-4 tracking-tight">Topluluğumuza Katılın</h4>
           <p className="text-gray-500 font-medium mb-8 leading-relaxed">
-            Haber ekosistemine katılarak milyonlarca okuyucuya ulaşın. Kendi markanızı yaratın ve doğrulanmış yayıncı rozetiyle güvenilirliğinizi artırın.
+            Haber ekosistemine katılarak milyonlarca okuyucuya ulaşın. Kendi markanızı yaratın ve doğrulanmış profil rozetiyle güvenilirliğinizi artırın.
           </p>
           <button className="px-8 py-4 bg-white border-2 border-gray-900 text-gray-900 rounded-[5px] font-black text-sm uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-all shadow-sm">
-            Hemen Başvur
+            Hemen Katıl
           </button>
         </div>
       </div>
@@ -200,4 +200,4 @@ const PublishersList: React.FC<PublishersListProps> = ({ onBack, onPublisherSele
   );
 };
 
-export default PublishersList;
+export default UsersList;

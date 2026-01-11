@@ -75,12 +75,14 @@ export default defineConfig(({ mode }) => {
             const audioBaseDir = path.join(uploadRootDir, 'audio');
             const fileBaseDir = path.join(uploadRootDir, 'file');
             const logoBaseDir = path.join(uploadRootDir, 'logo');
+            const profileBaseDir = path.join(uploadRootDir, 'profile');
 
             if (!fs.existsSync(imageBaseDir)) fs.mkdirSync(imageBaseDir, { recursive: true });
             if (!fs.existsSync(videoBaseDir)) fs.mkdirSync(videoBaseDir, { recursive: true });
             if (!fs.existsSync(audioBaseDir)) fs.mkdirSync(audioBaseDir, { recursive: true });
             if (!fs.existsSync(fileBaseDir)) fs.mkdirSync(fileBaseDir, { recursive: true });
             if (!fs.existsSync(logoBaseDir)) fs.mkdirSync(logoBaseDir, { recursive: true });
+            if (!fs.existsSync(profileBaseDir)) fs.mkdirSync(profileBaseDir, { recursive: true });
 
             const getMimeType = (filePath: string) => {
               const ext = path.extname(filePath).toLowerCase();
@@ -157,6 +159,19 @@ export default defineConfig(({ mode }) => {
                         type: 'file'
                       });
                     }
+                  } else if (type === 'profile') {
+                    if (file.endsWith('_xl.webp')) {
+                      const baseName = file.replace('_xl.webp', '');
+                      arrayOfFiles.push({
+                        id: `profile/${relativePath ? relativePath + '/' : ''}${baseName}`,
+                        value: baseName,
+                        size: stats.size,
+                        date: stats.mtimeMs / 1000,
+                        src: `/api/storage/file/profile/${relativePath ? relativePath + '/' : ''}${file}`,
+                        thumb: `/api/storage/file/profile/${relativePath ? relativePath + '/' : ''}${baseName}_sm.webp`,
+                        type: 'profile'
+                      });
+                    }
                   } else {
                     // Default to image
                     if (file.endsWith('_xl.webp')) {
@@ -182,7 +197,7 @@ export default defineConfig(({ mode }) => {
               try {
                 const url = new URL(req.url, `http://${req.headers.host}`);
                 const type = url.searchParams.get('type') || 'image';
-                const baseDir = type === 'video' ? videoBaseDir : (type === 'audio' ? audioBaseDir : (type === 'file' ? fileBaseDir : (type === 'logo' ? logoBaseDir : imageBaseDir)));
+                const baseDir = type === 'video' ? videoBaseDir : (type === 'audio' ? audioBaseDir : (type === 'file' ? fileBaseDir : (type === 'logo' ? logoBaseDir : (type === 'profile' ? profileBaseDir : imageBaseDir))));
                 const fileData = getAllFiles(baseDir, type, baseDir);
                 res.setHeader('Content-Type', 'application/json');
                 res.end(JSON.stringify(fileData));
@@ -209,6 +224,9 @@ export default defineConfig(({ mode }) => {
                 fullPath = path.join(imageBaseDir, relativePath.replace('image/', ''));
               } else if (relativePath.startsWith('logo/')) {
                 fullPath = path.join(logoBaseDir, relativePath.replace('logo/', ''));
+              } else if (relativePath.startsWith('profile/')) {
+                // Profile images are stored directly under profileBaseDir
+                fullPath = path.join(profileBaseDir, relativePath.replace('profile/', ''));
               } else {
                 fullPath = path.join(imageBaseDir, relativePath);
               }
@@ -241,13 +259,13 @@ export default defineConfig(({ mode }) => {
                     (file.originalFilename.match(/\.(mp4|webm|mov|avi)$/i) ? 'video' :
                       (file.originalFilename.match(/\.(mp3|wav|ogg|m4a|aac)$/i) ? 'audio' :
                         (file.originalFilename.match(/\.(pdf|doc|docx|xls|xlsx|ppt|pptx)$/i) ? 'file' : 'image')));
-                  const baseDir = type === 'video' ? videoBaseDir : (type === 'audio' ? audioBaseDir : (type === 'file' ? fileBaseDir : (type === 'logo' ? logoBaseDir : imageBaseDir)));
+                  const baseDir = type === 'video' ? videoBaseDir : (type === 'audio' ? audioBaseDir : (type === 'file' ? fileBaseDir : (type === 'logo' ? logoBaseDir : (type === 'profile' ? profileBaseDir : imageBaseDir))));
 
-                  let targetDir = path.join(baseDir, today);
+                  let targetDir = type === 'profile' ? baseDir : path.join(baseDir, today);
                   let cleanFileName = path.parse(file.originalFilename).name.replace(/\s+/g, '-').toLowerCase();
 
                   if (fields.customPath && fields.customPath.length > 0) {
-                    const fullPathId = fields.customPath[0].replace(/^(image|video|audio|file)\//, '');
+                    const fullPathId = fields.customPath[0].replace(/^(image|video|audio|file|profile)\//, '');
                     const parts = fullPathId.split('/');
                     if (parts.length >= 2) {
                       targetDir = path.join(baseDir, parts[0]);
@@ -256,9 +274,8 @@ export default defineConfig(({ mode }) => {
                   }
 
                   const customFilename = fields.customFilename?.[0];
-                  if (customFilename && type === 'logo') {
-                    // For logos, if customFilename is provided, we use it exactly
-                    cleanFileName = path.parse(customFilename).name;
+                  if (customFilename && (type === 'logo' || type === 'profile')) {
+                    cleanFileName = path.parse(customFilename).name.replace(/\s+/g, '-').toLowerCase();
                   }
 
                   if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true });
@@ -330,6 +347,25 @@ export default defineConfig(({ mode }) => {
                       src: `/api/storage/file/logo/${lang}/${finalFileName}?t=${cacheBuster}`,
                       type: 'logo'
                     }));
+                  } else if (type === 'profile') {
+                    const finalFileName = `${cleanFileName}.webp`;
+                    const finalPath = path.join(targetDir, finalFileName);
+
+                    if (fs.existsSync(finalPath)) {
+                      fs.unlinkSync(finalPath);
+                    }
+
+                    const originalImage = sharp(file.path);
+                    await originalImage.webp({ quality: 100, lossless: true }).toFile(finalPath);
+                    fs.unlinkSync(file.path);
+
+                    const cacheBuster = Date.now();
+                    res.end(JSON.stringify({
+                      id: `profile/${finalFileName}`,
+                      value: finalFileName,
+                      src: `/api/storage/file/profile/${finalFileName}?t=${cacheBuster}`,
+                      type: 'profile'
+                    }));
                   } else {
                     const originalImage = sharp(file.path);
                     await originalImage.clone().webp({ quality: 100, lossless: true }).toFile(path.join(targetDir, `${cleanFileName}_xl.webp`));
@@ -337,12 +373,13 @@ export default defineConfig(({ mode }) => {
                     fs.unlinkSync(file.path);
 
                     const finalDateDir = targetDir.split(path.sep).pop();
+                    const responseType = type === 'profile' ? 'profile' : 'image';
                     res.end(JSON.stringify({
-                      id: `image/${finalDateDir}/${cleanFileName}`,
+                      id: `${responseType}/${finalDateDir}/${cleanFileName}`,
                       value: cleanFileName,
-                      src: `/api/storage/file/image/${finalDateDir}/${cleanFileName}_xl.webp`,
-                      thumb: `/api/storage/file/image/${finalDateDir}/${cleanFileName}_sm.webp`,
-                      type: 'image'
+                      src: `/api/storage/file/${responseType}/${finalDateDir}/${cleanFileName}_xl.webp`,
+                      thumb: `/api/storage/file/${responseType}/${finalDateDir}/${cleanFileName}_sm.webp`,
+                      type: responseType
                     }));
                   }
                 } catch (processErr) {

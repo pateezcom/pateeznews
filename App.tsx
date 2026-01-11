@@ -6,8 +6,9 @@ import Sidebar from './components/Sidebar';
 import Feed from './components/Feed';
 import RightSidebar from './components/RightSidebar';
 import NewsDetail from './components/NewsDetail';
-import PublishersList from './components/PublishersList';
-import PublisherProfile from './components/PublisherProfile';
+import UsersList from './components/UsersList';
+import UserProfile from './components/UserProfile';
+import UserEditProfile from './components/UserEditProfile';
 import CategoriesList from './components/CategoriesList';
 import DistrictsList from './components/DistrictsList';
 import TrendsList from './components/TrendsList';
@@ -21,7 +22,7 @@ const AdminDashboard = React.lazy(() => import('./components/admin/AdminDashboar
 const WebStoryEditor = React.lazy(() => import('./components/admin/WebStoryEditor'));
 const Login = React.lazy(() => import('./components/auth/Login'));
 
-type ViewType = 'feed' | 'detail' | 'publishers' | 'publisher_detail' | 'categories' | 'districts' | 'trends' | 'category_detail' | 'edit_publisher_profile' | 'login' | 'admin' | 'stories' | 'web_story_editor';
+type ViewType = 'feed' | 'detail' | 'users' | 'user_detail' | 'categories' | 'districts' | 'trends' | 'category_detail' | 'edit_user_profile' | 'login' | 'admin' | 'stories' | 'web_story_editor';
 
 // 🚀 2025-2026 ULTRA PERSISTENCE ENGINE
 const CACHE_CONFIG = {
@@ -180,6 +181,8 @@ const App: React.FC = () => {
 
   const [adminTab, setAdminTab] = useState<string>('overview');
   const [adminUserId, setAdminUserId] = useState<string | null>(null);
+  const [profileUserName, setProfileUserName] = useState<string | null>(null);
+  const [profileUserId, setProfileUserId] = useState<string | null>(null);
   const [session, setSession] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
 
@@ -455,6 +458,25 @@ const App: React.FC = () => {
         setView('districts');
       } else if (segments[0] === 'trendler') {
         setView('trends');
+      } else if (segments[0] === 'user' && segments[1]) {
+        const value = decodeURIComponent(segments[1]);
+        if (isUUID(value)) {
+          setProfileUserId(value);
+          setProfileUserName(null);
+        } else {
+          setProfileUserName(value);
+          setProfileUserId(null);
+        }
+        setView('user_detail');
+      } else if (segments[0] === 'profil' || segments[0] === 'profile') {
+        const name = session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0];
+        if (name) setProfileUserName(name);
+        if (session?.user?.id) setProfileUserId(session.user.id);
+        setView('user_detail');
+      } else if (segments[0] === 'profil-duzenle' || segments[0] === 'profile-edit') {
+        setView('edit_user_profile');
+      } else if (segments[0] === 'kullanicilar') {
+        setView('users');
       } else if (segments[0] === 'giris') {
         setView('login');
       } else {
@@ -685,6 +707,10 @@ const App: React.FC = () => {
     else if (newView === 'categories') path = '/kategoriler';
     else if (newView === 'districts') path = '/ilceler';
     else if (newView === 'trends') path = '/trendler';
+    else if (newView === 'user_detail' && category) path = `/user/${encodeURIComponent(category)}`;
+    else if (newView === 'user_detail' && !category) path = `/profile`;
+    else if (newView === 'edit_user_profile') path = '/profile-edit';
+    else if (newView === 'users') path = '/kullanicilar';
     else if (newView === 'login') path = '/giris';
 
     if (window.location.pathname !== path) window.history.pushState(null, '', path);
@@ -766,16 +792,17 @@ const App: React.FC = () => {
             updateAdminUrl(adminTab, adminUserId);
           }}
           onProfileViewClick={() => {
-            // My Profile in Admin Panel
-            setAdminTab('my_profile');
-            setView('admin');
-            updateAdminUrl('my_profile');
+            const name = session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0];
+            if (name && session?.user?.id) {
+              setProfileUserName(name);
+              setProfileUserId(session.user.id);
+              setView('user_detail');
+              updateUrl('user_detail', name);
+            }
           }}
           onEditProfileClick={() => {
-            // Direct to My Profile settings in Admin Panel
-            setAdminTab('my_profile');
-            setView('admin');
-            updateAdminUrl('my_profile');
+            setView('edit_user_profile');
+            updateUrl('edit_user_profile');
           }}
           onLogout={async () => {
             await supabase.auth.signOut();
@@ -866,6 +893,31 @@ const App: React.FC = () => {
                   setView('feed');
                   updateUrl('feed', trend);
                   fetchNews(trend);
+                }}
+              />
+            ) : view === 'user_detail' ? (
+              <UserProfile
+                userId={profileUserId || undefined}
+                name={profileUserName || ''}
+                onBack={() => { setView('feed'); updateUrl('feed', selectedCategory); }}
+                onNewsSelect={handleNewsSelect}
+                onEditClick={() => { setView('edit_user_profile'); updateUrl('edit_user_profile'); }}
+                siteSettings={siteSettings}
+              />
+            ) : view === 'edit_user_profile' ? (
+              <UserEditProfile
+                userId={session?.user?.id}
+                name={session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || ''}
+                onBack={() => { setView('user_detail'); updateUrl('user_detail', selectedCategory); }}
+              />
+            ) : view === 'users' ? (
+              <UsersList
+                onBack={() => { setView('feed'); updateUrl('feed', selectedCategory); }}
+                onUserSelect={(name) => {
+                  setProfileUserName(name);
+                  setProfileUserId(null); // Reset ID when selecting by name
+                  setView('user_detail');
+                  updateUrl('user_detail', name);
                 }}
               />
             ) : null}
