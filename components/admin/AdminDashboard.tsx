@@ -331,14 +331,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
                         onClick={() => {
                           handleTabChange(item.id);
                         }}
-                        className={`w-full group flex items-center gap-4 px-4 py-3 rounded-[5px] transition-all duration-300 ${(activeTab === item.id || (item.id === 'news_list' && activeTab === 'edit_post'))
+                        className={`w-full group flex items-center gap-4 px-4 py-3 rounded-[5px] transition-all duration-300 ${(activeTab === item.id || (item.id === 'news_list' && activeTab === 'edit_post') || (item.id === 'users' && (activeTab === 'edit_user' || activeTab === 'my_profile')))
                           ? 'bg-palette-maroon text-white shadow-xl shadow-palette-maroon/20'
                           : 'text-palette-tan hover:bg-palette-beige hover:text-palette-maroon'
                           }`}
                       >
-                        <span className={`material-symbols-rounded flex-shrink-0 transition-transform ${(activeTab === item.id || (item.id === 'news_list' && activeTab === 'edit_post')) ? 'scale-110' : 'group-hover:scale-110'}`} style={{ fontSize: '20px' }}>{item.icon}</span>
+                        <span className={`material-symbols-rounded flex-shrink-0 transition-transform ${(activeTab === item.id || (item.id === 'news_list' && activeTab === 'edit_post') || (item.id === 'users' && (activeTab === 'edit_user' || activeTab === 'my_profile'))) ? 'scale-110' : 'group-hover:scale-110'}`} style={{ fontSize: '20px' }}>{item.icon}</span>
                         <span className={`text-base font-semibold tracking-tight whitespace-nowrap transition-opacity ${isSidebarOpen ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'}`}>{item.label}</span>
-                        {(activeTab === item.id || (item.id === 'news_list' && activeTab === 'edit_post')) && isSidebarOpen && <div className="ml-auto w-1 h-3 rounded-[5px] bg-white/40" />}
+                        {(activeTab === item.id || (item.id === 'news_list' && activeTab === 'edit_post') || (item.id === 'users' && (activeTab === 'edit_user' || activeTab === 'my_profile'))) && isSidebarOpen && <div className="ml-auto w-1 h-3 rounded-[5px] bg-white/40" />}
                       </button>
                     ))}
                   </div>
