@@ -16,6 +16,7 @@ const UserEditProfile: React.FC<UserEditProfileProps> = ({ userId, name, onBack 
   const [activeTab, setActiveTab] = useState<TabType>('update_profile');
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
+  const prefColumnsRef = useRef<{ show_email: boolean; rss_feeds: boolean }>({ show_email: false, rss_feeds: false });
 
   const [formData, setFormData] = useState<any>({
     full_name: '',
@@ -45,6 +46,23 @@ const UserEditProfile: React.FC<UserEditProfileProps> = ({ userId, name, onBack 
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success'>('idle');
   const [uploadingImage, setUploadingImage] = useState<'avatar' | 'cover' | null>(null);
 
+  const normalizeProfileMediaUrl = (input: any): string => {
+    if (!input) return '';
+    const url = String(input).trim();
+    if (!url) return '';
+    if (
+      url.startsWith('http://') ||
+      url.startsWith('https://') ||
+      url.startsWith('data:') ||
+      url.startsWith('/')
+    ) {
+      return url;
+    }
+    if (url.startsWith('api/storage/file/')) return `/${url}`;
+    if (url.startsWith('profile/')) return `/api/storage/file/${url}`;
+    return `/api/storage/file/profile/${url}`;
+  };
+
   useEffect(() => {
     if (!userId) return;
 
@@ -59,6 +77,11 @@ const UserEditProfile: React.FC<UserEditProfileProps> = ({ userId, name, onBack 
 
         if (error) throw error;
         if (data) {
+          prefColumnsRef.current = {
+            show_email: Object.prototype.hasOwnProperty.call(data, 'show_email'),
+            rss_feeds: Object.prototype.hasOwnProperty.call(data, 'rss_feeds')
+          };
+          const socialLinks = typeof data.social_links === 'string' ? JSON.parse(data.social_links) : (data.social_links || {});
           setFormData({
             full_name: data.full_name || '',
             username: data.username || '',
@@ -70,14 +93,14 @@ const UserEditProfile: React.FC<UserEditProfileProps> = ({ userId, name, onBack 
             address: data.address || '',
             website: data.website || '',
             slug: data.slug || '',
-            social_links: data.social_links || {},
+            social_links: socialLinks,
             reward_system: data.reward_system || false,
             meta_title: data.meta_title || '',
             meta_keywords: data.meta_keywords || '',
             meta_description: data.meta_description || '',
             canonical_url: data.canonical_url || '',
-            avatar_url: data.avatar_url || '',
-            cover_url: data.social_links?.cover_url || '',
+            avatar_url: normalizeProfileMediaUrl(data.avatar_url),
+            cover_url: normalizeProfileMediaUrl(socialLinks.cover_url),
             show_email: data.show_email !== undefined ? data.show_email : true,
             rss_feeds: data.rss_feeds !== undefined ? data.rss_feeds : true
           });
@@ -98,19 +121,32 @@ const UserEditProfile: React.FC<UserEditProfileProps> = ({ userId, name, onBack 
 
     setUploadingImage(type);
     try {
-      const customName = `${formData.username || name || userId}-${type}`;
+      const customName = `${userId}-${type}`;
       const result = await storageService.uploadFile(file, undefined, 'profile', undefined, customName);
       if (result) {
-        const t = Date.now();
-        const finalUrl = `${result.src}${result.src.includes('?') ? '&' : '?'}t=${t}`;
+        // result.src already includes a cache buster t=... from server
+        const finalUrl = result.src;
 
         if (type === 'avatar') {
-          setFormData({ ...formData, avatar_url: finalUrl });
+          setFormData((prev: any) => ({ ...prev, avatar_url: finalUrl }));
         } else {
-          setFormData({
-            ...formData,
-            cover_url: finalUrl,
-            social_links: { ...formData.social_links, cover_url: finalUrl }
+          setFormData((prev: any) => {
+            const prevSocialLinks =
+              typeof prev.social_links === 'string'
+                ? (() => {
+                  try {
+                    return JSON.parse(prev.social_links);
+                  } catch {
+                    return {};
+                  }
+                })()
+                : (prev.social_links || {});
+
+            return {
+              ...prev,
+              cover_url: finalUrl,
+              social_links: { ...prevSocialLinks, cover_url: finalUrl }
+            };
           });
         }
       }
@@ -126,30 +162,36 @@ const UserEditProfile: React.FC<UserEditProfileProps> = ({ userId, name, onBack 
     setSaving(true);
 
     try {
+      const baseSocialLinks =
+        ((typeof formData.social_links === 'string' ? JSON.parse(formData.social_links) : formData.social_links) || {});
+
+      const updatePayload: Record<string, any> = {
+        full_name: formData.full_name,
+        username: formData.username,
+        email: formData.email,
+        phone: formData.phone,
+        about_me: formData.about_me,
+        expertise: formData.expertise,
+        foundation_date: formData.foundation_date,
+        address: formData.address,
+        website: formData.website,
+        slug: formData.slug,
+        social_links: { ...baseSocialLinks, cover_url: normalizeProfileMediaUrl(formData.cover_url) },
+        reward_system: formData.reward_system,
+        meta_title: formData.meta_title,
+        meta_keywords: formData.meta_keywords,
+        meta_description: formData.meta_description,
+        canonical_url: formData.canonical_url,
+        avatar_url: normalizeProfileMediaUrl(formData.avatar_url),
+        updated_at: new Date().toISOString()
+      };
+
+      if (prefColumnsRef.current.show_email) updatePayload.show_email = formData.show_email;
+      if (prefColumnsRef.current.rss_feeds) updatePayload.rss_feeds = formData.rss_feeds;
+
       const { error } = await supabase
         .from('profiles')
-        .update({
-          full_name: formData.full_name,
-          username: formData.username,
-          email: formData.email,
-          phone: formData.phone,
-          about_me: formData.about_me,
-          expertise: formData.expertise,
-          foundation_date: formData.foundation_date,
-          address: formData.address,
-          website: formData.website,
-          slug: formData.slug,
-          social_links: { ...formData.social_links, cover_url: formData.cover_url },
-          reward_system: formData.reward_system,
-          meta_title: formData.meta_title,
-          meta_keywords: formData.meta_keywords,
-          meta_description: formData.meta_description,
-          canonical_url: formData.canonical_url,
-          avatar_url: formData.avatar_url,
-          show_email: formData.show_email,
-          rss_feeds: formData.rss_feeds,
-          updated_at: new Date().toISOString()
-        })
+        .update(updatePayload)
         .eq('id', userId);
 
       if (error) throw error;
@@ -275,7 +317,7 @@ const UserEditProfile: React.FC<UserEditProfileProps> = ({ userId, name, onBack 
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as TabType)}
-                className={`flex items-center gap-3 px-4 py-3.5 rounded-[8px] text-[13px] font-bold transition-all ${activeTab === tab.id
+                className={`flex items-center gap-3 px-4 py-3.5 rounded-[5px] text-[13px] font-bold transition-all ${activeTab === tab.id
                   ? 'bg-white text-blue-600 shadow-sm border border-gray-100'
                   : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
                   }`}
@@ -291,7 +333,7 @@ const UserEditProfile: React.FC<UserEditProfileProps> = ({ userId, name, onBack 
 
         {/* Right Content Form */}
         <div className="flex-1 p-6 md:p-10">
-          <div className="max-w-2xl animate-in fade-in duration-500">
+          <div className="animate-in fade-in duration-500">
 
             {activeTab === 'update_profile' && (
               <div className="space-y-8">

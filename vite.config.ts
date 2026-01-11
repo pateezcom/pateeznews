@@ -211,8 +211,11 @@ export default defineConfig(({ mode }) => {
             // GET FILE
             if (req.url.startsWith('/api/storage/file/') && req.method === 'GET') {
               const urlParts = req.url.split('?')[0];
-              const relativePath = decodeURIComponent(urlParts.replace('/api/storage/file/', ''));
-              let fullPath;
+              const rawPath = decodeURIComponent(urlParts.replace('/api/storage/file/', ''));
+              // Resilient path: remove leading slashes
+              const relativePath = rawPath.startsWith('/') ? rawPath.substring(1) : rawPath;
+
+              let fullPath = '';
 
               if (relativePath.startsWith('video/')) {
                 fullPath = path.join(videoBaseDir, relativePath.replace('video/', ''));
@@ -225,7 +228,6 @@ export default defineConfig(({ mode }) => {
               } else if (relativePath.startsWith('logo/')) {
                 fullPath = path.join(logoBaseDir, relativePath.replace('logo/', ''));
               } else if (relativePath.startsWith('profile/')) {
-                // Profile images are stored directly under profileBaseDir
                 fullPath = path.join(profileBaseDir, relativePath.replace('profile/', ''));
               } else {
                 fullPath = path.join(imageBaseDir, relativePath);
@@ -331,7 +333,6 @@ export default defineConfig(({ mode }) => {
                     const finalFileName = `${cleanFileName}${ext}`;
                     const finalPath = path.join(langDir, finalFileName);
 
-                    // Ensure we overwrite by deleting if exists (sharp toFile usually overwrites but better safe)
                     if (fs.existsSync(finalPath)) {
                       fs.unlinkSync(finalPath);
                     }
@@ -373,13 +374,12 @@ export default defineConfig(({ mode }) => {
                     fs.unlinkSync(file.path);
 
                     const finalDateDir = targetDir.split(path.sep).pop();
-                    const responseType = type === 'profile' ? 'profile' : 'image';
                     res.end(JSON.stringify({
-                      id: `${responseType}/${finalDateDir}/${cleanFileName}`,
+                      id: `image/${finalDateDir}/${cleanFileName}`,
                       value: cleanFileName,
-                      src: `/api/storage/file/${responseType}/${finalDateDir}/${cleanFileName}_xl.webp`,
-                      thumb: `/api/storage/file/${responseType}/${finalDateDir}/${cleanFileName}_sm.webp`,
-                      type: responseType
+                      src: `/api/storage/file/image/${finalDateDir}/${cleanFileName}_xl.webp`,
+                      thumb: `/api/storage/file/image/${finalDateDir}/${cleanFileName}_sm.webp`,
+                      type: 'image'
                     }));
                   }
                 } catch (processErr) {
@@ -407,6 +407,9 @@ export default defineConfig(({ mode }) => {
                 if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
               } else if (fullPathId.startsWith('file/')) {
                 const filePath = path.join(fileBaseDir, fullPathId.replace('file/', ''));
+                if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+              } else if (fullPathId.startsWith('profile/')) {
+                const filePath = path.join(profileBaseDir, fullPathId.replace('profile/', ''));
                 if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
               } else {
                 const imagePathId = fullPathId.replace('image/', '');

@@ -165,6 +165,10 @@ const App: React.FC = () => {
     if (s[0] === 'kategoriler') return 'categories';
     if (s[0] === 'ilceler') return 'districts';
     if (s[0] === 'trendler') return 'trends';
+    if (s[0] === 'kullanicilar') return 'users';
+    if (s[0] === 'user' && s[1]) return 'user_detail';
+    if (s[0] === 'profil' || s[0] === 'profile') return 'user_detail';
+    if (s[0] === 'profil-duzenle' || s[0] === 'profile-edit') return 'edit_user_profile';
     return 'feed';
   });
   const [lastView, setLastView] = useState<ViewType>('feed');
@@ -181,8 +185,18 @@ const App: React.FC = () => {
 
   const [adminTab, setAdminTab] = useState<string>('overview');
   const [adminUserId, setAdminUserId] = useState<string | null>(null);
-  const [profileUserName, setProfileUserName] = useState<string | null>(null);
-  const [profileUserId, setProfileUserId] = useState<string | null>(null);
+  const [profileUserName, setProfileUserName] = useState<string | null>(() => {
+    const s = window.location.pathname.split('/').filter(Boolean);
+    if (s[0] !== 'user' || !s[1]) return null;
+    const value = decodeURIComponent(s[1]);
+    return isUUID(value) ? null : value;
+  });
+  const [profileUserId, setProfileUserId] = useState<string | null>(() => {
+    const s = window.location.pathname.split('/').filter(Boolean);
+    if (s[0] !== 'user' || !s[1]) return null;
+    const value = decodeURIComponent(s[1]);
+    return isUUID(value) ? value : null;
+  });
   const [session, setSession] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
 
@@ -492,9 +506,19 @@ const App: React.FC = () => {
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [fetchNews, parseAdminPath]);
+  }, [fetchNews, parseAdminPath, session]);
 
   useEffect(() => { init(); }, [currentLang.code]);
+
+  useEffect(() => {
+    const segments = window.location.pathname.split('/').filter(Boolean);
+    if (!(segments[0] === 'profil' || segments[0] === 'profile')) return;
+    if (!session?.user) return;
+
+    const name = session.user.user_metadata?.full_name || session.user.email?.split('@')[0];
+    if (name) setProfileUserName(name);
+    if (session.user.id) setProfileUserId(session.user.id);
+  }, [session]);
 
   useEffect(() => {
     const parsed = parseAdminPath(window.location.pathname);
@@ -797,7 +821,7 @@ const App: React.FC = () => {
               setProfileUserName(name);
               setProfileUserId(session.user.id);
               setView('user_detail');
-              updateUrl('user_detail', name);
+              updateUrl('user_detail');
             }
           }}
           onEditProfileClick={() => {
@@ -817,8 +841,11 @@ const App: React.FC = () => {
         />
       )}
 
-      <main className={`${view === 'admin' ? 'max-w-full pt-0 gap-0 px-0' : 'max-w-[1280px] pt-[72px] gap-8 px-4'} mx-auto flex justify-center items-start`}>
-        {view !== 'detail' && view !== 'admin' && view !== 'login' && (
+      <main className={`${view === 'admin'
+        ? 'max-w-full pt-0 gap-0 px-0'
+        : 'max-w-[1280px] pt-[72px] gap-8 px-4'
+        } mx-auto flex justify-center items-start`}>
+        {view !== 'detail' && view !== 'admin' && view !== 'login' && view !== 'user_detail' && view !== 'edit_user_profile' && (
           <aside className="hidden lg:block w-[260px] flex-shrink-0 sticky top-[72px] h-[calc(100vh-72px)] overflow-y-auto pb-8 no-scrollbar">
             <Sidebar
               items={navigationItems}
@@ -841,7 +868,7 @@ const App: React.FC = () => {
         )}
 
         <section className="flex-1 min-w-0 pb-10 flex justify-center w-full">
-          <div className={`w-full ${view === 'admin' ? '' : 'max-w-[840px]'}`}>
+          <div className={`w-full ${view === 'admin' || view === 'user_detail' || view === 'edit_user_profile' ? '' : 'max-w-[840px]'}`}>
             {view === 'feed' ? (
               <Feed newsData={newsItems} title={currentCategoryLabel || undefined} onNewsSelect={handleNewsSelect} storiesData={storiesItems} siteSettings={siteSettings} navItems={navigationItems} />
             ) : view === 'detail' && selectedNewsId ? (
@@ -896,20 +923,53 @@ const App: React.FC = () => {
                 }}
               />
             ) : view === 'user_detail' ? (
-              <UserProfile
-                userId={profileUserId || undefined}
-                name={profileUserName || ''}
-                onBack={() => { setView('feed'); updateUrl('feed', selectedCategory); }}
-                onNewsSelect={handleNewsSelect}
-                onEditClick={() => { setView('edit_user_profile'); updateUrl('edit_user_profile'); }}
-                siteSettings={siteSettings}
-              />
+              <div className="mt-2">
+                {(() => {
+                  const segments = window.location.pathname.split('/').filter(Boolean);
+                  const isOwnProfileRoute = segments[0] === 'profil' || segments[0] === 'profile';
+
+                  if (isOwnProfileRoute) {
+                    if (authLoading) return <MainLoading />;
+                    if (!session?.user?.id) {
+                      return (
+                        <React.Suspense fallback={<MainLoading />}>
+                          <Login onBack={() => { setView('feed'); updateUrl('feed', selectedCategory); }} />
+                        </React.Suspense>
+                      );
+                    }
+                  }
+
+                  const resolvedUserId = isOwnProfileRoute ? (session?.user?.id || profileUserId) : profileUserId;
+                  const resolvedUserName = isOwnProfileRoute
+                    ? (profileUserName || session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || '')
+                    : (profileUserName || '');
+
+                  return (
+                    <UserProfile
+                      userId={resolvedUserId || undefined}
+                      name={resolvedUserName}
+                      onBack={() => { setView('feed'); updateUrl('feed', selectedCategory); }}
+                      onNewsSelect={handleNewsSelect}
+                      onEditClick={() => { setView('edit_user_profile'); updateUrl('edit_user_profile'); }}
+                      siteSettings={siteSettings}
+                    />
+                  );
+                })()}
+              </div>
             ) : view === 'edit_user_profile' ? (
-              <UserEditProfile
-                userId={session?.user?.id}
-                name={session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || ''}
-                onBack={() => { setView('user_detail'); updateUrl('user_detail', selectedCategory); }}
-              />
+              <div className="mt-2">
+                <UserEditProfile
+                  userId={session?.user?.id}
+                  name={session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || ''}
+                  onBack={() => {
+                    const name = session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0];
+                    if (name) setProfileUserName(name);
+                    if (session?.user?.id) setProfileUserId(session.user.id);
+                    setView('user_detail');
+                    updateUrl('user_detail');
+                  }}
+                />
+              </div>
             ) : view === 'users' ? (
               <UsersList
                 onBack={() => { setView('feed'); updateUrl('feed', selectedCategory); }}
