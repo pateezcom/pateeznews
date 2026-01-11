@@ -14,6 +14,7 @@ interface CommentRecord {
     updated_at: string;
     likes_count: number;
     replies_count: number;
+    reports_count: number;
     is_pinned?: boolean;
     post_title?: string;
     user_name?: string;
@@ -35,7 +36,8 @@ const CommentRow = React.memo(({
     dropdownRef,
     isLast,
     isSelected,
-    onSelectRow
+    onSelectRow,
+    onNewsSelect
 }: {
     comment: CommentRecord;
     index: number;
@@ -51,18 +53,20 @@ const CommentRow = React.memo(({
     isLast: boolean;
     isSelected: boolean;
     onSelectRow: (id: string) => void;
+    onNewsSelect?: (id: string) => void;
 }) => {
+    const hasReports = comment.reports_count > 0;
     return (
-        <tr className={`hover:bg-palette-beige/5 transition-all group h-[92px] ${openDropdownId === comment.id ? 'relative z-[100]' : 'relative z-1'}`}>
+        <tr className={`hover:bg-palette-beige/5 transition-all group h-[92px] ${openDropdownId === String(comment.id) ? 'relative z-[100]' : 'relative z-1'}`}>
             <td className="px-4 py-0 align-middle">
                 <input
                     type="checkbox"
                     checked={isSelected}
-                    onChange={() => onSelectRow(comment.id)}
+                    onChange={() => onSelectRow(String(comment.id))}
                     className="w-4 h-4 rounded-[5px] border-palette-tan/30 text-palette-maroon focus:ring-palette-maroon cursor-pointer"
                 />
             </td>
-            <td className="px-2 py-0 align-middle text-[13px] font-bold text-palette-tan/60">{comment.id.slice(0, 8)}</td>
+            <td className="px-2 py-0 align-middle text-[13px] font-bold text-palette-tan/60">{String(comment.id)}</td>
             <td className="px-2 py-0 align-middle">
                 <div className="flex items-center gap-4 min-w-0">
                     <div className="w-[50px] h-[50px] flex-shrink-0 bg-palette-beige rounded-[5px] overflow-hidden border border-palette-tan/10 shadow-sm relative group-hover:shadow-md transition-all">
@@ -92,19 +96,30 @@ const CommentRow = React.memo(({
                 </div>
             </td>
             <td className="px-3 py-0 align-middle text-center overflow-hidden">
-                <p className="text-[12px] font-bold text-palette-tan/70 truncate max-w-[200px]">
+                <button
+                    onClick={() => window.open(`/haber/${comment.post_id}`, '_blank')}
+                    className="text-[12px] font-black text-palette-tan/70 hover:text-palette-red transition-all truncate max-w-[200px] border-b border-transparent hover:border-palette-red/30 cursor-pointer"
+                    title="Habere Git (Yeni Sekme)"
+                >
                     {comment.post_title || '-'}
-                </p>
+                </button>
             </td>
             <td className="px-3 py-0 align-middle text-center">
-                <span className={`text-[10px] font-black px-2 py-1 rounded-[5px] uppercase tracking-widest inline-block ${comment.status === 'approved'
-                    ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
-                    : comment.status === 'rejected'
-                        ? 'bg-red-100 text-red-700 border border-red-200'
-                        : 'bg-palette-tan/10 text-palette-tan border border-palette-tan/10'
-                    }`}>
-                    {comment.status === 'approved' ? 'Onaylandı' : comment.status === 'rejected' ? 'Reddedildi' : 'Beklemede'}
-                </span>
+                <div className="flex flex-col items-center gap-1">
+                    <span className={`text-[10px] font-black px-2 py-1 rounded-[5px] uppercase tracking-widest inline-block ${comment.status === 'approved'
+                        ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                        : comment.status === 'rejected'
+                            ? 'bg-red-100 text-red-700 border border-red-200'
+                            : 'bg-palette-tan/10 text-palette-tan border border-palette-tan/10'
+                        }`}>
+                        {comment.status === 'approved' ? 'Onaylandı' : comment.status === 'rejected' ? 'Reddedildi' : 'Beklemede'}
+                    </span>
+                    {hasReports && (
+                        <span className="text-[9px] font-black px-1.5 py-0.5 rounded-[3px] bg-red-600 text-white animate-pulse">
+                            {comment.reports_count} ŞİKAYET
+                        </span>
+                    )}
+                </div>
             </td>
             <td className="px-3 py-0 align-middle text-center">
                 <div className="flex flex-col items-center">
@@ -127,14 +142,14 @@ const CommentRow = React.memo(({
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
-                            setOpenDropdownId(openDropdownId === comment.id ? null : comment.id);
+                            setOpenDropdownId(openDropdownId === String(comment.id) ? null : String(comment.id));
                         }}
                         className="w-10 h-10 rounded-[5px] flex items-center justify-center text-palette-tan/40 hover:bg-palette-beige hover:text-palette-maroon transition-all active:scale-90"
                     >
                         <span className="material-symbols-rounded">more_vert</span>
                     </button>
 
-                    {openDropdownId === comment.id && (
+                    {openDropdownId === String(comment.id) && (
                         <div className={`absolute right-0 ${isLast && index > 0 ? 'bottom-full mb-2' : 'top-full mt-2'} w-48 bg-white border border-palette-tan/20 rounded-[5px] shadow-2xl z-[100] py-2 animate-in fade-in zoom-in-95 duration-200`}>
                             <button
                                 onClick={() => {
@@ -196,7 +211,7 @@ const CommentRow = React.memo(({
     );
 });
 
-const CommentManagement: React.FC = () => {
+const CommentManagement: React.FC<{ onNewsSelect?: (id: string) => void }> = ({ onNewsSelect }) => {
     const { t } = useLanguage();
     const { showToast } = useToast();
     const [comments, setComments] = useState<CommentRecord[]>([]);
@@ -208,9 +223,13 @@ const CommentManagement: React.FC = () => {
     const [pageSize, setPageSize] = useState(25);
     const [filters, setFilters] = useState({
         status: 'Tümü',
-        post: 'Tümü',
-        user: 'Tümü'
+        post_id: 'Tümü',
+        user_id: 'Tümü'
     });
+    const [filterOptions, setFilterOptions] = useState<{
+        posts: { id: string, title: string }[],
+        users: { id: string, name: string }[]
+    }>({ posts: [], users: [] });
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
     const [showReplyModal, setShowReplyModal] = useState(false);
@@ -245,6 +264,32 @@ const CommentManagement: React.FC = () => {
     }, [currentPage, pageSize, debouncedSearchTerm, filters]);
 
     useEffect(() => {
+        fetchFilterOptions();
+    }, []);
+
+    const fetchFilterOptions = async () => {
+        try {
+            // Get unique posts and users from existing comments
+            const { data: posts } = await supabase.from('admin_comment_details').select('post_id, post_title');
+            const { data: users } = await supabase.from('admin_comment_details').select('user_id, user_name');
+
+            const uniquePosts = Array.from(new Set(posts?.map(p => p.post_id))).map(id => ({
+                id,
+                title: posts?.find(p => p.post_id === id)?.post_title || 'Adsız Haber'
+            })).filter(p => p.id);
+
+            const uniqueUsers = Array.from(new Set(users?.map(u => u.user_id))).map(id => ({
+                id,
+                name: users?.find(u => u.user_id === id)?.user_name || 'Anonim'
+            })).filter(u => u.id);
+
+            setFilterOptions({ posts: uniquePosts, users: uniqueUsers });
+        } catch (err) {
+            console.error("Filter fetch error:", err);
+        }
+    };
+
+    useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (openDropdownId && dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setOpenDropdownId(null);
@@ -268,8 +313,20 @@ const CommentManagement: React.FC = () => {
             }
 
             // Durum Filtresi
-            if (filters.status !== 'Tümü') {
+            if (filters.status === 'Reported') {
+                query = query.gt('reports_count', 0);
+            } else if (filters.status !== 'Tümü') {
                 query = query.eq('status', filters.status);
+            }
+
+            // Haber Filtresi
+            if (filters.post_id !== 'Tümü') {
+                query = query.eq('post_id', filters.post_id);
+            }
+
+            // Kullanıcı Filtresi
+            if (filters.user_id !== 'Tümü') {
+                query = query.eq('user_id', filters.user_id);
             }
 
             // Sayfalama
@@ -458,7 +515,7 @@ const CommentManagement: React.FC = () => {
 
     const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.checked) {
-            setSelectedIds(comments.map(c => c.id));
+            setSelectedIds(comments.map(c => String(c.id)));
         } else {
             setSelectedIds([]);
         }
@@ -520,8 +577,14 @@ const CommentManagement: React.FC = () => {
                                     <div className="relative group/select">
                                         <select
                                             className="w-full h-10 px-3 bg-palette-beige/20 border border-palette-tan/15 rounded-[5px] text-[13px] font-bold text-palette-maroon appearance-none outline-none focus:bg-white focus:border-palette-maroon transition-all cursor-pointer"
-                                            value={(filters as any)[filter.key]}
-                                            onChange={(e) => setFilters({ ...filters, [filter.key]: e.target.value })}
+                                            value={filter.key === 'status' ? filters.status : filter.key === 'post' ? filters.post_id : filters.user_id}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                setFilters(prev => ({
+                                                    ...prev,
+                                                    [filter.key === 'status' ? 'status' : filter.key === 'post' ? 'post_id' : 'user_id']: val
+                                                }));
+                                            }}
                                         >
                                             <option value="Tümü">Tümü</option>
                                             {filter.key === 'status' && (
@@ -529,8 +592,15 @@ const CommentManagement: React.FC = () => {
                                                     <option value="approved">Onaylandı</option>
                                                     <option value="pending">Beklemede</option>
                                                     <option value="rejected">Reddedildi</option>
+                                                    <option value="Reported">Şikayet Edilenler</option>
                                                 </>
                                             )}
+                                            {filter.key === 'post' && filterOptions.posts.map(p => (
+                                                <option key={p.id} value={p.id}>{p.title}</option>
+                                            ))}
+                                            {filter.key === 'user' && filterOptions.users.map(u => (
+                                                <option key={u.id} value={u.id}>{u.name}</option>
+                                            ))}
                                         </select>
                                         <span className="material-symbols-rounded absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/30 pointer-events-none group-hover/select:text-palette-maroon transition-colors" style={{ fontSize: '18px' }}>expand_more</span>
                                     </div>
@@ -651,6 +721,7 @@ const CommentManagement: React.FC = () => {
                                             isLast={index >= comments.length - 2}
                                             isSelected={selectedIds.includes(comment.id)}
                                             onSelectRow={handleSelectRow}
+                                            onNewsSelect={onNewsSelect}
                                         />
                                     ))
                                 )}

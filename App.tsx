@@ -888,6 +888,7 @@ const App: React.FC = () => {
                     setView('feed');
                     updateUrl('feed', selectedCategory);
                   }}
+                  onNewsSelect={handleNewsSelect}
                 />
               </React.Suspense>
             ) : view === 'login' ? (

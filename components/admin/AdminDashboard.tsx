@@ -23,9 +23,10 @@ interface AdminDashboardProps {
   initialUserId?: string;
   onTabChange?: (tab: string, userId?: string) => void;
   siteSettings?: SiteSettings | null;
+  onNewsSelect?: (id: string) => void;
 }
 
-const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 'overview', initialUserId = null, onTabChange, siteSettings }) => {
+const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 'overview', initialUserId = null, onTabChange, siteSettings, onNewsSelect }) => {
   const { t, currentLang, setLanguage, availableLanguages } = useLanguage();
   const [stats, setStats] = useState({
     posts: 0,
@@ -235,7 +236,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
             case 'news_list': return <PostList onEditPost={handleEditPost} onAddPost={() => handleTabChange('posts')} />;
             case 'edit_post': return <PostManagement key={`edit-${editingUserId}`} postId={editingUserId || undefined} onDirtyChange={setIsDirty} onBack={() => handleTabChange('news_list')} />;
             case 'stories': return <StoryManagement onEditStory={(id) => handleTabChange('hikaye-editor', id)} />;
-            case 'comments': return <CommentManagement />;
+            case 'comments': return <CommentManagement onNewsSelect={onNewsSelect} />;
             case 'navigation': return <NavigationSettings />;
             case 'languages': return <LanguageSettings />;
             case 'roles': return <RoleSettings />;
