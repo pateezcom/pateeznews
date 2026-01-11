@@ -111,7 +111,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack, navItems }) => {
   const readingTime = calculateReadingTime();
 
   return (
-    <div className="animate-in bg-white rounded-[5px] border border-gray-200 shadow-sm relative min-h-screen mb-10 overflow-x-hidden overflow-y-visible max-w-full mt-2">
+    <div className="animate-in bg-white rounded-[5px] border border-gray-200 shadow-sm relative min-h-screen mb-10 max-w-full mt-2 overflow-x-clip">
 
       {/* Reading Progress Bar */}
       <div className="fixed top-0 left-0 w-full h-1 z-[60] bg-gray-100/50 backdrop-blur-sm">
@@ -181,10 +181,10 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack, navItems }) => {
       </div>
 
       {/* CONTENT AREA WITH STICKY SIDEBAR */}
-      <div className="flex flex-col md:flex-row relative items-start">
+      <div className="flex flex-col md:flex-row relative">
 
         {/* LEFT STICKY SHARE BAR */}
-        <aside className="hidden md:flex flex-col items-center gap-3 sticky top-24 h-fit p-6 border-r border-gray-50 self-start z-10">
+        <aside className="hidden md:flex flex-col items-center gap-3 sticky top-24 p-6 border-r border-gray-50 z-10" style={{ height: 'fit-content', alignSelf: 'flex-start' }}>
           <div className="flex flex-col items-center mb-2">
             <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest [writing-mode:vertical-lr] rotate-180 mb-2">PAYLAŞ</span>
             <div className="w-px h-8 bg-gray-100 mb-2"></div>
@@ -210,7 +210,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack, navItems }) => {
         </aside>
 
         {/* MAIN BODY CONTENT */}
-        <article className="flex-1 px-6 md:px-12 pt-6 pb-8 max-w-[840px] md:mx-0 break-words overflow-hidden">
+        <article className="flex-1 min-w-0 px-6 md:px-12 pt-6 pb-8 max-w-full md:mx-0 break-words overflow-hidden">
 
           {/* Main Media (Video, Poll, Gallery etc.) */}
           <div className="mb-10 overflow-hidden max-w-full">
