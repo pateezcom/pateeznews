@@ -33,8 +33,8 @@ const Navbar: React.FC<NavbarProps> = ({ onHomeClick, onProfileClick, isLoggedIn
   }, [showLangMenu]);
 
   return (
-    <header className="fixed top-0 left-0 w-full z-[100]">
-      <div className="h-[64px] bg-white/80 backdrop-blur-2xl border-b border-palette-beige/20 shadow-sm relative z-[101]">
+    <header className="fixed top-0 left-0 w-full z-[250]">
+      <div className="h-[64px] bg-white/80 backdrop-blur-2xl border-b border-palette-beige/20 shadow-sm relative z-[251]">
         <div className="max-w-[1280px] mx-auto h-full flex items-center px-4">
 
 	          {/* LOGO */}
@@ -168,7 +168,7 @@ const Navbar: React.FC<NavbarProps> = ({ onHomeClick, onProfileClick, isLoggedIn
 
       {/* SEARCH BAR */}
       <div
-        className={`absolute top-[64px] left-0 w-full bg-white border-b border-palette-beige shadow-2xl transition-all duration-75 ease-linear overflow-hidden z-[100] ${isSearchOpen ? 'max-h-[80px] opacity-100 py-3.5' : 'max-h-0 opacity-0 py-0'
+        className={`absolute top-[64px] left-0 w-full bg-white border-b border-palette-beige shadow-2xl transition-all duration-75 ease-linear overflow-hidden z-[250] ${isSearchOpen ? 'max-h-[80px] opacity-100 py-3.5' : 'max-h-0 opacity-0 py-0'
           }`}
       >
         <div className="max-w-[1280px] mx-auto px-4">
@@ -199,7 +199,7 @@ const Navbar: React.FC<NavbarProps> = ({ onHomeClick, onProfileClick, isLoggedIn
       {isSearchOpen && (
         <div
           onClick={() => setIsSearchOpen(false)}
-          className="fixed inset-0 bg-gray-900/5 backdrop-blur-[1px] z-[99]"
+          className="fixed inset-0 bg-gray-900/5 backdrop-blur-[1px] z-[249]"
         />
       )}
     </header>

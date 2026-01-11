@@ -41,7 +41,28 @@ interface NewsDetailProps {
 
 const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack, navItems }) => {
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [selectedEmojis, setSelectedEmojis] = useState<string[]>([]);
   const { t } = useLanguage();
+
+  // Emoji Reactions Config
+  const MAX_REACTIONS = 3;
+  const emojis = [
+    { id: 'bravo', emoji: '👏', label: 'Bravo', count: 3 },
+    { id: 'dislike', emoji: '👎', label: 'Beğenmedim', count: 1 },
+    { id: 'love', emoji: '😍', label: 'Aşık Oldum', count: 1 },
+    { id: 'sad', emoji: '🥺', label: 'Üzgün', count: 0 },
+    { id: 'great', emoji: '🙌', label: 'Harika', count: 0 },
+    { id: 'laugh', emoji: '😂', label: 'Güldüm', count: 0 },
+    { id: 'angry', emoji: '😡', label: 'Kızgın', count: 0 },
+  ];
+
+  const toggleEmoji = (id: string) => {
+    if (selectedEmojis.includes(id)) {
+      setSelectedEmojis(selectedEmojis.filter(e => e !== id));
+    } else if (selectedEmojis.length < MAX_REACTIONS) {
+      setSelectedEmojis([...selectedEmojis, id]);
+    }
+  };
 
   const getBreadcrumbs = () => {
     const crumbs: { label: string; value: string }[] = [];
@@ -75,6 +96,23 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack, navItems }) => {
   }, []);
 
   const renderMedia = () => {
+    const postType = String((data as any).postType || '').toLowerCase();
+    const coverThumbnail = ((data as any).coverThumbnail as string) || data.thumbnail;
+
+    // Eğer bu bir "article" haberi ise, ana medya her zaman haberin kapak görseli olmalı.
+    if (postType === 'article') {
+      return (
+        <div className="rounded-[5px] overflow-hidden border border-gray-100 shadow-xl mt-4 mb-8">
+          <img
+            src={coverThumbnail}
+            alt={data.seoTitle || data.title}
+            title={data.seoTitle || data.title}
+            className="w-full h-auto object-cover max-h-[600px]"
+          />
+        </div>
+      );
+    }
+
     switch (data.type) {
       case NewsType.REVIEW: return <ReviewCard data={data} />;
       case NewsType.BEFORE_AFTER: return <BeforeAfterCard data={data} />;
@@ -203,9 +241,20 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack, navItems }) => {
           <button className="w-10 h-10 flex items-center justify-center rounded-[5px] bg-gray-100 text-gray-500 hover:bg-gray-900 hover:text-white transition-all shadow-sm">
             <LinkIcon size={18} />
           </button>
-          <div className="w-px h-10 bg-gray-100 my-2"></div>
-          <button className="w-10 h-10 flex items-center justify-center rounded-[5px] bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-sm">
-            <Heart size={18} />
+
+          <div className="w-px h-6 bg-gray-100 my-1"></div>
+
+          {/* Like Button with Count */}
+          <div className="flex flex-col items-center">
+            <button className="w-10 h-10 flex items-center justify-center rounded-[5px] bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-sm group">
+              <Heart size={18} className="group-hover:scale-110 transition-transform" />
+            </button>
+            <span className="text-[10px] font-black text-rose-500 mt-1">{data.likes.toLocaleString()}</span>
+          </div>
+
+          {/* Bookmark Button */}
+          <button className="w-10 h-10 flex items-center justify-center rounded-[5px] bg-gray-50 text-gray-400 hover:bg-blue-500 hover:text-white transition-all shadow-sm border border-gray-100">
+            <Bookmark size={18} />
           </button>
         </aside>
 
@@ -385,26 +434,78 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack, navItems }) => {
             </div>
           )}
 
-          {/* Interactive Footer Actions */}
-          <div className="mt-12 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <button className="flex items-center gap-2 px-6 py-3 bg-rose-50 text-rose-600 rounded-[5px] font-black text-sm transition-all hover:bg-rose-100 group">
-                <Heart size={20} className="group-hover:scale-110 transition-transform" />
-                <span>{data.likes.toLocaleString()}</span>
-              </button>
-              <button className="flex items-center gap-2 px-6 py-3 bg-blue-50 text-blue-600 rounded-[5px] font-black text-sm transition-all hover:bg-blue-100">
-                <MessageSquare size={20} />
-                <span>{data.comments} Yorum</span>
-              </button>
+          {/* Emoji Reactions Section */}
+          <div className="mt-10 pt-8 border-t-2 border-palette-beige/50">
+            {/* Header - Küçültülmüş */}
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-palette-beige to-transparent"></div>
+              <div className="flex items-center gap-2 px-4 py-2 bg-palette-beige/30 rounded-full border border-palette-beige">
+                <svg className="w-4 h-4 text-palette-tan" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" />
+                </svg>
+                <span className="text-[11px] font-bold text-palette-tan uppercase tracking-widest">Bu Habere Tepki Ver</span>
+              </div>
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-palette-beige to-transparent"></div>
             </div>
-            <button className="p-3 bg-gray-100 text-gray-500 rounded-[5px] hover:bg-gray-200 transition-all">
-              <Bookmark size={20} />
-            </button>
+
+            {/* Emoji Row - Tek Satır */}
+            <div className="flex items-center justify-center gap-2 md:gap-4 flex-nowrap overflow-visible pt-2 pb-2">
+              {emojis.map((item) => {
+                const isSelected = selectedEmojis.includes(item.id);
+                const isDisabled = !isSelected && selectedEmojis.length >= MAX_REACTIONS;
+
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => toggleEmoji(item.id)}
+                    disabled={isDisabled}
+                    className={`group relative flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all duration-300 flex-shrink-0
+                      ${isSelected
+                        ? 'bg-emerald-50 border-2 border-emerald-400 shadow-lg shadow-emerald-500/20 -translate-y-1'
+                        : 'bg-white border-2 border-transparent hover:border-palette-beige hover:bg-palette-beige/20 hover:-translate-y-1 hover:shadow-lg'
+                      }
+                      ${isDisabled ? 'opacity-40 cursor-not-allowed hover:translate-y-0 hover:shadow-none' : 'cursor-pointer'}
+                    `}
+                  >
+                    {/* Selected Check */}
+                    {isSelected && (
+                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center shadow-md">
+                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    )}
+
+                    <span className={`text-3xl md:text-4xl transition-transform duration-300 select-none ${isSelected ? 'scale-110' : 'group-hover:scale-110'}`}>
+                      {item.emoji}
+                    </span>
+                    <span className={`text-[9px] font-bold uppercase tracking-wider transition-colors ${isSelected ? 'text-emerald-600' : 'text-palette-tan/40 group-hover:text-palette-tan'}`}>
+                      {item.label}
+                    </span>
+                    <span className={`text-sm font-black transition-colors ${isSelected ? 'text-emerald-600' : 'text-palette-tan'}`}>
+                      {isSelected ? item.count + 1 : item.count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Info Message */}
+            <p className={`text-center text-xs font-medium mt-4 transition-colors ${selectedEmojis.length >= MAX_REACTIONS ? 'text-palette-red' : 'text-palette-tan/40'}`}>
+              {selectedEmojis.length >= MAX_REACTIONS
+                ? 'En fazla 3 tepki verebilirsiniz.'
+                : `${MAX_REACTIONS - selectedEmojis.length} tepki hakkınız kaldı.`
+              }
+            </p>
           </div>
 
           {/* Comments Section */}
-          <div className="mt-20">
-            <h3 className="text-2xl font-black text-gray-900 mb-8 tracking-tight">Fikirlerini Paylaş</h3>
+          <div className="mt-10 pt-8 border-t border-gray-100">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-1 h-8 bg-palette-red rounded-full"></div>
+              <h3 className="text-xl font-black text-gray-900 tracking-tight">Fikirlerini Paylaş</h3>
+              <span className="text-xs font-bold text-gray-400 bg-gray-100 px-2.5 py-1 rounded-full">{data.comments} Yorum</span>
+            </div>
             <CommentSection />
           </div>
 

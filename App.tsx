@@ -247,22 +247,25 @@ const App: React.FC = () => {
           }
         }
 
-        const mappedNews: NewsItem[] = postsData.map((item: any) => {
-          const profile = item.profiles;
-          const homepageItem = (item.items || []).find((i: any) => i.showOnHomepage === true);
-          let cardType = item.type?.toUpperCase() || 'STANDARD';
-          let extraData: any = {};
-          if (homepageItem) {
-            const { id: _ignoreId, ...homepagePayload } = homepageItem;
-            cardType = homepageItem.type?.toUpperCase();
-            if (homepageItem.type === 'slider') cardType = 'GALLERY';
-            extraData = {
-              ...homepagePayload,
-              summary: homepageItem.description || item.summary,
-              mediaUrl: homepageItem.mediaUrl || item.media_url || '',
-              thumbnail: homepageItem.mediaUrl || item.thumbnail_url || 'https://picsum.photos/800/600'
-            };
-          }
+	        const mappedNews: NewsItem[] = postsData.map((item: any) => {
+	          const profile = item.profiles;
+	          const homepageItem = (item.items || []).find((i: any) => i.showOnHomepage === true);
+	          let cardType = item.type?.toUpperCase() || 'STANDARD';
+	          const coverThumbnail = item.thumbnail_url || 'https://picsum.photos/800/600';
+	          const coverThumbnailAlt = item.thumbnail_alt || '';
+	          let extraData: any = { postType: item.type, coverThumbnail, coverThumbnailAlt };
+	          if (homepageItem) {
+	            const { id: _ignoreId, ...homepagePayload } = homepageItem;
+	            cardType = homepageItem.type?.toUpperCase();
+	            if (homepageItem.type === 'slider') cardType = 'GALLERY';
+	            extraData = {
+	              ...extraData,
+	              ...homepagePayload,
+	              summary: homepageItem.description || item.summary,
+	              mediaUrl: homepageItem.mediaUrl || item.media_url || '',
+	              thumbnail: homepageItem.mediaUrl || item.thumbnail_url || 'https://picsum.photos/800/600'
+	            };
+	          }
 
           return {
             id: item.id,
@@ -325,17 +328,19 @@ const App: React.FC = () => {
       const { data: item, error } = await query.maybeSingle();
 
       if (error) throw error;
-      if (item) {
-        const profile = item.profiles;
-        const homepageItem = (item.items || []).find((i: any) => i.showOnHomepage === true);
-        let cardType = item.type?.toUpperCase() || 'STANDARD';
-        let extraData: any = {};
-        if (homepageItem) {
-          const { id: _ignoreId, ...homepagePayload } = homepageItem;
-          cardType = homepageItem.type?.toUpperCase();
-          if (homepageItem.type === 'slider') cardType = 'GALLERY';
-          extraData = { ...homepagePayload };
-        }
+	      if (item) {
+	        const profile = item.profiles;
+	        const homepageItem = (item.items || []).find((i: any) => i.showOnHomepage === true);
+	        let cardType = item.type?.toUpperCase() || 'STANDARD';
+	        const coverThumbnail = item.thumbnail_url || 'https://picsum.photos/800/600';
+	        const coverThumbnailAlt = item.thumbnail_alt || '';
+	        let extraData: any = { postType: item.type, coverThumbnail, coverThumbnailAlt };
+	        if (homepageItem) {
+	          const { id: _ignoreId, ...homepagePayload } = homepageItem;
+	          cardType = homepageItem.type?.toUpperCase();
+	          if (homepageItem.type === 'slider') cardType = 'GALLERY';
+	          extraData = { ...extraData, ...homepagePayload };
+	        }
 
         const mappedNews: NewsItem = {
           id: item.id,
