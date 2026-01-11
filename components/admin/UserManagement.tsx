@@ -495,7 +495,6 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
                 { label: 'Rol', key: 'role' },
-                { label: 'Yayıncı', key: 'publisher' },
                 { label: 'Ödül Sistemi', key: 'reward_system' },
                 { label: 'Durum', key: 'status' }
               ].map((filter) => (
@@ -545,17 +544,6 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
                   </select>
                   <span className="material-symbols-rounded absolute right-3 top-1/2 -translate-y-1/2 text-palette-tan/30 pointer-events-none" style={{ fontSize: '18px' }}>expand_more</span>
                 </div>
-
-                {currentUserRole === 'admin' && (
-                  <button
-                    type="button"
-                    onClick={() => setShowPublisherModal(true)}
-                    className="flex items-center gap-2 px-3 h-10 text-[13px] font-black text-cyan-600 hover:bg-cyan-50/50 rounded-[5px] transition-all active:scale-95 group/pub"
-                  >
-                    <span className="material-symbols-rounded text-cyan-500 group-hover/pub:scale-110 transition-transform" style={{ fontSize: '20px' }}>person_add</span>
-                    <span>Yayıncıları Ekle</span>
-                  </button>
-                )}
               </div>
 
               <div className="flex items-center gap-4 w-full md:w-auto">
@@ -591,7 +579,6 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
                   <th className="w-20 px-4 py-5 text-[12px] font-black text-palette-tan uppercase tracking-widest">Id</th>
                   <th className="px-4 py-5 text-[12px] font-black text-palette-tan uppercase tracking-widest">Kullanıcı</th>
                   <th className="px-6 py-5 text-[12px] font-black text-palette-tan uppercase tracking-widest text-center">Rol</th>
-                  <th className="px-6 py-5 text-[12px] font-black text-palette-tan uppercase tracking-widest text-center">Yayıncılar</th>
                   <th className="px-6 py-5 text-[12px] font-black text-palette-tan uppercase tracking-widest text-center">Ödül Sistemi</th>
                   <th className="px-6 py-5 text-[12px] font-black text-palette-tan uppercase tracking-widest text-center">Durum</th>
                   <th className="px-8 py-5 text-[12px] font-black text-palette-tan uppercase tracking-widest text-right">Oluşturma</th>
@@ -620,8 +607,12 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
                       <td className="px-4 py-6 text-[13px] font-bold text-palette-tan/60">{idx + 25}</td>
                       <td className="px-4 py-6">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 flex-shrink-0 bg-palette-beige rounded-[5px] overflow-hidden border border-palette-tan/10 shadow-sm relative transition-all">
-                            <img src={user.avatar_url || `https://picsum.photos/seed/${user.id}/100`} className="w-full h-full object-cover" alt="" />
+                          <div className="w-10 h-10 flex-shrink-0 bg-palette-beige rounded-[5px] overflow-hidden border border-palette-tan/10 shadow-sm relative transition-all flex items-center justify-center">
+                            {user.avatar_url ? (
+                              <img src={user.avatar_url} className="w-full h-full object-cover" alt="" />
+                            ) : (
+                              <span className="material-symbols-rounded text-palette-tan/20" style={{ fontSize: '24px' }}>person</span>
+                            )}
                           </div>
                           <div className="flex flex-col">
                             <span className="font-bold text-palette-maroon text-[14px] leading-tight group-hover:text-palette-red transition-colors">{user.full_name || 'İsimsiz'}</span>
@@ -638,33 +629,6 @@ const UserManagement: React.FC<UserManagementProps> = ({ onEditUser, initialSear
                             <span className="material-symbols-rounded text-palette-red" style={{ fontSize: '18px' }}>person</span>
                           )}
                           <span className="text-[12px] font-bold text-palette-tan/70 uppercase tracking-widest">{getRoleLabel(user.role)}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-6 text-center">
-                        <div className="flex flex-wrap items-center justify-center gap-2">
-                          {user.assigned_publishers && user.assigned_publishers.length > 0 ? (
-                            <>
-                              {user.assigned_publishers.map(pub => (
-                                <span key={pub.id} className="bg-cyan-50 text-cyan-600 px-2 py-0.5 rounded-[5px] text-[11px] font-bold">
-                                  {pub.full_name}
-                                </span>
-                              ))}
-                              {currentUserRole === 'admin' && (
-                                <button
-                                  onClick={() => {
-                                    setTargetUserForPublishers(user);
-                                    setSelectedPublishersForUser(user.assigned_publishers?.map(p => p.id) || []);
-                                    setShowUserPublisherModal(true);
-                                  }}
-                                  className="text-palette-red hover:text-palette-maroon transition-colors"
-                                >
-                                  <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>edit</span>
-                                </button>
-                              )}
-                            </>
-                          ) : (
-                            <span className="text-[11px] font-bold text-palette-tan/40"> - </span>
-                          )}
                         </div>
                       </td>
                       <td className="px-6 py-6 text-center">

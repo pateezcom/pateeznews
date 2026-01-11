@@ -16,6 +16,7 @@
     "@googleforcreators/story-editor": "latest",
     "@supabase/supabase-js": "2.39.3",
     "@types/multiparty": "^4.2.1",
+    "emoji-picker-react": "^4.16.1",
     "immutable": "3.8.2",
     "konva": "9.3.18",
     "lucide-react": "^0.562.0",

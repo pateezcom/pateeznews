@@ -1,9 +1,11 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Heart, Reply, Trash2, Send, ChevronDown, ChevronUp, Flag, UserMinus, ShieldAlert } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useToast } from '../context/ToastContext';
 import { useLanguage } from '../context/LanguageContext';
+import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
+import { Smile } from 'lucide-react';
 
 interface Comment {
   id: string;
@@ -191,6 +193,8 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId, publisherId }) 
   const [replyTo, setReplyTo] = useState<Comment | null>(null);
   const [user, setUser] = useState<any>(null);
   const [isBlocked, setIsBlocked] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     checkUser();
@@ -211,6 +215,20 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId, publisherId }) 
 
       if (block) setIsBlocked(true);
     }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+        setShowEmojiPicker(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const onEmojiClick = (emojiData: EmojiClickData) => {
+    setNewComment(prev => prev + emojiData.emoji);
   };
 
   const fetchComments = async () => {
@@ -387,7 +405,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId, publisherId }) 
   const hiddenCount = Math.max(0, comments.length - 2);
 
   return (
-    <div className="bg-white/50 px-5 pt-0 pb-4">
+    <div className={`bg-white/50 px-5 pt-0 pb-4 ${showEmojiPicker ? 'relative z-[245]' : ''}`}>
       {/* Comments List */}
       <div className="space-y-1">
         {loading ? (
@@ -488,15 +506,40 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId, publisherId }) 
               onKeyPress={(e) => e.key === 'Enter' && handlePostComment()}
               placeholder={isBlocked ? "Yorum yapma yetkiniz yok" : "Bir yorum yaz..."}
               disabled={isBlocked}
-              className="w-full h-10 pl-4 pr-11 rounded-[5px] bg-white border border-palette-beige/60 focus:border-palette-red/40 text-[13px] font-medium text-palette-maroon placeholder:text-palette-tan/30 focus:outline-none focus:ring-4 focus:ring-palette-red/5 transition-all shadow-sm"
+              className="w-full h-10 pl-4 pr-20 rounded-[5px] bg-white border border-palette-beige/60 focus:border-palette-red/40 text-[13px] font-medium text-palette-maroon placeholder:text-palette-tan/30 focus:outline-none focus:ring-4 focus:ring-palette-red/5 transition-all shadow-sm"
             />
-            <button
-              onClick={handlePostComment}
-              disabled={isBlocked}
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center bg-palette-beige text-palette-tan/40 rounded-[5px] hover:bg-palette-red hover:text-white transition-all shadow-sm group-focus-within:bg-palette-red group-focus-within:text-white disabled:opacity-50"
-            >
-              <Send size={14} />
-            </button>
+            <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              <div className="relative" ref={emojiPickerRef}>
+                <button
+                  type="button"
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                  disabled={isBlocked}
+                  className="w-7 h-7 flex items-center justify-center text-palette-tan/40 hover:text-palette-maroon transition-all"
+                  title="Emoji Ekle"
+                >
+                  <Smile size={18} />
+                </button>
+                {showEmojiPicker && (
+                  <div className="absolute bottom-full right-0 mb-2 z-[240] shadow-2xl animate-in fade-in zoom-in-95 slide-in-from-bottom-2">
+                    <EmojiPicker
+                      onEmojiClick={onEmojiClick}
+                      autoFocusSearch={false}
+                      theme={Theme.LIGHT}
+                      searchPlaceholder="Emoji ara..."
+                      width={300}
+                      height={400}
+                    />
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={handlePostComment}
+                disabled={isBlocked}
+                className="w-7 h-7 flex items-center justify-center bg-palette-beige text-palette-tan/40 rounded-[5px] hover:bg-palette-red hover:text-white transition-all shadow-sm group-focus-within:bg-palette-red group-focus-within:text-white disabled:opacity-50"
+              >
+                <Send size={14} />
+              </button>
+            </div>
           </div>
         </div>
       </div>

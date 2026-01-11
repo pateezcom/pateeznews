@@ -175,11 +175,17 @@ const Navbar: React.FC<NavbarProps> = ({
                   : 'w-6 h-6'
                   }`}>
                   {isLoggedIn ? (
-                    <img
-                      src={user?.user_metadata?.avatar_url || "https://picsum.photos/seed/admin/200"}
-                      className="w-full h-full object-cover"
-                      alt="Profile"
-                    />
+                    user?.user_metadata?.avatar_url ? (
+                      <img
+                        src={user.user_metadata.avatar_url}
+                        className="w-full h-full object-cover"
+                        alt="Profile"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-palette-beige text-palette-tan/20">
+                        <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>person</span>
+                      </div>
+                    )
                   ) : (
                     <span className="material-symbols-rounded text-palette-red" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1, 'wght' 600" }}>person</span>
                   )}
@@ -247,10 +253,10 @@ const Navbar: React.FC<NavbarProps> = ({
             </button>
           </div>
         </div>
-      </div>
+      </div >
 
       {/* SEARCH BAR */}
-      <div
+      < div
         className={`absolute top-[64px] left-0 w-full bg-white border-b border-palette-beige shadow-2xl transition-all duration-75 ease-linear overflow-hidden z-[250] ${isSearchOpen ? 'max-h-[80px] opacity-100 py-3.5' : 'max-h-0 opacity-0 py-0'
           }`}
       >
@@ -277,7 +283,7 @@ const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
         </div>
-      </div>
+      </div >
 
       {isSearchOpen && (
         <div
@@ -285,7 +291,7 @@ const Navbar: React.FC<NavbarProps> = ({
           className="fixed inset-0 bg-gray-900/5 backdrop-blur-[1px] z-[249]"
         />
       )}
-    </header>
+    </header >
   );
 };
 

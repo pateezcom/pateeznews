@@ -42,6 +42,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const [userRole, setUserRole] = useState<string>('member');
+  const [currentUserAvatar, setCurrentUserAvatar] = useState<string | null>(null);
   const [permissions, setPermissions] = useState<string[]>([]);
   const [permissionLoading, setPermissionLoading] = useState(true);
   const [statusModal, setStatusModal] = useState<{ show: boolean, type: 'error' | 'success', message: string }>({ show: false, type: 'success', message: '' });
@@ -65,7 +66,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
     { id: 'stories', label: t('admin.sidebar.stories'), icon: 'bolt', perm: 'manage_content', group: t('admin.management') },
     { id: 'comments', label: 'Yorumlar', icon: 'comment', perm: 'manage_content', group: t('admin.management') },
     { id: 'users', label: t('admin.sidebar.users'), icon: 'group', perm: 'manage_users', group: t('admin.management') },
-    { id: 'publishers', label: t('admin.sidebar.publishers'), icon: 'business_center', perm: 'manage_users', group: t('admin.management') },
+    // { id: 'publishers', label: t('admin.sidebar.publishers'), icon: 'business_center', perm: 'manage_users', group: t('admin.management') },
     { id: 'navigation', label: t('admin.sidebar.navigation'), icon: 'account_tree', perm: 'manage_navigation', group: t('admin.system') },
     { id: 'roles', label: t('admin.sidebar.roles'), icon: 'verified_user', perm: 'view_roles', group: t('admin.system') },
     { id: 'settings', label: t('admin.sidebar.settings'), icon: 'settings', perm: 'view_settings', group: t('admin.system') },
@@ -125,9 +126,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       const isDemoUser = user.email?.toLowerCase() === 'demo.user@gmail.com';
-      const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+      const { data: profile } = await supabase.from('profiles').select('role, avatar_url').eq('id', user.id).single();
       const roleName = isDemoUser ? 'admin' : (profile?.role || 'member');
       setUserRole(roleName);
+      setCurrentUserAvatar(profile?.avatar_url || null);
       if (roleName === 'admin') {
         setPermissions(['view_overview', 'view_settings', 'view_languages', 'view_roles', 'manage_content', 'manage_users', 'manage_navigation']);
       } else {
@@ -412,8 +414,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                 className="flex items-center gap-2 p-1 pl-1 pr-1 rounded-[5px] hover:bg-palette-beige transition-all group"
               >
-                <div className="w-9 h-9 rounded-[5px] border border-palette-tan/20 group-hover:border-palette-tan transition-all">
-                  <img src="https://picsum.photos/seed/admin/200" className="w-full h-full object-cover rounded-[5px]" alt={t('admin.header.my_account')} />
+                <div className="w-9 h-9 rounded-[5px] border border-palette-tan/20 group-hover:border-palette-tan transition-all overflow-hidden flex items-center justify-center bg-palette-beige/50">
+                  {currentUserAvatar ? (
+                    <img src={currentUserAvatar} className="w-full h-full object-cover rounded-[5px]" alt={t('admin.header.my_account')} />
+                  ) : (
+                    <span className="material-symbols-rounded text-palette-tan/40" style={{ fontSize: '20px' }}>person</span>
+                  )}
                 </div>
                 <div className="hidden sm:flex flex-col items-start text-left">
                   <span className="text-sm font-bold text-palette-maroon leading-none">{t('admin.user.super_admin')}</span>
@@ -426,8 +432,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
                   <div className="fixed inset-0 z-40" onClick={() => setShowProfileMenu(false)}></div>
                   <div className="absolute top-full ltr:right-0 rtl:left-0 mt-3 w-72 bg-white rounded-[5px] shadow-[0_30px_90px_rgba(24,37,64,0.15)] z-50 animate-in border border-palette-tan/20 overflow-hidden">
                     <div className="p-6 pb-4 flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-[5px] border border-palette-tan/20 p-1">
-                        <img src="https://picsum.photos/seed/admin/200" className="w-full h-full object-cover rounded-[5px] shadow-md" alt="Admin" />
+                      <div className="w-14 h-14 rounded-[5px] border border-palette-tan/20 p-1 flex items-center justify-center bg-palette-beige/30">
+                        {currentUserAvatar ? (
+                          <img src={currentUserAvatar} className="w-full h-full object-cover rounded-[5px] shadow-md" alt="Admin" />
+                        ) : (
+                          <span className="material-symbols-rounded text-palette-tan/40" style={{ fontSize: '32px' }}>person</span>
+                        )}
                       </div>
                       <div>
                         <h4 className="text-base font-bold text-palette-maroon">{brandName ? `${brandName} Admin` : 'Admin'}</h4>
