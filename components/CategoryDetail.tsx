@@ -3,14 +3,16 @@ import React from 'react';
 import { ArrowLeft, LayoutGrid, Zap, Filter, TrendingUp, Search } from 'lucide-react';
 import { NEWS_FEED } from '../constants';
 import NewsCard from './NewsCard';
+import { SiteSettings } from '../types';
 
 interface CategoryDetailProps {
   category: string;
   onBack: () => void;
   onNewsSelect: (id: string) => void;
+  siteSettings?: SiteSettings | null;
 }
 
-const CategoryDetail: React.FC<CategoryDetailProps> = ({ category, onBack, onNewsSelect }) => {
+const CategoryDetail: React.FC<CategoryDetailProps> = ({ category, onBack, onNewsSelect, siteSettings }) => {
   // Kategoriye ait haberleri filtrele (basit eşleşme için includes kullanıyoruz)
   const categoryNews = NEWS_FEED.filter(news => news.category.toLowerCase().includes(category.toLowerCase()));
 
@@ -72,6 +74,7 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({ category, onBack, onNew
                 <NewsCard
                   data={news}
                   onClick={() => onNewsSelect(news.id)}
+                  siteSettings={siteSettings}
                 />
               </div>
             ))}

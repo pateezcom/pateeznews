@@ -9,6 +9,8 @@ import NewsDetail from './components/NewsDetail';
 import PublishersList from './components/PublishersList';
 import PublisherProfile from './components/PublisherProfile';
 import CategoriesList from './components/CategoriesList';
+import DistrictsList from './components/DistrictsList';
+import TrendsList from './components/TrendsList';
 import { NewsItem, NavigationItem, SiteSettings } from './types';
 import { useLanguage } from './context/LanguageContext';
 import MainLoading from './components/MainLoading';
@@ -19,7 +21,7 @@ const AdminDashboard = React.lazy(() => import('./components/admin/AdminDashboar
 const WebStoryEditor = React.lazy(() => import('./components/admin/WebStoryEditor'));
 const Login = React.lazy(() => import('./components/auth/Login'));
 
-type ViewType = 'feed' | 'detail' | 'publishers' | 'publisher_detail' | 'categories' | 'category_detail' | 'edit_publisher_profile' | 'login' | 'admin' | 'stories' | 'web_story_editor';
+type ViewType = 'feed' | 'detail' | 'publishers' | 'publisher_detail' | 'categories' | 'districts' | 'trends' | 'category_detail' | 'edit_publisher_profile' | 'login' | 'admin' | 'stories' | 'web_story_editor';
 
 // 🚀 2025-2026 ULTRA PERSISTENCE ENGINE
 const CACHE_CONFIG = {
@@ -159,6 +161,9 @@ const App: React.FC = () => {
     if (s[0] === 'haber') return 'detail';
     if (s[0] === 'admin') return 'admin';
     if (s[0] === 'giris') return 'login';
+    if (s[0] === 'kategoriler') return 'categories';
+    if (s[0] === 'ilceler') return 'districts';
+    if (s[0] === 'trendler') return 'trends';
     return 'feed';
   });
   const [lastView, setLastView] = useState<ViewType>('feed');
@@ -247,25 +252,25 @@ const App: React.FC = () => {
           }
         }
 
-	        const mappedNews: NewsItem[] = postsData.map((item: any) => {
-	          const profile = item.profiles;
-	          const homepageItem = (item.items || []).find((i: any) => i.showOnHomepage === true);
-	          let cardType = item.type?.toUpperCase() || 'STANDARD';
-	          const coverThumbnail = item.thumbnail_url || 'https://picsum.photos/800/600';
-	          const coverThumbnailAlt = item.thumbnail_alt || '';
-	          let extraData: any = { postType: item.type, coverThumbnail, coverThumbnailAlt };
-	          if (homepageItem) {
-	            const { id: _ignoreId, ...homepagePayload } = homepageItem;
-	            cardType = homepageItem.type?.toUpperCase();
-	            if (homepageItem.type === 'slider') cardType = 'GALLERY';
-	            extraData = {
-	              ...extraData,
-	              ...homepagePayload,
-	              summary: homepageItem.description || item.summary,
-	              mediaUrl: homepageItem.mediaUrl || item.media_url || '',
-	              thumbnail: homepageItem.mediaUrl || item.thumbnail_url || 'https://picsum.photos/800/600'
-	            };
-	          }
+        const mappedNews: NewsItem[] = postsData.map((item: any) => {
+          const profile = item.profiles;
+          const homepageItem = (item.items || []).find((i: any) => i.showOnHomepage === true);
+          let cardType = item.type?.toUpperCase() || 'STANDARD';
+          const coverThumbnail = item.thumbnail_url || 'https://picsum.photos/800/600';
+          const coverThumbnailAlt = item.thumbnail_alt || '';
+          let extraData: any = { postType: item.type, coverThumbnail, coverThumbnailAlt };
+          if (homepageItem) {
+            const { id: _ignoreId, ...homepagePayload } = homepageItem;
+            cardType = homepageItem.type?.toUpperCase();
+            if (homepageItem.type === 'slider') cardType = 'GALLERY';
+            extraData = {
+              ...extraData,
+              ...homepagePayload,
+              summary: homepageItem.description || item.summary,
+              mediaUrl: homepageItem.mediaUrl || item.media_url || '',
+              thumbnail: homepageItem.mediaUrl || item.thumbnail_url || 'https://picsum.photos/800/600'
+            };
+          }
 
           return {
             id: item.id,
@@ -328,19 +333,19 @@ const App: React.FC = () => {
       const { data: item, error } = await query.maybeSingle();
 
       if (error) throw error;
-	      if (item) {
-	        const profile = item.profiles;
-	        const homepageItem = (item.items || []).find((i: any) => i.showOnHomepage === true);
-	        let cardType = item.type?.toUpperCase() || 'STANDARD';
-	        const coverThumbnail = item.thumbnail_url || 'https://picsum.photos/800/600';
-	        const coverThumbnailAlt = item.thumbnail_alt || '';
-	        let extraData: any = { postType: item.type, coverThumbnail, coverThumbnailAlt };
-	        if (homepageItem) {
-	          const { id: _ignoreId, ...homepagePayload } = homepageItem;
-	          cardType = homepageItem.type?.toUpperCase();
-	          if (homepageItem.type === 'slider') cardType = 'GALLERY';
-	          extraData = { ...extraData, ...homepagePayload };
-	        }
+      if (item) {
+        const profile = item.profiles;
+        const homepageItem = (item.items || []).find((i: any) => i.showOnHomepage === true);
+        let cardType = item.type?.toUpperCase() || 'STANDARD';
+        const coverThumbnail = item.thumbnail_url || 'https://picsum.photos/800/600';
+        const coverThumbnailAlt = item.thumbnail_alt || '';
+        let extraData: any = { postType: item.type, coverThumbnail, coverThumbnailAlt };
+        if (homepageItem) {
+          const { id: _ignoreId, ...homepagePayload } = homepageItem;
+          cardType = homepageItem.type?.toUpperCase();
+          if (homepageItem.type === 'slider') cardType = 'GALLERY';
+          extraData = { ...extraData, ...homepagePayload };
+        }
 
         const mappedNews: NewsItem = {
           id: item.id,
@@ -444,6 +449,12 @@ const App: React.FC = () => {
         setSelectedCategory(cat);
         setView('feed');
         fetchNews(cat);
+      } else if (segments[0] === 'kategoriler') {
+        setView('categories');
+      } else if (segments[0] === 'ilceler') {
+        setView('districts');
+      } else if (segments[0] === 'trendler') {
+        setView('trends');
       } else if (segments[0] === 'giris') {
         setView('login');
       } else {
@@ -671,6 +682,9 @@ const App: React.FC = () => {
     }
     else if (newView === 'detail' && newsId) path = `/haber/${newsId}`;
     else if (newView === 'admin') path = buildAdminPath(adminTab, adminUserId);
+    else if (newView === 'categories') path = '/kategoriler';
+    else if (newView === 'districts') path = '/ilceler';
+    else if (newView === 'trends') path = '/trendler';
     else if (newView === 'login') path = '/giris';
 
     if (window.location.pathname !== path) window.history.pushState(null, '', path);
@@ -744,15 +758,33 @@ const App: React.FC = () => {
             fetchNews(lastCat);
           }}
           onProfileClick={() => {
-            if (session) {
-              setView('admin');
-              updateAdminUrl(adminTab, adminUserId);
-            } else {
-              setView('login');
-              updateUrl('login');
-            }
+            setView('login');
+            updateUrl('login');
+          }}
+          onAdminClick={() => {
+            setView('admin');
+            updateAdminUrl(adminTab, adminUserId);
+          }}
+          onProfileViewClick={() => {
+            // My Profile in Admin Panel
+            setAdminTab('my_profile');
+            setView('admin');
+            updateAdminUrl('my_profile');
+          }}
+          onEditProfileClick={() => {
+            // Direct to My Profile settings in Admin Panel
+            setAdminTab('my_profile');
+            setView('admin');
+            updateAdminUrl('my_profile');
+          }}
+          onLogout={async () => {
+            await supabase.auth.signOut();
+            setSession(null);
+            setView('feed');
+            updateUrl('feed');
           }}
           isLoggedIn={!!session}
+          user={session?.user}
           navItems={navigationItems}
           siteSettings={siteSettings}
         />
@@ -761,14 +793,30 @@ const App: React.FC = () => {
       <main className={`${view === 'admin' ? 'max-w-full pt-0 gap-0 px-0' : 'max-w-[1280px] pt-[72px] gap-8 px-4'} mx-auto flex justify-center items-start`}>
         {view !== 'detail' && view !== 'admin' && view !== 'login' && (
           <aside className="hidden lg:block w-[260px] flex-shrink-0 sticky top-[72px] h-[calc(100vh-72px)] overflow-y-auto pb-8 no-scrollbar">
-            <Sidebar items={navigationItems} activeCategory={selectedCategory} onCategoryItemClick={handleCategorySelect} />
+            <Sidebar
+              items={navigationItems}
+              activeCategory={selectedCategory}
+              onCategoryItemClick={handleCategorySelect}
+              onAllCategoriesClick={() => {
+                setView('categories');
+                updateUrl('categories');
+              }}
+              onAllDistrictsClick={() => {
+                setView('districts');
+                updateUrl('districts');
+              }}
+              onAllTrendsClick={() => {
+                setView('trends');
+                updateUrl('trends');
+              }}
+            />
           </aside>
         )}
 
         <section className="flex-1 min-w-0 pb-10 flex justify-center w-full">
           <div className={`w-full ${view === 'admin' ? '' : 'max-w-[840px]'}`}>
             {view === 'feed' ? (
-              <Feed newsData={newsItems} title={currentCategoryLabel || undefined} onNewsSelect={handleNewsSelect} storiesData={storiesItems} />
+              <Feed newsData={newsItems} title={currentCategoryLabel || undefined} onNewsSelect={handleNewsSelect} storiesData={storiesItems} siteSettings={siteSettings} navItems={navigationItems} />
             ) : view === 'detail' && selectedNewsId ? (
               <NewsDetail
                 data={newsItems.find(n => n.id === selectedNewsId) || ({} as any)}
@@ -790,12 +838,42 @@ const App: React.FC = () => {
               </React.Suspense>
             ) : view === 'login' ? (
               <React.Suspense fallback={<MainLoading />}><Login onBack={() => setView('feed')} /></React.Suspense>
+            ) : view === 'categories' ? (
+              <CategoriesList
+                onBack={() => { setView('feed'); updateUrl('feed', selectedCategory); }}
+                onCategorySelect={(cat) => {
+                  setSelectedCategory(cat);
+                  setView('feed');
+                  updateUrl('feed', cat);
+                  fetchNews(cat);
+                }}
+              />
+            ) : view === 'districts' ? (
+              <DistrictsList
+                onBack={() => { setView('feed'); updateUrl('feed', selectedCategory); }}
+                onDistrictSelect={(dist) => {
+                  setSelectedCategory(dist);
+                  setView('feed');
+                  updateUrl('feed', dist);
+                  fetchNews(dist);
+                }}
+              />
+            ) : view === 'trends' ? (
+              <TrendsList
+                onBack={() => { setView('feed'); updateUrl('feed', selectedCategory); }}
+                onTrendSelect={(trend) => {
+                  setSelectedCategory(trend);
+                  setView('feed');
+                  updateUrl('feed', trend);
+                  fetchNews(trend);
+                }}
+              />
             ) : null}
           </div>
         </section>
 
         {(view === 'feed' || view === 'detail') && (
-          <aside className="hidden xl:block w-[320px] flex-shrink-0 sticky top-[72px] h-[calc(100vh-72px)] overflow-y-auto pb-8 no-scrollbar">
+          <aside className="hidden xl:block w-[320px] flex-shrink-0 pb-8">
             <RightSidebar newsData={newsItems} />
           </aside>
         )}

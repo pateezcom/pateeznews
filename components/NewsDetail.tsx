@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { NewsItem, NewsType, NavigationItem } from '../types';
 import { useLanguage } from '../context/LanguageContext';
+import { useToast } from '../context/ToastContext';
 
 // Kart bileşenleri
 import ReviewCard from './cards/ReviewCard';
@@ -42,7 +43,59 @@ interface NewsDetailProps {
 const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack, navItems }) => {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [selectedEmojis, setSelectedEmojis] = useState<string[]>([]);
-  const { t } = useLanguage();
+  const { t, currentLang } = useLanguage();
+  const { showToast } = useToast();
+
+  const stripHtml = (html: string) => (html || '').replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').trim();
+
+  const shareUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/haber/${data.slug || data.id}`
+    : '';
+
+  const getUtmUrl = (source: string) => {
+    return `${shareUrl}?utm_source=${source}&utm_medium=social&utm_campaign=news_detail&utm_content=${data.slug || data.id}`;
+  };
+
+  const shareToTwitter = () => {
+    const cleanTitle = stripHtml(data.title);
+    const url = getUtmUrl('twitter');
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent('🔥 ' + cleanTitle)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener,noreferrer');
+  };
+
+  const shareToFacebook = () => {
+    const url = getUtmUrl('facebook');
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank', 'noopener,noreferrer');
+  };
+
+  const copyLink = async () => {
+    const url = getUtmUrl('copy_link');
+    try {
+      await navigator.clipboard.writeText(url);
+      showToast(t('common.link_copied') || 'Bağlantı kopyalandı!', 'success');
+    } catch (e) {
+      showToast('Kopyalama başarısız!', 'error');
+    }
+  };
+
+  const handleNativeShare = async () => {
+    const cleanTitle = stripHtml(data.title);
+    const cleanSummary = stripHtml(data.summary).substring(0, 100);
+    const url = getUtmUrl('nsosyal');
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: cleanTitle,
+          text: `📢 ${cleanTitle}\n\n"${cleanSummary}..."`,
+          url: url,
+        });
+      } catch (e) {
+        copyLink();
+      }
+    } else {
+      copyLink();
+    }
+  };
 
   // Emoji Reactions Config
   const MAX_REACTIONS = 3;
@@ -207,7 +260,10 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack, navItems }) => {
           </div>
 
           <div className="flex items-center gap-2">
-            <button className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-[5px] text-xs font-black transition-all hover:bg-gray-800 shadow-md">
+            <button
+              onClick={handleNativeShare}
+              className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-[5px] text-xs font-black transition-all hover:bg-gray-800 shadow-md active:scale-95"
+            >
               <Share2 size={14} />
               <span>Paylaş</span>
             </button>
@@ -229,16 +285,31 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack, navItems }) => {
             <span className="text-xs font-black text-blue-600 mb-2">{data.shares.toLocaleString()}</span>
           </div>
 
-          <button className="w-10 h-10 flex items-center justify-center rounded-[5px] bg-[#1DA1F2] text-white hover:scale-110 transition-all shadow-sm">
+          <button
+            onClick={shareToTwitter}
+            className="w-10 h-10 flex items-center justify-center rounded-[5px] bg-[#1DA1F2] text-white hover:scale-110 transition-all shadow-sm active:scale-95"
+          >
             <Twitter size={18} className="fill-current" />
           </button>
-          <button className="w-10 h-10 flex items-center justify-center rounded-[5px] bg-[#4267B2] text-white hover:scale-110 transition-all shadow-sm">
+          <button
+            onClick={shareToFacebook}
+            className="w-10 h-10 flex items-center justify-center rounded-[5px] bg-[#4267B2] text-white hover:scale-110 transition-all shadow-sm active:scale-95"
+          >
             <Facebook size={18} className="fill-current" />
           </button>
-          <button className="w-10 h-10 flex items-center justify-center rounded-[5px] bg-[#0077B5] text-white hover:scale-110 transition-all shadow-sm">
+          <button
+            onClick={() => {
+              const url = getUtmUrl('linkedin');
+              window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, '_blank', 'noopener,noreferrer');
+            }}
+            className="w-10 h-10 flex items-center justify-center rounded-[5px] bg-[#0077B5] text-white hover:scale-110 transition-all shadow-sm active:scale-95"
+          >
             <Linkedin size={18} className="fill-current" />
           </button>
-          <button className="w-10 h-10 flex items-center justify-center rounded-[5px] bg-gray-100 text-gray-500 hover:bg-gray-900 hover:text-white transition-all shadow-sm">
+          <button
+            onClick={copyLink}
+            className="w-10 h-10 flex items-center justify-center rounded-[5px] bg-gray-100 text-gray-500 hover:bg-gray-900 hover:text-white transition-all shadow-sm active:scale-95"
+          >
             <LinkIcon size={18} />
           </button>
 

@@ -9,6 +9,9 @@ interface SidebarProps {
   activeCategory?: string | null;
   onPublisherItemClick?: (publisher: string) => void;
   onCategoryItemClick?: (category: string | null) => void;
+  onAllCategoriesClick?: () => void;
+  onAllDistrictsClick?: () => void;
+  onAllTrendsClick?: () => void;
 }
 
 // 🌈 SIRA TABANLI RENK MOTORU (SEQUENTIAL COLOR ENGINE) - Consistency with brand aesthetics
@@ -17,7 +20,10 @@ const ICON_COLORS = [
   '#4CAF50', '#FF5252', '#FF9800', '#673AB7', '#2196F3', '#009688'
 ];
 
-const Sidebar: React.FC<SidebarProps> = ({ items, activeCategory, onCategoryItemClick }) => {
+const Sidebar: React.FC<SidebarProps> = ({
+  items, activeCategory, onCategoryItemClick,
+  onAllCategoriesClick, onAllDistrictsClick, onAllTrendsClick
+}) => {
   const { t } = useLanguage();
 
   // 1. Root items are considered "Ana Kategoriler"
@@ -111,7 +117,13 @@ const Sidebar: React.FC<SidebarProps> = ({ items, activeCategory, onCategoryItem
           {/* İLÇELER HEADER & ITEMS */}
           {districts.length > 0 && (
             <div className="px-3">
-              <h3 className="text-[10px] font-black text-palette-tan/40 uppercase tracking-[0.2em] mb-3 ml-1">İLÇELER</h3>
+              <h3
+                onClick={onAllDistrictsClick}
+                className="text-[10px] font-black text-palette-tan/40 uppercase tracking-[0.2em] mb-3 ml-1 cursor-pointer hover:text-palette-red transition-all flex items-center gap-2 group/dis-header"
+              >
+                İLÇELER
+                <span className="material-symbols-rounded text-[12px] opacity-0 group-hover/dis-header:opacity-100 transition-all translate-x-[-4px] group-hover/dis-header:translate-x-0">chevron_right</span>
+              </h3>
               <div className="flex flex-col gap-1">
                 {districts.map((child, idx) => {
                   const isActive = activeCategory === child.value || activeCategory === child.label;
@@ -138,7 +150,13 @@ const Sidebar: React.FC<SidebarProps> = ({ items, activeCategory, onCategoryItem
           {/* KATEGORİLER HEADER & ITEMS */}
           {categoriesSub.length > 0 && (
             <div className="px-3">
-              <h3 className="text-[10px] font-black text-palette-tan/40 uppercase tracking-[0.2em] mb-3 ml-1">KATEGORİLER</h3>
+              <h3
+                onClick={onAllCategoriesClick}
+                className="text-[10px] font-black text-palette-tan/40 uppercase tracking-[0.2em] mb-3 ml-1 cursor-pointer hover:text-palette-red transition-all flex items-center gap-2 group/cat-header"
+              >
+                KATEGORİLER
+                <span className="material-symbols-rounded text-[12px] opacity-0 group-hover/cat-header:opacity-100 transition-all translate-x-[-4px] group-hover/cat-header:translate-x-0">chevron_right</span>
+              </h3>
               <div className="flex flex-col gap-1">
                 {categoriesSub.map((child, idx) => {
                   const isActive = activeCategory === child.value || activeCategory === child.label;
@@ -165,7 +183,13 @@ const Sidebar: React.FC<SidebarProps> = ({ items, activeCategory, onCategoryItem
           {/* TRENDLER HEADER & ITEMS */}
           {trendsSub.length > 0 && (
             <div className="px-3">
-              <h3 className="text-[10px] font-black text-palette-tan/40 uppercase tracking-[0.2em] mb-3 ml-1">TRENDLER</h3>
+              <h3
+                onClick={onAllTrendsClick}
+                className="text-[10px] font-black text-palette-tan/40 uppercase tracking-[0.2em] mb-3 ml-1 cursor-pointer hover:text-palette-red transition-all flex items-center gap-2 group/trend-header"
+              >
+                TRENDLER
+                <span className="material-symbols-rounded text-[12px] opacity-0 group-hover/trend-header:opacity-100 transition-all translate-x-[-4px] group-hover/trend-header:translate-x-0">chevron_right</span>
+              </h3>
               <div className="flex flex-col gap-1">
                 {trendsSub.map((child, idx) => {
                   const isActive = activeCategory === child.value || activeCategory === child.label;

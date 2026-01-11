@@ -1,10 +1,11 @@
 import { isUUID } from '../utils/helpers';
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { CheckCircle2, Heart, MessageCircle, Bookmark, Share2 } from 'lucide-react';
-import { NewsItem, NewsType } from '../types';
+import { NewsItem, NewsType, SiteSettings, NavigationItem } from '../types';
 import CommentSection from './CommentSection';
 import { useToast } from '../context/ToastContext';
 import { supabase } from '../lib/supabase';
+import { useLanguage } from '../context/LanguageContext';
 
 // Kart Bileşenleri
 import ReviewCard from './cards/ReviewCard';
@@ -23,10 +24,38 @@ interface NewsCardProps {
   data: NewsItem;
   onClick?: () => void;
   onSourceClick?: () => void;
+  siteSettings?: SiteSettings | null;
+  navItems?: NavigationItem[];
 }
 
-const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => {
+const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick, siteSettings, navItems }) => {
+  const { t } = useLanguage();
   const { showToast } = useToast();
+
+  const categoryHierarchy = useMemo(() => {
+    if (!data.category || !navItems) return [data.category];
+
+    // Find the item that matches the current category label or value
+    const findItem = (label: string) => navItems.find(n => n.label === label || n.value === label);
+
+    let currentItem = findItem(data.category);
+    if (!currentItem) return [data.category];
+
+    const hierarchy = [currentItem.label];
+    let parentId = currentItem.parent_id;
+
+    while (parentId && parentId !== 'root') {
+      const parent = navItems.find(n => n.id === parentId);
+      if (parent) {
+        hierarchy.unshift(parent.label);
+        parentId = parent.parent_id;
+      } else {
+        break;
+      }
+    }
+    return hierarchy;
+  }, [data.category, navItems]);
+
   const [isLiked, setIsLiked] = useState(data.userLiked || false);
   const [isDisliked, setIsDisliked] = useState(data.userDisliked || false);
   const [showComments, setShowComments] = useState(true);
@@ -288,58 +317,119 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
     };
   }, [showShareMenu]);
 
-  // Paylaşım URL'i
-  const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/post/${data.id}` : '';
-  const shareText = data.title;
+  // 2026 SEO & AI Optimized Sharing Config
+  const shareUrl = typeof window !== 'undefined'
+    ? (data.slug ? `${window.location.origin}/haber/${data.slug}` : `${window.location.origin}/post/${data.id}`)
+    : '';
+
+  const getUtmUrl = (platform: string) => {
+    const separator = shareUrl.includes('?') ? '&' : '?';
+    return `${shareUrl}${separator}utm_source=${platform}&utm_medium=social&utm_campaign=share_card&utm_content=${data.id}`;
+  };
+
+  const getAIOptimizedText = () => {
+    // 🚀 2026 Advanced AI SEO Engine: Temizlenmiş Saf Metin İşleme
+    const stripHtml = (html: string) => html.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').trim();
+
+    const cleanTitle = stripHtml(data.title);
+    const cleanSummary = data.summary ? stripHtml(data.summary).substring(0, 100) : '';
+    const siteName = siteSettings?.site_name?.replace(/\s+/g, '') || 'Haber';
+    const categoryTag = data.category ? `#${data.category.replace(/\s+/g, '')}` : `#${siteName}`;
+
+    const siteKeywords = siteSettings?.meta_keywords
+      ? siteSettings.meta_keywords.split(',').slice(0, 2).map(k => `#${k.trim().replace(/\s+/g, '')}`).join(' ')
+      : `#${siteName} #Gündem`;
+
+    const summaryPart = cleanSummary ? `\n\n"${cleanSummary}..."` : '';
+    return `📢 ${cleanTitle}${summaryPart}\n\n📌 ${categoryTag} ${siteKeywords}`;
+  };
 
   // Sosyal medya paylaşım fonksiyonları
   const shareToWhatsApp = () => {
-    window.open(`https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`, '_blank');
+    const text = getAIOptimizedText();
+    const url = getUtmUrl('whatsapp');
+    const finalMessage = `${text}\n\n🔗 Hemen oku: ${url}`;
+
+    // Web ve Mobil uyumlu güvenli WhatsApp linki
+    const waUrl = `https://wa.me/?text=${encodeURIComponent(finalMessage)}`;
+    window.open(waUrl, '_blank', 'noopener,noreferrer');
     setShowShareMenu(false);
   };
 
   const shareToTelegram = () => {
-    window.open(`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`, '_blank');
+    const text = getAIOptimizedText();
+    const url = getUtmUrl('telegram');
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`, '_blank');
     setShowShareMenu(false);
   };
 
   const shareToTwitter = () => {
-    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
+    const stripHtml = (html: string) => html.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').trim();
+    const cleanTitle = stripHtml(data.title);
+    const text = `🔥 ${cleanTitle}`;
+    const url = getUtmUrl('twitter');
+    const siteTag = siteSettings?.site_name?.replace(/\s+/g, '') || 'haber';
+    const hashtags = `${data.category?.replace(/\s+/g, '') || 'gündem'},${siteTag}`;
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}&hashtags=${hashtags}`, '_blank', 'noopener,noreferrer');
     setShowShareMenu(false);
   };
 
   const shareToFacebook = () => {
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
+    const url = getUtmUrl('facebook');
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
     setShowShareMenu(false);
   };
 
-  const shareToInstagram = () => {
-    window.open(`https://www.instagram.com/`, '_blank');
+  const shareToInstagram = async () => {
+    // Instagram direct link sharing is limited to stories for apps, for web we use copy + redirect
+    await copyLink(false);
+    showToast('Bağlantı kopyalandı! Instagram\'da paylaşabilirsiniz.', 'info');
+    setTimeout(() => {
+      window.open('https://www.instagram.com/', '_blank');
+    }, 1000);
     setShowShareMenu(false);
   };
 
-  const shareToTikTok = () => {
-    window.open(`https://www.tiktok.com/`, '_blank');
+  const shareToTikTok = async () => {
+    await copyLink(false);
+    showToast('Bağlantı kopyalandı! TikTok\'ta paylaşabilirsiniz.', 'info');
+    setTimeout(() => {
+      window.open('https://www.tiktok.com/', '_blank');
+    }, 1000);
     setShowShareMenu(false);
   };
 
-  const shareToSocial = () => {
+  const shareToSocial = async () => {
+    const url = getUtmUrl('nsosyal');
+    const text = getAIOptimizedText();
+
+    const stripHtml = (html: string) => html.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').trim();
+    const cleanTitle = stripHtml(data.title);
+
     if (navigator.share) {
-      navigator.share({
-        title: shareText,
-        url: shareUrl,
-      }).catch(() => { });
+      try {
+        await navigator.share({
+          title: cleanTitle,
+          text: text,
+          url: url,
+        });
+      } catch (error) {
+        if ((error as any).name !== 'AbortError') copyLink();
+      }
     } else {
       copyLink();
     }
     setShowShareMenu(false);
   };
 
-  const copyLink = async () => {
+  const copyLink = async (showNotification = true) => {
+    const url = getUtmUrl('copy_link');
     try {
-      await navigator.clipboard.writeText(shareUrl);
-      showToast('Link kopyalandı!', 'success');
-    } catch (error) { }
+      await navigator.clipboard.writeText(url);
+      if (showNotification) showToast('Link kopyalandı!', 'success');
+    } catch (error) {
+      if (showNotification) showToast('Kopyalama başarısız oldu.', 'error');
+    }
     setShowShareMenu(false);
   };
 
@@ -399,26 +489,38 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
           </div>
 
           <div>
-            <div
-              onClick={handleSourceAction}
-              className="flex items-center gap-1.5 cursor-pointer group/title"
-            >
-              <h5 className="text-sm font-[800] text-gray-900 tracking-tight group-hover/title:text-palette-red transition-colors">
-                {data.source}
-              </h5>
-              <span className="material-symbols-rounded text-palette-red" style={{ fontSize: '16px', fontVariationSettings: "'FILL' 1" }}>verified</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-[11px] font-bold text-palette-tan/40 leading-none mt-1">
-              <span className="text-palette-red bg-palette-red/5 px-1.5 py-0.5 rounded-[5px] uppercase tracking-wider text-[9px]">{data.category}</span>
-              <span className="w-0.5 h-0.5 bg-palette-beige rounded-[5px]"></span>
-              <span>{data.timestamp}</span>
-              <span className="w-0.5 h-0.5 bg-palette-beige rounded-[5px]"></span>
+            <div className="flex items-center gap-2">
+              <div
+                onClick={handleSourceAction}
+                className="flex items-center gap-1.5 cursor-pointer group/title"
+              >
+                <h5 className="text-[15px] font-[800] text-gray-900 tracking-tight group-hover/title:text-palette-red transition-colors">
+                  {data.source}
+                </h5>
+                <span className="material-symbols-rounded text-palette-red" style={{ fontSize: '16px', fontVariationSettings: "'FILL' 1" }}>verified</span>
+              </div>
+
+              {/* FOLLOW BUTTON - Color changed from red to professional blue */}
               <button
                 onClick={handleFollow}
-                className={`uppercase tracking-tighter text-[10px] font-[900] transition-colors ${isFollowing ? 'text-palette-maroon/20 hover:text-palette-maroon/40' : 'text-palette-red hover:text-palette-maroon'}`}
+                className={`uppercase tracking-tighter text-[9px] font-[900] px-2 py-0.5 rounded-full transition-all ${isFollowing ? 'text-gray-400 bg-gray-100' : 'text-blue-600 bg-blue-50 hover:bg-blue-600 hover:text-white'}`}
               >
                 {isFollowing ? 'Takipte' : 'Takip Et'}
               </button>
+            </div>
+
+            <div className="flex items-center gap-1.5 text-[10px] font-bold text-palette-tan/40 leading-none mt-1">
+              <div className="flex items-center gap-1">
+                {categoryHierarchy.map((cat, idx) => (
+                  <React.Fragment key={idx}>
+                    {/* CATEGORY COLORS - Changed to gray-500 as requested */}
+                    <span className="text-gray-500 font-[800] uppercase tracking-wider text-[9px]">{t(cat)}</span>
+                    {idx < categoryHierarchy.length - 1 && <span className="text-gray-500 mx-0.5 text-[8px]">/</span>}
+                  </React.Fragment>
+                ))}
+              </div>
+              <span className="w-0.5 h-0.5 bg-palette-beige rounded-[5px]"></span>
+              <span className="font-medium">{data.timestamp}</span>
             </div>
           </div>
         </div>
@@ -532,7 +634,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick }) => 
 
                   <div className="h-px bg-palette-beige/10 my-1 mx-2"></div>
 
-                  <button onClick={copyLink} className="w-full h-[38px] flex items-center gap-3 px-3 rounded-[8px] hover:bg-palette-beige/10 transition-all duration-300 group">
+                  <button onClick={() => copyLink()} className="w-full h-[38px] flex items-center gap-3 px-3 rounded-[8px] hover:bg-palette-beige/10 transition-all duration-300 group">
                     <div className="w-[20px] h-[20px] flex items-center justify-center text-palette-tan/60 group-hover:text-palette-tan group-hover:scale-110 transition-all">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
                         <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />

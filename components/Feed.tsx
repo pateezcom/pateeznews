@@ -3,7 +3,7 @@ import React, { useState, useMemo } from 'react';
 import StoryBar from './StoryBar';
 import NewsCard from './NewsCard';
 import { Clock, Flame } from 'lucide-react';
-import { NewsItem } from '../types';
+import { NewsItem, NewsType, SiteSettings, NavigationItem } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 import { NEWS_FEED } from '../constants';
 
@@ -13,9 +13,11 @@ interface FeedProps {
   onNewsSelect: (id: string) => void;
   onSourceClick?: (name: string) => void;
   storiesData?: any[];
+  siteSettings?: SiteSettings | null;
+  navItems?: NavigationItem[];
 }
 
-const Feed: React.FC<FeedProps> = ({ newsData, title, onNewsSelect, onSourceClick, storiesData }) => {
+const Feed: React.FC<FeedProps> = ({ newsData, title, onNewsSelect, onSourceClick, storiesData, siteSettings, navItems }) => {
   const [activeFilter, setActiveFilter] = useState<'latest' | 'popular'>('latest');
   const { t } = useLanguage();
 
@@ -92,6 +94,8 @@ const Feed: React.FC<FeedProps> = ({ newsData, title, onNewsSelect, onSourceClic
             data={news}
             onClick={() => onNewsSelect(news.id)}
             onSourceClick={() => onSourceClick?.(news.source)}
+            siteSettings={siteSettings}
+            navItems={navItems}
           />
         ))}
         {displayData.length === 0 && (

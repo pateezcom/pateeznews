@@ -6,16 +6,34 @@ import { NavigationItem, SiteSettings } from '../types';
 interface NavbarProps {
   onHomeClick?: () => void;
   onProfileClick?: () => void;
+  onAdminClick?: () => void;
+  onProfileViewClick?: () => void;
+  onEditProfileClick?: () => void;
+  onLogout?: () => void;
   isLoggedIn?: boolean;
   navItems?: NavigationItem[];
   siteSettings?: SiteSettings | null;
+  user?: any;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ onHomeClick, onProfileClick, isLoggedIn, navItems = [], siteSettings }) => {
+const Navbar: React.FC<NavbarProps> = ({
+  onHomeClick,
+  onProfileClick,
+  onAdminClick,
+  onProfileViewClick,
+  onEditProfileClick,
+  onLogout,
+  isLoggedIn,
+  navItems = [],
+  siteSettings,
+  user
+}) => {
   const { currentLang, availableLanguages, setLanguage, t } = useLanguage();
   const [showLangMenu, setShowLangMenu] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const langMenuRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   const headerItems = React.useMemo(() =>
     navItems.filter(item => item.type === 'header'),
@@ -27,34 +45,37 @@ const Navbar: React.FC<NavbarProps> = ({ onHomeClick, onProfileClick, isLoggedIn
       if (langMenuRef.current && !langMenuRef.current.contains(event.target as Node)) {
         setShowLangMenu(false);
       }
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
+      }
     };
-    if (showLangMenu) document.addEventListener('mousedown', handleClickOutside);
+    if (showLangMenu || showUserMenu) document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showLangMenu]);
+  }, [showLangMenu, showUserMenu]);
 
   return (
     <header className="fixed top-0 left-0 w-full z-[250]">
       <div className="h-[64px] bg-white/80 backdrop-blur-2xl border-b border-palette-beige/20 shadow-sm relative z-[251]">
         <div className="max-w-[1280px] mx-auto h-full flex items-center px-4">
 
-	          {/* LOGO */}
-	          <div
-	            onClick={onHomeClick}
-	            className="flex items-center gap-3 cursor-pointer group select-none z-20 flex-shrink-0 lg:w-[260px] pl-5"
-	          >
-	            {siteSettings?.logo_url ? (
-	              <div className="h-[42px] transition-opacity duration-200 group-hover:opacity-95">
-	                <img
-	                  src={siteSettings.logo_url}
-	                  alt={siteSettings?.site_name || "Site Logo"}
-	                  className="h-full w-auto object-contain select-none"
-	                />
-	              </div>
-	            ) : (
-	              <div className="w-[42px] h-[42px] bg-palette-red rounded-[5px] flex items-center justify-center shadow-lg shadow-palette-red/10 group-hover:scale-105 transition-all duration-500">
-	                <span className="material-symbols-rounded text-white" style={{ fontSize: '26px', fontVariationSettings: "'FILL' 1, 'wght' 600" }}>bolt</span>
-	              </div>
-	            )}
+          {/* LOGO */}
+          <div
+            onClick={onHomeClick}
+            className="flex items-center gap-3 cursor-pointer group select-none z-20 flex-shrink-0 lg:w-[260px] pl-5"
+          >
+            {siteSettings?.logo_url ? (
+              <div className="h-[42px] transition-opacity duration-200 group-hover:opacity-95">
+                <img
+                  src={siteSettings.logo_url}
+                  alt={siteSettings?.site_name || "Site Logo"}
+                  className="h-full w-auto object-contain select-none"
+                />
+              </div>
+            ) : (
+              <div className="w-[42px] h-[42px] bg-palette-red rounded-[5px] flex items-center justify-center shadow-lg shadow-palette-red/10 group-hover:scale-105 transition-all duration-500">
+                <span className="material-symbols-rounded text-white" style={{ fontSize: '26px', fontVariationSettings: "'FILL' 1, 'wght' 600" }}>bolt</span>
+              </div>
+            )}
             {!siteSettings?.logo_url && (
               <div className="flex flex-col justify-center">
                 <h1 className="text-xl font-bold tracking-tight text-gray-900 leading-none font-display">
@@ -135,29 +156,91 @@ const Navbar: React.FC<NavbarProps> = ({ onHomeClick, onProfileClick, isLoggedIn
               )}
             </div>
 
-            <button
-              onClick={onProfileClick}
-              className={`flex items-center gap-1.5 py-1.5 px-2 rounded-[5px] transition-all duration-200 group/profile active:scale-95 ${isLoggedIn
-                ? 'bg-palette-beige/5 border border-palette-beige/20 hover:border-palette-tan/30'
-                : 'hover:bg-palette-beige/10'
-                }`}
-            >
-              <div className={`flex items-center justify-center transition-all duration-300 ${isLoggedIn
-                ? 'w-7 h-7 rounded-[5px] border border-palette-tan/20 overflow-hidden shadow-sm'
-                : 'w-6 h-6'
-                }`}>
-                {isLoggedIn ? (
-                  <img src="https://picsum.photos/seed/admin/200" className="w-full h-full object-cover" alt="Profile" />
-                ) : (
-                  <span className="material-symbols-rounded text-palette-red" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1, 'wght' 600" }}>login</span>
+            <div className="relative" ref={userMenuRef}>
+              <button
+                onClick={() => {
+                  if (isLoggedIn) {
+                    setShowUserMenu(!showUserMenu);
+                  } else {
+                    onProfileClick?.();
+                  }
+                }}
+                className={`flex items-center gap-1.5 py-1.5 px-2 rounded-[5px] transition-all duration-200 group/profile active:scale-95 ${isLoggedIn
+                  ? 'bg-palette-beige/5 border border-palette-beige/20 hover:border-palette-tan/30'
+                  : 'hover:bg-palette-beige/10'
+                  }`}
+              >
+                <div className={`flex items-center justify-center transition-all duration-300 ${isLoggedIn
+                  ? 'w-7 h-7 rounded-[5px] border border-palette-tan/20 overflow-hidden shadow-sm'
+                  : 'w-6 h-6'
+                  }`}>
+                  {isLoggedIn ? (
+                    <img
+                      src={user?.user_metadata?.avatar_url || "https://picsum.photos/seed/admin/200"}
+                      className="w-full h-full object-cover"
+                      alt="Profile"
+                    />
+                  ) : (
+                    <span className="material-symbols-rounded text-palette-red" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1, 'wght' 600" }}>person</span>
+                  )}
+                </div>
+                {!isLoggedIn && (
+                  <span className="text-[10px] font-black text-gray-900 uppercase tracking-tight group-hover/profile:text-black transition-colors">
+                    {t('nav.login')}
+                  </span>
                 )}
-              </div>
-              {!isLoggedIn && (
-                <span className="text-[10px] font-black text-gray-900 uppercase tracking-tight group-hover/profile:text-black transition-colors">
-                  {t('nav.login')}
-                </span>
+              </button>
+
+              {/* USER DROPDOWN MENU */}
+              {isLoggedIn && showUserMenu && (
+                <div className="absolute top-full right-0 mt-2 w-56 bg-white/95 backdrop-blur-xl rounded-[12px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-palette-beige/20 py-2.5 z-[300] animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="px-4 py-2 mb-2 border-b border-palette-beige/10">
+                    <p className="text-[11px] font-black text-gray-900 truncate">
+                      {user?.user_metadata?.full_name || user?.email?.split('@')[0]}
+                    </p>
+                    <p className="text-[9px] font-bold text-palette-tan/60 truncate uppercase tracking-tighter">
+                      {user?.email}
+                    </p>
+                  </div>
+
+                  <div className="px-1.5 space-y-0.5">
+                    <button
+                      onClick={() => { onAdminClick?.(); setShowUserMenu(false); }}
+                      className="w-full flex items-center gap-3 px-3 py-2 rounded-[8px] text-gray-700 hover:bg-palette-beige/10 hover:text-palette-red transition-all group"
+                    >
+                      <span className="material-symbols-rounded text-[20px] opacity-60 group-hover:opacity-100" style={{ fontVariationSettings: "'FILL' 0" }}>dashboard</span>
+                      <span className="text-[12px] font-bold tracking-tight">Admin Panel</span>
+                    </button>
+
+                    <button
+                      onClick={() => { onProfileViewClick?.(); setShowUserMenu(false); }}
+                      className="w-full flex items-center gap-3 px-3 py-2 rounded-[8px] text-gray-700 hover:bg-palette-beige/10 hover:text-palette-red transition-all group"
+                    >
+                      <span className="material-symbols-rounded text-[20px] opacity-60 group-hover:opacity-100" style={{ fontVariationSettings: "'FILL' 0" }}>person</span>
+                      <span className="text-[12px] font-bold tracking-tight">Profilim</span>
+                    </button>
+
+                    <button
+                      onClick={() => { onEditProfileClick?.(); setShowUserMenu(false); }}
+                      className="w-full flex items-center gap-3 px-3 py-2 rounded-[8px] text-gray-700 hover:bg-palette-beige/10 hover:text-palette-red transition-all group"
+                    >
+                      <span className="material-symbols-rounded text-[20px] opacity-60 group-hover:opacity-100" style={{ fontVariationSettings: "'FILL' 0" }}>edit</span>
+                      <span className="text-[12px] font-bold tracking-tight">Profil Düzenle</span>
+                    </button>
+
+                    <div className="h-px bg-palette-beige/10 my-1.5 mx-2"></div>
+
+                    <button
+                      onClick={() => { onLogout?.(); setShowUserMenu(false); }}
+                      className="w-full flex items-center gap-3 px-3 py-2 rounded-[8px] text-palette-red hover:bg-palette-red/5 transition-all group"
+                    >
+                      <span className="material-symbols-rounded text-[20px] opacity-60 group-hover:opacity-100" style={{ fontVariationSettings: "'FILL' 0" }}>logout</span>
+                      <span className="text-[12px] font-[900] tracking-tight truncate">Çıkış Yap</span>
+                    </button>
+                  </div>
+                </div>
               )}
-            </button>
+            </div>
 
             <button className="lg:hidden w-10 h-10 flex items-center justify-center rounded-[5px] bg-palette-beige/10 text-gray-900 ml-1">
               <span className="material-symbols-rounded" style={{ fontSize: '22px' }}>menu</span>

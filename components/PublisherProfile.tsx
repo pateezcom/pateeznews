@@ -3,16 +3,17 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, CheckCircle2, UserPlus, MessageSquare, Share2, Users, Calendar, TrendingUp, Grid, Info, Settings2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import NewsCard from './NewsCard';
-import { NewsItem } from '../types';
+import { NewsItem, SiteSettings } from '../types';
 
 interface PublisherProfileProps {
   name: string;
   onBack: () => void;
   onNewsSelect: (id: string) => void;
   onEditClick?: () => void;
+  siteSettings?: SiteSettings | null;
 }
 
-const PublisherProfile: React.FC<PublisherProfileProps> = ({ name, onBack, onNewsSelect, onEditClick }) => {
+const PublisherProfile: React.FC<PublisherProfileProps> = ({ name, onBack, onNewsSelect, onEditClick, siteSettings }) => {
   const [activeTab, setActiveTab] = useState<'news' | 'popular' | 'about'>('news');
   const [isFollowing, setIsFollowing] = useState(false);
   const [publisherData, setPublisherData] = useState<any>(() => {
@@ -285,7 +286,7 @@ const PublisherProfile: React.FC<PublisherProfileProps> = ({ name, onBack, onNew
         {activeTab === 'news' && (
           <div className="grid grid-cols-1 gap-8">
             {publisherNews.map((news) => (
-              <NewsCard key={news.id} data={news} onClick={() => onNewsSelect(news.id)} />
+              <NewsCard key={news.id} data={news} onClick={() => onNewsSelect(news.id)} siteSettings={siteSettings} />
             ))}
           </div>
         )}
