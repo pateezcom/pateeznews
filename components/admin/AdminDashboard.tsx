@@ -14,6 +14,7 @@ const PostList = React.lazy(() => import('./PostList'));
 const PublisherManagement = React.lazy(() => import('./PublisherManagement'));
 const PublisherProfileSettings = React.lazy(() => import('./PublisherProfileSettings'));
 const Settings = React.lazy(() => import('./Settings'));
+const CommentManagement = React.lazy(() => import('./CommentManagement'));
 import { useLanguage } from '../../context/LanguageContext';
 
 interface AdminDashboardProps {
@@ -61,6 +62,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
     { id: 'posts', label: t('admin.sidebar.posts'), icon: 'add_circle', perm: 'manage_content', group: t('admin.management') },
     { id: 'news_list', label: t('admin.sidebar.news_list'), icon: 'description', perm: 'manage_content', group: t('admin.management') },
     { id: 'stories', label: t('admin.sidebar.stories'), icon: 'bolt', perm: 'manage_content', group: t('admin.management') },
+    { id: 'comments', label: 'Yorumlar', icon: 'comment', perm: 'manage_content', group: t('admin.management') },
     { id: 'users', label: t('admin.sidebar.users'), icon: 'group', perm: 'manage_users', group: t('admin.management') },
     { id: 'publishers', label: t('admin.sidebar.publishers'), icon: 'business_center', perm: 'manage_users', group: t('admin.management') },
     { id: 'navigation', label: t('admin.sidebar.navigation'), icon: 'account_tree', perm: 'manage_navigation', group: t('admin.system') },
@@ -214,6 +216,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
     if (activeTab === 'posts' && !hasPermission('manage_content')) return <AccessDenied />;
     if (activeTab === 'edit_post' && !hasPermission('manage_content')) return <AccessDenied />;
     if (activeTab === 'stories' && !hasPermission('manage_content')) return <AccessDenied />;
+    if (activeTab === 'comments' && !hasPermission('manage_content')) return <AccessDenied />;
     if (activeTab === 'navigation' && !hasPermission('manage_navigation')) return <AccessDenied />;
     if (activeTab === 'settings' && !hasPermission('view_settings')) return <AccessDenied />;
     if (activeTab === 'languages' && !hasPermission('view_languages')) return <AccessDenied />;
@@ -232,6 +235,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, initialTab = 
             case 'news_list': return <PostList onEditPost={handleEditPost} onAddPost={() => handleTabChange('posts')} />;
             case 'edit_post': return <PostManagement key={`edit-${editingUserId}`} postId={editingUserId || undefined} onDirtyChange={setIsDirty} onBack={() => handleTabChange('news_list')} />;
             case 'stories': return <StoryManagement onEditStory={(id) => handleTabChange('hikaye-editor', id)} />;
+            case 'comments': return <CommentManagement />;
             case 'navigation': return <NavigationSettings />;
             case 'languages': return <LanguageSettings />;
             case 'roles': return <RoleSettings />;

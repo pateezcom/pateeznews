@@ -577,7 +577,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack, navItems }) => {
               <h3 className="text-xl font-black text-gray-900 tracking-tight">Fikirlerini Paylaş</h3>
               <span className="text-xs font-bold text-gray-400 bg-gray-100 px-2.5 py-1 rounded-full">{data.comments} Yorum</span>
             </div>
-            <CommentSection />
+            <CommentSection postId={data.id} publisherId={data.publisherId} />
           </div>
 
         </article>

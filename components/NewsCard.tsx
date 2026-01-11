@@ -727,7 +727,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ data, onClick, onSourceClick, siteS
 
       {showComments && (
         <div onClick={(e) => e.stopPropagation()} className="animate-in fade-in slide-in-from-top-1 duration-300">
-          <CommentSection />
+          <CommentSection postId={data.id} publisherId={data.publisherId} />
         </div>
       )}
     </div>
