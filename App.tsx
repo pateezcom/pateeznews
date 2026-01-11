@@ -253,10 +253,11 @@ const App: React.FC = () => {
           let cardType = item.type?.toUpperCase() || 'STANDARD';
           let extraData: any = {};
           if (homepageItem) {
+            const { id: _ignoreId, ...homepagePayload } = homepageItem;
             cardType = homepageItem.type?.toUpperCase();
             if (homepageItem.type === 'slider') cardType = 'GALLERY';
             extraData = {
-              ...homepageItem,
+              ...homepagePayload,
               summary: homepageItem.description || item.summary,
               mediaUrl: homepageItem.mediaUrl || item.media_url || '',
               thumbnail: homepageItem.mediaUrl || item.thumbnail_url || 'https://picsum.photos/800/600'
@@ -287,6 +288,9 @@ const App: React.FC = () => {
             userSaved: userSaves.includes(item.id),
             publisherId: item.publisher_id,
             ...extraData,
+            ...(homepageItem?.type === 'poll'
+              ? { title: item.title, summary: item.summary, blockTitle: homepageItem.title, blockDescription: homepageItem.description }
+              : {}),
             type: cardType as any,
             // 🚀 Advanced SEO Mapping
             seoTitle: item.seo_title,
@@ -327,9 +331,10 @@ const App: React.FC = () => {
         let cardType = item.type?.toUpperCase() || 'STANDARD';
         let extraData: any = {};
         if (homepageItem) {
+          const { id: _ignoreId, ...homepagePayload } = homepageItem;
           cardType = homepageItem.type?.toUpperCase();
           if (homepageItem.type === 'slider') cardType = 'GALLERY';
-          extraData = { ...homepageItem };
+          extraData = { ...homepagePayload };
         }
 
         const mappedNews: NewsItem = {
@@ -354,6 +359,9 @@ const App: React.FC = () => {
           isPinned: item.is_pinned || false,
           publisherId: item.publisher_id,
           ...extraData,
+          ...(homepageItem?.type === 'poll'
+            ? { title: item.title, summary: item.summary, blockTitle: homepageItem.title, blockDescription: homepageItem.description }
+            : {}),
           type: cardType as any,
           // 🚀 Advanced SEO Mapping
           seoTitle: item.seo_title,

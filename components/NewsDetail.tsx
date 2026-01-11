@@ -111,7 +111,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack, navItems }) => {
   const readingTime = calculateReadingTime();
 
   return (
-    <div className="animate-in bg-white rounded-[5px] border border-gray-200 shadow-sm relative min-h-screen mb-10 overflow-hidden max-w-full mt-2">
+    <div className="animate-in bg-white rounded-[5px] border border-gray-200 shadow-sm relative min-h-screen mb-10 overflow-x-hidden overflow-y-visible max-w-full mt-2">
 
       {/* Reading Progress Bar */}
       <div className="fixed top-0 left-0 w-full h-1 z-[60] bg-gray-100/50 backdrop-blur-sm">
@@ -220,7 +220,8 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack, navItems }) => {
           {/* Body Items Rendering */}
           <div className="space-y-12 overflow-hidden">
             {data.items && data.items.length > 0 ? (
-              data.items.map((item: any) => {
+              data.items.map((item: any, index: number) => {
+                const isLastItem = index === data.items.length - 1;
                 switch (item.type) {
                   case 'text':
                     return (
@@ -278,11 +279,13 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ data, onBack, navItems }) => {
                     return (
                       <div key={item.id} className="space-y-6 pt-12 border-t-2 border-palette-beige/30 mt-16 relative">
                         {/* News End Indicator / Poll Start */}
-                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-white px-4 py-1 flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-palette-red" />
-                          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-palette-tan">HABER SONU</span>
-                          <div className="w-2 h-2 rounded-full bg-palette-red" />
-                        </div>
+                        {isLastItem && (
+                          <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-white px-4 py-1 flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-palette-red" />
+                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-palette-tan">HABER SONU</span>
+                            <div className="w-2 h-2 rounded-full bg-palette-red" />
+                          </div>
+                        )}
 
                         {item.title && (
                           <h3 className="text-3xl md:text-4xl font-[1000] text-gray-900 leading-tight tracking-tighter">

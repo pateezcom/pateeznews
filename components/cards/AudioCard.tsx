@@ -165,7 +165,10 @@ const AudioCard: React.FC<AudioCardProps> = ({ data }) => {
   return (
     <div className="mt-1 space-y-3 overflow-hidden">
       <div className="px-1 mb-3">
-        <p className="text-gray-600/80 text-[16px] leading-relaxed font-medium">{data.summary}</p>
+        <div
+          className="rich-text-content text-gray-600/80 text-[16px] leading-relaxed font-medium text-left [&>p]:mb-0"
+          dangerouslySetInnerHTML={{ __html: data.summary }}
+        />
       </div>
 
       <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-[5px] p-6 shadow-xl border border-slate-700/50 relative overflow-hidden group">
@@ -196,7 +199,7 @@ const AudioCard: React.FC<AudioCardProps> = ({ data }) => {
           </div>
 
           {/* 2. Cover Art & Vinyl Animation (Ortada) */}
-          <div className="relative w-48 h-48 sm:w-56 sm:h-56 flex-shrink-0 my-2 ml-0">
+          <div className="relative w-48 h-48 sm:w-56 sm:h-56 flex-shrink-0 my-2 mx-auto">
 
             {/* Hidden YouTube Iframe */}
             {isYoutube && (
@@ -269,7 +272,7 @@ const AudioCard: React.FC<AudioCardProps> = ({ data }) => {
             </div>
 
             {/* Main Buttons */}
-            <div className="flex items-center justify-start gap-8">
+            <div className="flex items-center justify-center gap-8">
               <button onClick={() => skipAudio(-15)} className="text-slate-400 hover:text-white transition-colors p-3 hover:bg-white/5 rounded-[5px]">
                 <Rewind size={24} className="fill-current" />
               </button>
@@ -291,7 +294,7 @@ const AudioCard: React.FC<AudioCardProps> = ({ data }) => {
             </div>
 
             {/* Volume Control */}
-            <div className="flex items-center justify-start gap-3 pt-2">
+            <div className="flex items-center justify-center gap-3 pt-2">
               <button onClick={() => {
                 const newVol = volume === 0 ? 1 : 0;
                 setVolume(newVol);

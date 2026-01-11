@@ -534,6 +534,35 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
     const initialFormDataRef = useRef<typeof formData | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
     const initDirtyTimerRef = useRef<number | null>(null);
+    const [isLoadingPost, setIsLoadingPost] = useState(!!postId);
+    const postLoadRef = useRef<string | null>(null);
+
+    const toDateTimeLocal = (value: string) => {
+        if (!value) return '';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return '';
+        const pad = (num: number) => String(num).padStart(2, '0');
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    };
+
+    const toIsoString = (value: string) => {
+        if (!value) return '';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return '';
+        return date.toISOString();
+    };
+
+    const ensureUniqueItemIds = (items: PostItem[]) => {
+        const seen = new Set<string>();
+        return items.map((item) => {
+            let nextId = item.id || '';
+            if (!nextId || seen.has(nextId)) {
+                nextId = `${item.type}-${Math.random().toString(36).slice(2, 9)}`;
+            }
+            seen.add(nextId);
+            return nextId === item.id ? item : { ...item, id: nextId };
+        });
+    };
 
     const treeCategories = useMemo(() => {
         // Sadece Ana Kategori öğelerini döndürür (Ağaç görünümü kaldırıldı)
@@ -681,71 +710,81 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
     }, []);
 
     useEffect(() => {
-        if (postId) {
-            const fetchPostData = async () => {
-                try {
-                    const { data, error } = await supabase
-                        .from('posts')
-                        .select('*')
-                        .eq('id', postId)
-                        .single();
+        if (!postId) {
+            postLoadRef.current = null;
+            setIsLoadingPost(false);
+            return;
+        }
+        if (postLoadRef.current === String(postId)) return;
 
-                    if (error) throw error;
-                    if (data) {
-                        const loadedLanguage = data.language_code || 'tr';
-                        const postType = data.type === 'contents' ? 'TABLE OF CONTENTS' : (data.type as any || 'article');
-                        const loadedData = {
-                            id: data.id,
-                            title: data.title || '',
-                            summary: data.summary || '',
-                            category: data.category || '',
-                            thumbnail: data.thumbnail_url || '',
-                            thumbnailAlt: data.thumbnail_alt || '',
-                            seoTitle: data.seo_title || '',
-                            seoDescription: data.seo_description || '',
-                            keywords: data.keywords || '',
-                            slug: data.slug || '',
-                            factChecked: data.fact_checked || false,
-                            schemaType: data.schema_type || 'NewsArticle',
-                            publishAt: data.published_at || '',
-                            publisher_id: data.publisher_id || '',
-                            isPinned: data.is_pinned || false,
-                            faqData: data.faq_data || (data.items || []).find((i: any) => i.type === 'faq')?.faqData || [] as { q: string, a: string }[],
-                            items: (data.items || []).filter((i: any) => i.type !== 'faq') as PostItem[]
-                        };
-                        setFormData(loadedData);
-                        // Düzenleme modu için başlangıç verilerini kaydet
-                        initialFormDataRef.current = JSON.parse(JSON.stringify(loadedData));
-                        initialSelectedLanguageRef.current = loadedLanguage;
-                        initialDetailTabRef.current = postType;
+        postLoadRef.current = String(postId);
+        setIsLoadingPost(true);
 
-                        setSelectedLanguage(loadedLanguage);
-                        setActiveDetailTab(postType);
+        const fetchPostData = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('posts')
+                    .select('*')
+                    .eq('id', postId)
+                    .single();
 
-                        // Set parent and sub category if possible
-                        if (data.category && categories.length > 0) {
-                            const foundCat = categories.find(c => c.label === data.category);
-                            if (foundCat) {
-                                if (foundCat.parent_id) {
-                                    setSelectedParentId(foundCat.parent_id);
-                                    setSelectedSubId(foundCat.id);
-                                } else {
-                                    setSelectedParentId(foundCat.id);
-                                    setSelectedSubId('');
-                                }
+                if (error) throw error;
+                if (data) {
+                    const loadedLanguage = data.language_code || 'tr';
+                    const postType = data.type === 'contents' ? 'TABLE OF CONTENTS' : (data.type as any || 'article');
+                    const loadedData = {
+                        id: data.id,
+                        title: data.title || '',
+                        summary: data.summary || '',
+                        category: data.category || '',
+                        thumbnail: data.thumbnail_url || '',
+                        thumbnailAlt: data.thumbnail_alt || '',
+                        seoTitle: data.seo_title || '',
+                        seoDescription: data.seo_description || '',
+                        keywords: data.keywords || '',
+                        slug: data.slug || '',
+                        factChecked: data.fact_checked || false,
+                        schemaType: data.schema_type || 'NewsArticle',
+                        publishAt: toDateTimeLocal(data.published_at || ''),
+                        publisher_id: data.publisher_id || '',
+                        isPinned: data.is_pinned || false,
+                        faqData: data.faq_data || (data.items || []).find((i: any) => i.type === 'faq')?.faqData || [] as { q: string, a: string }[],
+                        items: ensureUniqueItemIds((data.items || []).filter((i: any) => i.type !== 'faq') as PostItem[])
+                    };
+                    setFormData(loadedData);
+                    // Düzenleme modu için başlangıç verilerini kaydet
+                    initialFormDataRef.current = JSON.parse(JSON.stringify(loadedData));
+                    initialSelectedLanguageRef.current = loadedLanguage;
+                    initialDetailTabRef.current = postType;
+
+                    setSelectedLanguage(loadedLanguage);
+                    setActiveDetailTab(postType);
+
+                    // Set parent and sub category if possible
+                    if (data.category && categories.length > 0) {
+                        const foundCat = categories.find(c => c.label === data.category);
+                        if (foundCat) {
+                            if (foundCat.parent_id) {
+                                setSelectedParentId(foundCat.parent_id);
+                                setSelectedSubId(foundCat.id);
+                            } else {
+                                setSelectedParentId(foundCat.id);
+                                setSelectedSubId('');
                             }
                         }
                     }
-                } catch (err) {
-                    console.error("Error fetching post:", err);
                 }
-            };
-            fetchPostData();
-        }
+            } catch (err) {
+                console.error("Error fetching post:", err);
+                postLoadRef.current = null;
+            } finally {
+                setIsLoadingPost(false);
+            }
+        };
+        fetchPostData();
     }, [postId, categories]);
 
     useEffect(() => {
-        fetchMedia();
         fetchLanguages();
     }, []);
 
@@ -1196,15 +1235,12 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
 
     useEffect(() => {
         if (selectedLanguage) {
-            const timer = setTimeout(() => {
-                fetchCategories(selectedLanguage);
-            }, 300);
+            fetchCategories(selectedLanguage);
             if (formData.id === '' && !postId) {
                 setSelectedParentId('');
                 setSelectedSubId('');
                 setFormData(prev => ({ ...prev, category: '' }));
             }
-            return () => clearTimeout(timer);
         }
     }, [selectedLanguage]);
 
@@ -1983,7 +2019,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                 .replace(/-+/g, '-')
                 .trim();
 
-            const finalItems = [...formData.items];
+            const finalItems = ensureUniqueItemIds([...formData.items]);
             if (formData.faqData && formData.faqData.length > 0) {
                 finalItems.push({
                     id: 'faq-schema-block',
@@ -1994,6 +2030,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                 } as any);
             }
 
+            const normalizedPublishAt = toIsoString(formData.publishAt);
             const postData: any = {
                 title: formData.title,
                 summary: formData.summary,
@@ -2007,7 +2044,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                 fact_checked: formData.factChecked,
                 schema_type: formData.schemaType,
                 items: finalItems,
-                published_at: status === 'published' ? (formData.publishAt || new Date().toISOString()) : null,
+                published_at: status === 'published' ? (normalizedPublishAt || new Date().toISOString()) : null,
                 status: status,
                 language_code: selectedLanguage,
                 publisher_id: formData.publisher_id || user?.id,
@@ -2101,8 +2138,20 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
     };
 
     return (
-        <div className="animate-in fade-in duration-500 admin-font">
+        <div className="animate-in fade-in duration-500 admin-font relative">
             <style dangerouslySetInnerHTML={{ __html: QUILL_CUSTOM_STYLE }} />
+            {isLoadingPost && (
+                <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-[2px]">
+                    <div className="flex items-center gap-3 px-5 py-3 bg-white rounded-[3px] border border-palette-tan/20 shadow-lg">
+                        <span className="material-symbols-rounded animate-spin text-palette-maroon" style={{ fontSize: '22px' }}>progress_activity</span>
+                        <div className="flex flex-col">
+                            <span className="text-[12px] font-black text-palette-maroon uppercase tracking-wider">Haber yükleniyor</span>
+                            <span className="text-[11px] font-bold text-palette-tan/60">Düzenleme içeriği hazırlanıyor...</span>
+                        </div>
+                    </div>
+                </div>
+            )}
+            <div className={isLoadingPost ? 'pointer-events-none select-none opacity-70' : ''}>
             {/* MODERN COMPACT HEADER */}
             <div className="flex items-center justify-between mb-6 bg-white p-4 rounded-[3px] border border-palette-tan/20 shadow-sm">
                 <div className="flex items-center gap-4">
@@ -2414,10 +2463,11 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                     )}
 
                     <div className="space-y-6">
-                        {formData.items.map((item, index) => (
-                            item.type === 'slider' ? (
+                        {formData.items.map((item, index) => {
+                            const itemKey = `${item.id}-${index}`;
+                            return item.type === 'slider' ? (
                                 <PostSliderImageItem
-                                    key={item.id}
+                                    key={itemKey}
                                     item={item}
                                     index={index}
                                     totalItems={formData.items.length}
@@ -2436,7 +2486,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                                 />
                             ) : item.type === 'image' ? (
                                 <PostImageItem
-                                    key={item.id}
+                                    key={itemKey}
                                     item={item}
                                     index={index}
                                     totalItems={formData.items.length}
@@ -2462,7 +2512,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                                 />
                             ) : item.type === 'video' ? (
                                 <PostVideoItem
-                                    key={item.id}
+                                    key={itemKey}
                                     item={item}
                                     index={index}
                                     totalItems={formData.items.length}
@@ -2482,7 +2532,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                                 />
                             ) : item.type === 'audio' ? (
                                 <PostAudioItem
-                                    key={item.id}
+                                    key={itemKey}
                                     item={item}
                                     index={index}
                                     totalItems={formData.items.length}
@@ -2502,7 +2552,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                                 />
                             ) : item.type === 'file' ? (
                                 <PostFileItem
-                                    key={item.id}
+                                    key={itemKey}
                                     item={item}
                                     index={index}
                                     totalItems={formData.items.length}
@@ -2521,7 +2571,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                                 />
                             ) : item.type === 'social' ? (
                                 <PostSocialItem
-                                    key={item.id}
+                                    key={itemKey}
                                     item={item}
                                     index={index}
                                     totalItems={formData.items.length}
@@ -2534,7 +2584,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                                 />
                             ) : item.type === 'flipcard' ? (
                                 <PostFlipCardItem
-                                    key={item.id}
+                                    key={itemKey}
                                     item={item}
                                     index={index}
                                     totalItems={formData.items.length}
@@ -2569,7 +2619,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                                 />
                             ) : item.type === 'beforeafter' ? (
                                 <PostBeforeAfterItem
-                                    key={item.id}
+                                    key={itemKey}
                                     item={item}
                                     index={index}
                                     totalItems={formData.items.length}
@@ -2604,7 +2654,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                                 />
                             ) : item.type === ('quiz' as any) ? (
                                 <PostQuizItem
-                                    key={item.id}
+                                    key={itemKey}
                                     item={item}
                                     index={index}
                                     totalItems={formData.items.length}
@@ -2642,7 +2692,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                                 />
                             ) : item.type === 'iframe' ? (
                                 <PostIframeItem
-                                    key={item.id}
+                                    key={itemKey}
                                     item={item}
                                     index={index}
                                     totalItems={formData.items.length}
@@ -2655,7 +2705,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                                 />
                             ) : item.type === 'quote' ? (
                                 <PostQuoteItem
-                                    key={item.id}
+                                    key={itemKey}
                                     item={item}
                                     index={index}
                                     totalItems={formData.items.length}
@@ -2668,7 +2718,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                                 />
                             ) : item.type === 'poll' ? (
                                 <PostPollItem
-                                    key={item.id}
+                                    key={itemKey}
                                     item={item}
                                     index={index}
                                     totalItems={formData.items.length}
@@ -2706,7 +2756,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                                 />
                             ) : item.type === 'vs' ? (
                                 <PostVSItem
-                                    key={item.id}
+                                    key={itemKey}
                                     item={item}
                                     index={index}
                                     totalItems={formData.items.length}
@@ -2744,7 +2794,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                                 />
                             ) : item.type === 'review' ? (
                                 <PostReviewItem
-                                    key={item.id}
+                                    key={itemKey}
                                     item={item}
                                     index={index}
                                     totalItems={formData.items.length}
@@ -2782,7 +2832,7 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                                 />
                             ) : (
                                 <PostTextItem
-                                    key={item.id}
+                                    key={itemKey}
                                     item={item}
                                     index={index}
                                     totalItems={formData.items.length}
@@ -2793,8 +2843,8 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                                     onMoveUp={(idx) => handleMoveItem(idx, 'up')}
                                     onMoveDown={(idx) => handleMoveItem(idx, 'down')}
                                 />
-                            )
-                        ))}
+                            );
+                        })}
 
                         {(activeDetailTab !== 'poll' && activeDetailTab !== 'video' && activeDetailTab !== 'quiz') && (
                             <div className="flex flex-wrap pt-4 gap-3">
@@ -3296,7 +3346,8 @@ const PostManagement: React.FC<PostManagementProps> = ({ postId, onBack, onDirty
                     </div>
                 )
             }
-        </div >
+            </div>
+        </div>
     );
 };
 

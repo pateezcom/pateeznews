@@ -23,13 +23,12 @@ const PollCard: React.FC<PollCardProps> = ({ data }) => {
 
   return (
     <div className="mt-1 space-y-4 overflow-hidden">
-      {/* SUMMARY - Creative Style */}
-      <div className="px-1 mb-2">
-        <p className="text-palette-maroon/60 text-[15px] leading-relaxed">
-          <span className="text-palette-red font-black text-[11px] uppercase tracking-widest mr-2">Sizin İçin</span>
-          <span className="font-[500] italic" dangerouslySetInnerHTML={{ __html: data.summary }} />
-        </p>
-      </div>
+    {/* SUMMARY - Creative Style */}
+    <div className="px-1 mb-2">
+      <p className="text-palette-maroon/60 text-[15px] leading-relaxed">
+        <span className="font-[500] italic" dangerouslySetInnerHTML={{ __html: data.summary }} />
+      </p>
+    </div>
 
       {/* MAIN POLL CONTAINER */}
       <div className="relative bg-gradient-to-br from-palette-beige/10 via-white to-palette-beige/5 rounded-[5px] border border-palette-beige/40 overflow-hidden shadow-sm">
@@ -72,6 +71,12 @@ const PollCard: React.FC<PollCardProps> = ({ data }) => {
               {(data as any).blockTitle}
               {(!String((data as any).blockTitle).trim().endsWith('?') && !String((data as any).blockTitle).trim().endsWith('!')) ? '?' : ''}
             </h3>
+            {(data as any).blockDescription && (
+              <div
+                className="mt-2 text-[13px] font-[600] text-palette-tan/60 leading-relaxed [&>p]:m-0"
+                dangerouslySetInnerHTML={{ __html: (data as any).blockDescription }}
+              />
+            )}
           </div>
         )}
 
@@ -90,13 +95,13 @@ const PollCard: React.FC<PollCardProps> = ({ data }) => {
                     key={option.id}
                     disabled={hasVoted}
                     onClick={() => handleVote(option.id)}
-                    className={`group relative flex flex-col rounded-[5px] overflow-hidden transition-all duration-500 bg-palette-beige/5 ${hasVoted
-                      ? isSelected
-                        ? 'ring-2 ring-palette-maroon shadow-xl z-10'
-                        : 'opacity-40 grayscale-[50%] scale-[0.98]'
-                      : 'hover:shadow-xl hover:scale-[1.02] active:scale-[0.99]'
-                      }`}
-                  >
+                  className={`group relative flex flex-col rounded-[5px] overflow-hidden transition-all duration-500 bg-palette-beige/5 border ${hasVoted
+                    ? isSelected
+                      ? 'ring-2 ring-palette-maroon shadow-xl z-10 border-palette-maroon/40'
+                      : 'opacity-40 grayscale-[50%] scale-[0.98] border-palette-beige/30'
+                    : 'border-palette-beige/40 hover:shadow-xl hover:scale-[1.02] active:scale-[0.99]'
+                    }`}
+                >
                     {/* Image Container - Fixed Height with Blurred Background */}
                     <div className="relative w-full h-[240px] overflow-hidden">
                       {/* Blurred Background Fill */}

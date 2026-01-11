@@ -47,12 +47,15 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ data }) => {
   return (
     <div className="mt-1 space-y-3 overflow-hidden">
       <div className="px-1 mb-3">
-        <p className="text-gray-600/80 text-[16px] leading-relaxed font-medium">{data.summary}</p>
+        <div
+          className="rich-text-content text-gray-600/80 text-[16px] leading-relaxed font-medium text-left [&>p]:mb-0"
+          dangerouslySetInnerHTML={{ __html: data.summary }}
+        />
       </div>
 
       <div className="bg-white rounded-[5px] border border-gray-200 overflow-hidden shadow-sm">
         {/* Header Section - Modern Dynamic Sizing */}
-        <div className={`relative w-full bg-gray-900 group overflow-hidden flex items-center justify-start transition-all duration-700 ${imageRatio === 'vertical' ? 'h-[400px]' : 'h-auto min-h-[240px]'
+        <div className={`relative w-full bg-gray-900 group overflow-hidden flex items-center justify-center transition-all duration-700 ${imageRatio === 'vertical' ? 'h-[400px]' : 'h-auto min-h-[240px]'
           }`}>
           {/* Background Blur for empty spaces in Vertical mode */}
           {imageRatio === 'vertical' && (
@@ -65,7 +68,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ data }) => {
           <img
             src={productImage || data.thumbnail}
             alt={productName}
-            className={`relative z-10 transition-transform duration-1000 group-hover:scale-105 ml-0 ${imageRatio === 'vertical' ? 'h-full w-auto object-contain' : 'w-full h-auto block'
+            className={`relative z-10 transition-transform duration-1000 group-hover:scale-105 mx-auto ${imageRatio === 'vertical' ? 'h-full w-auto object-contain' : 'w-full h-auto block'
               }`}
             onError={(e) => {
               const target = e.target as HTMLImageElement;

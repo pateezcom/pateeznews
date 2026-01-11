@@ -67,6 +67,7 @@ const PostFlipCardItem: React.FC<PostFlipCardItemProps> = ({
             frontDescription: '',
             backDescription: ''
         };
+        if ((currentData as any)[field] === value) return;
         onUpdate(item.id, 'flipData', {
             ...currentData,
             [field]: value

@@ -53,6 +53,27 @@
 
 <body>
   <div id="root"></div>
+  <script>
+    (() => {
+      const info = console.info.bind(console);
+      const warn = console.warn.bind(console);
+      const shouldIgnore = (args) => {
+        const first = typeof args[0] === 'string' ? args[0] : '';
+        return (
+          first.includes('Download the React DevTools') ||
+          first.includes('Permissions policy violation: unload is not allowed in this document.')
+        );
+      };
+      console.info = (...args) => {
+        if (shouldIgnore(args)) return;
+        info(...args);
+      };
+      console.warn = (...args) => {
+        if (shouldIgnore(args)) return;
+        warn(...args);
+      };
+    })();
+  </script>
   <script type="module" src="/index.tsx"></script>
 </body>
 

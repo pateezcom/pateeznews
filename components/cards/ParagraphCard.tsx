@@ -15,9 +15,10 @@ const ParagraphCard: React.FC<ParagraphCardProps> = ({ data }) => {
         <div className="mt-1 space-y-4 overflow-hidden">
             {/* SUBTITLE (SUMMARY) - Standard Card Style as Alt Başlık */}
             <div className="px-1 mb-2">
-                <p className="text-palette-tan/60 text-[16px] font-medium leading-relaxed">
-                    {data.summary}
-                </p>
+                <div
+                    className="rich-text-content text-palette-tan/60 text-[16px] font-medium leading-relaxed text-left [&>p]:mb-0"
+                    dangerouslySetInnerHTML={{ __html: data.summary }}
+                />
             </div>
 
             <div className="relative bg-palette-beige/20 rounded-[5px] border border-palette-beige/50 p-8 md:p-12 overflow-hidden shadow-sm group">

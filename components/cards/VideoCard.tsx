@@ -404,7 +404,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ data }) => {
     <div className="mt-1 space-y-3 overflow-hidden">
       <div className="px-1 mb-3">
         <div
-          className="rich-text-content text-gray-600/80 text-[16px] leading-relaxed font-medium"
+          className="rich-text-content text-gray-600/80 text-[16px] leading-relaxed font-medium text-left [&>p]:mb-0"
           dangerouslySetInnerHTML={{ __html: data.summary }}
         />
       </div>
@@ -412,10 +412,10 @@ const VideoCard: React.FC<VideoCardProps> = ({ data }) => {
       <div
         ref={videoContainerRef}
         onClick={togglePlay}
-        className="relative w-full bg-black shadow-lg border border-gray-100 group flex justify-start items-center overflow-hidden cursor-pointer rounded-[5px]"
+        className="relative w-full bg-black shadow-lg border border-gray-100 group flex justify-center items-center overflow-hidden cursor-pointer rounded-[5px]"
       >
         {isYoutube ? (
-          <div className={`w-full aspect-video ${ytInfo.isShorts ? 'max-w-[300px] aspect-[9/16]' : ''}`}>
+          <div className={`w-full mx-auto aspect-video ${ytInfo.isShorts ? 'max-w-[300px] aspect-[9/16]' : ''}`}>
             <iframe
               ref={iframeRef}
               src={ytInfo.embed}
@@ -430,7 +430,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ data }) => {
             ref={videoRef}
             src={data.mediaUrl}
             poster={data.thumbnail}
-            className="w-auto h-auto max-h-[450px] object-contain ml-0"
+            className="w-auto h-auto max-h-[450px] object-contain mx-auto"
             muted={true}
             playsInline
             loop
@@ -456,7 +456,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ data }) => {
 
 
 
-          <div className="absolute inset-0 flex items-center justify-start p-8 pointer-events-none">
+          <div className="absolute inset-0 flex items-center justify-center p-8 pointer-events-none">
             <div className={`
               w-14 h-14 rounded-full bg-black/20 backdrop-blur-md border-2 border-white/40 
               flex items-center justify-center transition-all duration-300

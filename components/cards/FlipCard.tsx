@@ -65,7 +65,10 @@ const FlipCard: React.FC<FlipCardProps> = ({ data }) => {
   return (
     <div className="mt-1 space-y-3 overflow-hidden">
       <div className="px-1 mb-3">
-        <p className="text-gray-600/80 text-[16px] leading-relaxed font-medium">{data.summary}</p>
+        <div
+          className="rich-text-content text-gray-600/80 text-[16px] leading-relaxed font-medium text-left [&>p]:mb-0"
+          dangerouslySetInnerHTML={{ __html: data.summary }}
+        />
       </div>
 
       {/* Card Container with Perspective */}
